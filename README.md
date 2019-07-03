@@ -1,7 +1,7 @@
 # optimization
 Python optimization library for linear programming.
 
-*This libary is a work in progress.*
+*This library is a work in progress.*
 
 Created By Terry Zheng and Jonathan Wang
 
