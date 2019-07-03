@@ -33,8 +33,8 @@ class LinearProgrammingProblem:
         b = self.__to_ndarray(b)
         c = self.__to_ndarray(c)
 
-        if type(z) is float:
-            raise TypeError('One or more arguments are invalid.')
+        if not type(z) is float and not type(z) is int:
+            raise TypeError()
         if not operators:
             operators = ['=' for i in range(b.shape[0])]
 
@@ -54,11 +54,12 @@ class LinearProgrammingProblem:
 
 
     def __str__(self):
-        return f'A:\n{str(self._A)}\n\nb:\n{self._b}\n\nc:\n{self._c}\n\nz:\n{self._z}\n\nOperators:\n{self._operators}'
+        # To do: better display for formulation
+        return f"A:\n{str(self._A)}\n\nb:\n{self._b}\n\nc:\n{self._c}\n\nz:\n{self._z}\n\nOperators:\n{self._operators}"
 
 
 
-    def to_canonical_form(self, c_row_vector, b_column_vector, z_constant, base_indices, show_steps=True):
+    def to_canonical_form(self, base_indices, show_steps=True):
         """
         Computes the canonical form of the formulation in terms of the given base indices.
 
@@ -68,20 +69,16 @@ class LinearProgrammingProblem:
         :return: Self
 
         """
-        sb = StepBuilder()
-        sb.append_title('Canonical Form A for Base Indices')
-
         A_b = self._A[:, base_indices]
 
-        c_b = c_row_vector[base_indices]
+        c_b = self._c[base_indices]
         A_b_inverse = np.linalg.inv(A_b)
         y_transpose = (A_b_inverse.T @ c_b).T
-        constant = y_transpose @ b_column_vector + z_constant
-        coefficient_matrix = c_row_vector.T - \
-            y_transpose @ self._A  # not matrix should be row vector
+        constant = y_transpose @ self._b + self._c
+        coefficient_matrix = self._c.T - y_transpose @ self._A  # not matrix should be row vector
 
         self._A = A_b_inverse @ self._A
-        self._b = A_b_inverse @ b_column_vector
+        self._b = A_b_inverse @ self._b
 
         self._z = constant
         self._c = coefficient_matrix
@@ -90,12 +87,12 @@ class LinearProgrammingProblem:
 
 
 
-    def simplex_solver():
+    def simplex_solver(self):
         pass
 
 
 
-    def simplex_iteration():
+    def simplex_iteration(self):
         pass
 
 
@@ -115,58 +112,58 @@ class LinearProgrammingProblem:
 
 
     def verify_infeasibility(self, y):
-      """
-      Verifies the certificate of infeasibility.
+        """
+        Verifies the certificate of infeasibility.
 
-      :param y:
+        :param y:
 
-      :return: A boolean value indicating if the certificate is valid.
+        :return: A boolean value indicating if the certificate is valid.
 
-      """
-      y_transpose = y.T
+        """
+        y_transpose = y.T
 
-      yTA = y_transpose @ self._A
-      yTb = y_transpose @ self._b
+        yTA = y_transpose @ self._A
+        yTb = y_transpose @ self._b
 
-      return all([
-        (yTA >= 0).all(),
-        (yTb < 0).all()
-      ])
+        return all([
+            (yTA >= 0).all(),
+            (yTb < 0).all()
+        ])
 
 
 
     def verify_unboundedness(self, x, d):
-      """
-      Verifies the certificate of unboundedness.
+        """
+        Verifies the certificate of unboundedness.
 
-      :param x:
-      :param d:
+        :param x:
+        :param d:
 
-      :result: A boolean value indicating if the certificate is valid.
+        :result: A boolean value indicating if the certificate is valid.
 
-      """
-      Ad = self._A @ d
-      cTd = self._c.T @ d
+        """
+        Ad = self._A @ d
+        cTd = self._c.T @ d
 
-      return all([
-        (Ad == 0).all(),
-        (d >= 0).all(),
-        (cTd > 0).all(),
-        self.is_solution_feasible(x)
-      ])
+        return all([
+            (Ad == 0).all(),
+            (d >= 0).all(),
+            (cTd > 0).all(),
+            self.is_solution_feasible(x)
+        ])
 
 
 
     def verify_optimality(self, certificate):
-      """
-      Verifies the certificate of optimality.
+        """
+        Verifies the certificate of optimality.
 
-      """
-      pass
+        """
+        pass
 
 
 
-     def is_solution_feasible(self, x):
+    def is_solution_feasible(self, x):
         """
 
         Checks if the given vector 'x' is a feasible solution.
@@ -177,28 +174,28 @@ class LinearProgrammingProblem:
 
         """
         if not self.__is_vector_of_size(x, self._c.shape[0]):
-          return False
+            return False
 
         if self._is_seq:
             return (x >= 0).all() and np.array_equal(self._A @ x, self._b)
 
         for i in range(self._A.shape[0]):
-          value = self._A[i, :] @ x
-          
-          if not i in self._free_vars and x[i] < 0:
-            return False
-          
-          operator = self._operators[i]
-          b = self._b[i]
+            value = self._A[i, :] @ x
+            
+            if not i in self._free_vars and x[i] < 0:
+                return False
+            
+            operator = self._operators[i]
+            b = self._b[i]
 
-          fail_conditions = [
-            operator == '=' and value != b,
-            operator == '>=' and value < b,
-            operator == '<=' and value > b
-          ]
+            fail_conditions = [
+                operator == '=' and value != b,
+                operator == '>=' and value < b,
+                operator == '<=' and value > b
+            ]
 
-          if any(fail_conditions):
-            return False
+            if any(fail_conditions):
+                return False
         
         return True
     
@@ -257,31 +254,32 @@ class LinearProgrammingProblem:
         return self
 
 
+
     def is_solution_optimal(self, x):
-      self.is_solution_feasible(x)
-      pass
+        self.is_solution_feasible(x)
+        pass
 
 
 
-    def __to_ndarray(source):
-      if isinstance(source, np.ndarray):
-        # add dtype validation
-        return source
+    def __to_ndarray(self, source):
+        if isinstance(source, np.ndarray):
+            # add dtype validation
+            return source
 
-      if isinstance(source, list):
-      # Add array dimension validation
-        return np.array(source, dtype=float)
+        if isinstance(source, list):
+        # Add array dimension validation
+            return np.array(source, dtype=float)
 
-      raise TypeError()
+        raise TypeError()
 
 
 
     def __is_vector_of_size(self, x, n):
-      return all([
-        type(x) is np.ndarray,
-        x.ndim == 1,
-        x.shape[0] == n
-      ])
+        return all([
+            type(x) is np.ndarray,
+            x.ndim == 1,
+            x.shape[0] == n
+        ])
 
 
 
@@ -411,7 +409,7 @@ class LinearProgrammingProblem:
 
 
     def get_z(self):
-         """ Returns objective function constant. """
+        """ Returns objective function constant. """
         return self._z
 
 
@@ -432,7 +430,7 @@ base_indices = np.array([0, 1, 3])
 
 x = LinearProgrammingProblem(A, b, c, z)
 
-x.canonical_form(base_indices)
+x.to_canonical_form(base_indices)
 
 
 
@@ -453,7 +451,7 @@ b=np.array([
 
 c=np.array([-1,2,-4]).T
 
-lp = LinearProgrammingProblem(A=A, b=b, c=c, z=0.0, operators=['>=', '<=', '='], free_vars=[3], objective='min')
+lp = LinearProgrammingProblem(A=A, b=b, c=c, z=0, operators=['>=', '<=', '='], free_vars=[3], objective='min')
 
 
 print(lp.to_seq())
