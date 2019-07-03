@@ -1,15 +1,9 @@
+import sys
 import numpy as np
 
-from enum import Enum
+sys.path.append('./enums');
 
-class Objective(Enum):
-    min = 0
-    max = 1
-
-class Operator(Enum):
-    equal = 0
-    greater_equal_than = 1
-    less_equal_than = 2
+from objective import Objective
 
 class LinearProgrammingProblem:
     def __init__(self, A, b, c, z, objective=Objective.max, operators=None, free_vars=[]):
@@ -43,7 +37,7 @@ class LinearProgrammingProblem:
         self._c = c
         self._z = z
         self._objective = objective
-        self._is_seq = all(
+        self._is_sef = all(
             operator == '=' for operator in operators) and len(free_vars) == 0
         self._operators = operators
         self._free_vars = [free_var - 1 for free_var in free_vars]
@@ -87,27 +81,41 @@ class LinearProgrammingProblem:
 
 
 
-    def simplex_solver(self):
+    def compute_simplex_solution(self):
         pass
 
 
+    #Basis is in mathematical index
+    #Separate this function into one private and one public
+    def compute_simplex_iteration(self, basis):
+        basis = map(lambda i: i + 1, basis)
+        
+        if min(basis) < 0 or max(basis) >= self._A.shape[1]:
+            raise TypeError()
+        
+        self.to_canonical_form(basis)
 
-    def simplex_iteration(self):
-        pass
+        #x is basic feasible solution for B
+        x = None
 
+        N = [i for i in range(self._A.shape[1]) if not i in basis]
 
+        if (self._c[:, N] <= 0).all():
+            return x
 
-    def get_operators(self):
-        return self._operators
+        k = None
 
+        for i in N:
+            if self._c[:, i] > 0:
+                k = i
 
-
-    def get_objective(self):
-        """
-        Gets the objective.
-
-        """
-        return self._objective
+                break
+        
+        if (A[:, k] <= 0).all():
+            #unbounded
+            return
+        
+        return self
 
 
 
@@ -176,7 +184,7 @@ class LinearProgrammingProblem:
         if not self.__is_vector_of_size(x, self._c.shape[0]):
             return False
 
-        if self._is_seq:
+        if self._is_sef:
             return (x >= 0).all() and np.array_equal(self._A @ x, self._b)
 
         for i in range(self._A.shape[0]):
@@ -211,14 +219,14 @@ class LinearProgrammingProblem:
 
 
 
-    def to_seq(self):
+    def to_sef(self):
         """
         Converts expression to standard equality form.
 
         :return: Self
 
         """
-        if self._is_seq:
+        if self._is_sef:
             return
 
         if self._objective == 'min':
@@ -249,7 +257,7 @@ class LinearProgrammingProblem:
             
             self._operators[i] = '='
 
-        self._is_seq = True
+        self._is_sef = True
 
         return self
 
@@ -384,11 +392,6 @@ class LinearProgrammingProblem:
         return arr
 
 
-    def get_is_seq(self):
-        """ Returns if current form is in SEQ. """
-        return self._is_seq
-
-
 
     def get_A(self):
         """ Returns constraint coefficient matrix. """
@@ -411,6 +414,25 @@ class LinearProgrammingProblem:
     def get_z(self):
         """ Returns objective function constant. """
         return self._z
+
+
+
+    def get_operators(self):
+        """ Returns the operators on the constraint. """
+        return self._operators
+
+
+
+    def get_objective(self):
+        """ Returns the objective of this model. """
+        return self._objective
+
+
+
+    def get_is_sef(self):
+        """ Returns if model is in SEF. """
+        return self._is_sef
+
 
 
 
@@ -454,4 +476,4 @@ c=np.array([-1,2,-4]).T
 lp = LinearProgrammingProblem(A=A, b=b, c=c, z=0, operators=['>=', '<=', '='], free_vars=[3], objective='min')
 
 
-print(lp.to_seq())
+print(lp.to_sef())
