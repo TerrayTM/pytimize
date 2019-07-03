@@ -1,8 +1,18 @@
 import numpy as np
-# Todo change objective to enum value
+
+from enum import Enum
+
+class Objective(Enum):
+    min = 0
+    max = 1
+
+class Operator(Enum):
+    equal = 0
+    greater_equal_than = 1
+    less_equal_than = 2
 
 class LinearProgrammingProblem:
-    def __init__(self, A, b, c, z, objective='max', operators=None, free_vars=[]):
+    def __init__(self, A, b, c, z, objective=Objective.max, operators=None, free_vars=[]):
         """
         Constructs a LP (P) formulation of the form 'func{cTx + z : Ax = b, vars >= 0}'
         where 'func' denotes either min or max, 'T' denotes the transpose operator, and
@@ -43,27 +53,19 @@ class LinearProgrammingProblem:
 
 
 
-    def __to_ndarray(source):
-      if isinstance(source, np.ndarray):
-        # add dtype validation
-        return source
-
-      if isinstance(source, list):
-      # Add array dimension validation
-        return np.array(source, dtype=float)
-
-      raise TypeError()
+    def __str__(self):
+        return f'A:\n{str(self._A)}\n\nb:\n{self._b}\n\nc:\n{self._c}\n\nz:\n{self._z}\n\nOperators:\n{self._operators}'
 
 
 
-    def _to_canonical_form(self, c_row_vector, b_column_vector, z_constant, base_indices, show_steps):
+    def to_canonical_form(self, c_row_vector, b_column_vector, z_constant, base_indices, show_steps=True):
         """
         Computes the canonical form of the formulation in terms of the given base indices.
 
         :param base_indices: An array of integer indices denoting the columns that form a base.
                              Use standard math index numbering.
 
-        :return: 
+        :return: Self
 
         """
         sb = StepBuilder()
@@ -84,41 +86,7 @@ class LinearProgrammingProblem:
         self._z = constant
         self._c = coefficient_matrix
 
-
-
-    def canonical_form(self, base_indices, show_steps=False):
-        # self.__compute_canonical_form(self._A, self._c, self._b, self._z, base_indices, show_steps)
         return self
-
-
-
-    def __str__(self):
-        return f'A:\n{str(self._A)}\n\nb:\n{self._b}\n\nc:\n{self._c}\n\nz:\n{self._z}\n\nOperators:\n{self._operators}'
-
-
-
-    def get_is_seq(self):
-      return self._is_seq
-
-
-
-    def get_A(self):
-        return self._A
-
-
-
-    def get_b(self):
-        return self._b
-
-
-
-    def get_c(self):
-        return self._c
-
-
-
-    def get_z(self):
-        return self._z
 
 
 
@@ -143,15 +111,6 @@ class LinearProgrammingProblem:
 
         """
         return self._objective
-
-
-
-    def __is_vector_of_size(self, x, n):
-      return all([
-        type(x) is np.ndarray,
-        x.ndim == 1,
-        x.shape[0] == n
-      ])
 
 
 
@@ -298,10 +257,31 @@ class LinearProgrammingProblem:
         return self
 
 
-
     def is_solution_optimal(self, x):
       self.is_solution_feasible(x)
       pass
+
+
+
+    def __to_ndarray(source):
+      if isinstance(source, np.ndarray):
+        # add dtype validation
+        return source
+
+      if isinstance(source, list):
+      # Add array dimension validation
+        return np.array(source, dtype=float)
+
+      raise TypeError()
+
+
+
+    def __is_vector_of_size(self, x, n):
+      return all([
+        type(x) is np.ndarray,
+        x.ndim == 1,
+        x.shape[0] == n
+      ])
 
 
 
@@ -404,6 +384,35 @@ class LinearProgrammingProblem:
                 break
 
         return arr
+
+
+    def get_is_seq(self):
+        """ Returns if current form is in SEQ. """
+        return self._is_seq
+
+
+
+    def get_A(self):
+        """ Returns constraint coefficient matrix. """
+        return self._A
+
+
+
+    def get_b(self):
+        """ Returns constraint vector. """
+        return self._b
+
+
+
+    def get_c(self):
+        """ Returns objective function coefficient vector. """
+        return self._c
+
+
+
+    def get_z(self):
+         """ Returns objective function constant. """
+        return self._z
 
 
 
