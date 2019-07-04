@@ -4,7 +4,7 @@ import numpy as np
 sys.path.append('./enums');
 
 from objective import Objective
-
+# To do: Rename T to transpose for variable names
 class LinearProgrammingProblem:
     def __init__(self, A, b, c, z, objective=Objective.max, operators=None, free_vars=[]):
         """
@@ -40,10 +40,7 @@ class LinearProgrammingProblem:
         self._is_sef = all(
             operator == '=' for operator in operators) and len(free_vars) == 0
         self._operators = operators
-        self._free_vars = [free_var - 1 for free_var in free_vars]
-
-        if len(self._free_vars) > 0 and (min(self._free_vars) < 0 or max(self._free_vars) >= A.shape[1]):
-            raise IndexError()
+        self._free_vars = self.__convert_indices(free_vars, 0, c.shape[0])
 
 
 
@@ -53,29 +50,32 @@ class LinearProgrammingProblem:
 
 
 
-    def to_canonical_form(self, base_indices, show_steps=True):
+    def to_canonical_form(self, basis, show_steps=True):
         """
         Computes the canonical form of the formulation in terms of the given base indices.
 
-        :param base_indices: An array of integer indices denoting the columns that form a base.
+        :param basis: An array of integer indices denoting the columns that form a base.
                              Use standard math index numbering.
 
         :return: Self
 
         """
-        A_b = self._A[:, base_indices]
+        basis = self.__convert_indices(basis, 0, self._c.shape[0])
 
-        c_b = self._c[base_indices]
+        A_b = self._A[:, basis]
+        c_b = self._c[basis]
         A_b_inverse = np.linalg.inv(A_b)
         y_transpose = (A_b_inverse.T @ c_b).T
-        constant = y_transpose @ self._b + self._c
-        coefficient_matrix = self._c.T - y_transpose @ self._A  # not matrix should be row vector
 
-        self._A = A_b_inverse @ self._A
-        self._b = A_b_inverse @ self._b
+        A = A_b_inverse @ self._A
+        b = A_b_inverse @ self._b
+        c = self._c.T - y_transpose @ self._A
+        z = y_transpose @ self._b + self._z
 
-        self._z = constant
-        self._c = coefficient_matrix
+        self._A = A
+        self._b = b
+        self._c = c
+        self._z = z
 
         return self
 
@@ -85,13 +85,11 @@ class LinearProgrammingProblem:
         pass
 
 
-    #Basis is in mathematical index
+
     #Separate this function into one private and one public
     def compute_simplex_iteration(self, basis):
-        basis = map(lambda i: i + 1, basis)
-        
-        if min(basis) < 0 or max(basis) >= self._A.shape[1]:
-            raise TypeError()
+
+        basis = self.__convert_indices(basis, 0, self._c.shape[0])
         
         self.to_canonical_form(basis)
 
@@ -281,6 +279,29 @@ class LinearProgrammingProblem:
         raise TypeError()
 
 
+    def __convert_indices(self, indices, min_value=None, max_value=None):
+        """ 
+        Converts from math indexing to array indexing.
+        
+        min_value is the closed lower bound allowed for minimum index value.
+        max_value is the open upper bound allowed for minimum index value.
+
+        """
+        indices = list(map(lambda i: i - 1, indices))
+
+        if len(indices) > 0:
+            conditions = [
+                min_value and min(indices) < min_value,
+                max_value and max(indices) >= max_value,
+                any(not type(i) == int for i in indices)
+            ]
+
+            if any(conditions):
+                raise IndexError()
+        
+        return indices
+
+
 
     def __is_vector_of_size(self, x, n):
         return all([
@@ -393,87 +414,74 @@ class LinearProgrammingProblem:
 
 
 
-    def get_A(self):
+    @property
+    def A(self):
         """ Returns constraint coefficient matrix. """
         return self._A
 
 
 
-    def get_b(self):
+    @property
+    def b(self):
         """ Returns constraint vector. """
         return self._b
 
 
 
-    def get_c(self):
+    @property
+    def c(self):
         """ Returns objective function coefficient vector. """
         return self._c
 
 
 
-    def get_z(self):
+    @property
+    def z(self):
         """ Returns objective function constant. """
         return self._z
 
 
 
-    def get_operators(self):
+    @property
+    def operators(self):
         """ Returns the operators on the constraint. """
         return self._operators
 
 
 
+    @property
     def get_objective(self):
         """ Returns the objective of this model. """
         return self._objective
 
 
 
-    def get_is_sef(self):
+    @property
+    def is_sef(self):
         """ Returns if model is in SEF. """
         return self._is_sef
 
 
+if __name__ == "__main__":
+
+    a = np.array([[1, 2, 3], [2, 4, 6]])
+
+    b= np.zeros(3) #use 0 instead of np.zeros
 
 
-A = np.array([
-    [1, 1, 1, 0, 0],
-    [2, 1, 0, 1, 0],
-    [-1, 1, 0, 0, 1]
-])
+    A = np.array([
+        [1,5,3],
+        [2,-1,2],
+        [1,2,-1]
+    ])
 
-c = np.array([2, 3, 0, 0, 0])
+    b=np.array([
+    5,4,2
+    ]).T
 
-b = np.array([6, 10, 4]).T
+    c=np.array([-1,2,-4]).T
 
-z = 0.0
-
-base_indices = np.array([0, 1, 3])
-
-x = LinearProgrammingProblem(A, b, c, z)
-
-x.to_canonical_form(base_indices)
+    lp = LinearProgrammingProblem(A=A, b=b, c=c, z=0, operators=['>=', '<=', '='], free_vars=[3], objective='min')
 
 
-
-a = np.array([[1, 2, 3], [2, 4, 6]])
-
-b= np.zeros(3) #use 0 instead of np.zeros
-
-
-A = np.array([
-    [1,5,3],
-    [2,-1,2],
-    [1,2,-1]
-])
-
-b=np.array([
-5,4,2
-]).T
-
-c=np.array([-1,2,-4]).T
-
-lp = LinearProgrammingProblem(A=A, b=b, c=c, z=0, operators=['>=', '<=', '='], free_vars=[3], objective='min')
-
-
-print(lp.to_sef())
+    print(lp.to_sef())
