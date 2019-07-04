@@ -5,7 +5,7 @@ sys.path.append('./enums');
 
 from objective import Objective
 # To do: Rename T to transpose for variable names
-class LinearProgrammingProblem:
+class LinearProgrammingModel:
     def __init__(self, A, b, c, z, objective=Objective.max, operators=None, free_vars=[]):
         """
         Constructs a LP (P) formulation of the form 'func{cTx + z : Ax = b, vars >= 0}'
@@ -369,6 +369,7 @@ class LinearProgrammingProblem:
         :return: An m x n matrix in RREF that is row equivalent to the given matrix.
 
         """
+        arr = arr.astype(np.float64)
         shape = arr.shape
         col = 0
         for row in range(shape[0]):
@@ -396,15 +397,13 @@ class LinearProgrammingProblem:
 
                 # Divide row by row,col entry to get a 1
                 num = arr[row, col]
-                for i in range(shape[1]):
-                    arr[row, i] /= num
+                arr[row, :] /= num
 
-            # Subtract row from all other rows to get 0s in rest of col
+            # Subtract a multiple of row from all other rows to get 0s in rest of col
             for i in range(shape[0]):
                 if i != row:
                     multiple = arr[i, col] / arr[row, col]
-                    for j in range(shape[1]):
-                        arr[i, j] -= arr[row, j] * multiple
+                    arr[i, :] -= arr[row, :] * multiple
                         
             col += 1
             if col == shape[1]:
@@ -481,7 +480,19 @@ if __name__ == "__main__":
 
     c=np.array([-1,2,-4]).T
 
-    lp = LinearProgrammingProblem(A=A, b=b, c=c, z=0, operators=['>=', '<=', '='], free_vars=[3], objective='min')
+    lp = LinearProgrammingModel(A=A, b=b, c=c, z=0, operators=['>=', '<=', '='], free_vars=[3], objective='min')
 
+    """ 
+    # Testing modified code
+    d = np.array([
+        [0, 0, 0], 
+        [1, 7, 3], 
+        [0, 0, 0], 
+        [1, -3, 2],
+        [1, 1, 2]
+        ], dtype=float)
+
+    print(lp.rref(d))
+    """
 
     print(lp.to_sef())
