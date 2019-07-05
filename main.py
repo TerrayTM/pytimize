@@ -50,16 +50,21 @@ class LinearProgrammingModel:
 
 
 
-    def to_canonical_form(self, basis, show_steps=True):
+    def to_canonical_form(self, basis, show_steps=True, in_place=False):
         """
         Computes the canonical form of the formulation in terms of the given base indices.
 
         :param basis: An array of integer indices denoting the columns that form a base.
                              Use standard math index numbering.
 
-        :return: Self
+        :return: LinearProgrammingModel
 
         """
+        if not in_place:
+            copy = self.copy()
+            
+            return copy.to_canonical_form(basis, show_steps, True)
+
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
 
         A_b = self._A[:, basis]
@@ -69,7 +74,7 @@ class LinearProgrammingModel:
 
         A = A_b_inverse @ self._A
         b = A_b_inverse @ self._b
-        c = self._c.T - y_transpose @ self._A
+        c = self._c - y_transpose @ self._A
         z = y_transpose @ self._b + self._z
 
         self._A = A
@@ -81,13 +86,13 @@ class LinearProgrammingModel:
 
 
 
-    def compute_simplex_solution(self):
+    def compute_simplex_solution(self, in_place=False):
         pass
 
 
 
     #Separate this function into one private and one public
-    def compute_simplex_iteration(self, basis):
+    def compute_simplex_iteration(self, basis, in_place=False):
 
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
         
@@ -149,12 +154,12 @@ class LinearProgrammingModel:
 
         """
         Ad = self._A @ d
-        cTd = self._c.T @ d
+        cd = self._c @ d
 
         return all([
             (Ad == 0).all(),
             (d >= 0).all(),
-            (cTd > 0).all(),
+            (cd > 0).all(),
             self.is_solution_feasible(x)
         ])
 
@@ -171,7 +176,6 @@ class LinearProgrammingModel:
 
     def is_solution_feasible(self, x):
         """
-
         Checks if the given vector 'x' is a feasible solution.
 
         :param x: A row vector.
@@ -217,17 +221,33 @@ class LinearProgrammingModel:
 
 
 
-    def to_sef(self):
+    def copy(self):
+        """
+        Creates a copy of the current model.
+
+        :return: LinearProgrammingModel
+
+        """
+        return LinearProgrammingModel(self._A, self._b, self._c, self._z, self._objective, self.operators, self._free_vars)
+
+
+
+    def to_sef(self, in_place=False):
         """
         Converts expression to standard equality form.
 
-        :return: Self
+        :return: Standard equality form representation of this model.
 
         """
+        if not in_place:
+            copy = self.copy()
+
+            return copy.to_sef(in_place=True)
+
         if self._is_sef:
             return
 
-        if self._objective == 'min':
+        if self._objective == Objective.min:
             self._c = -self._c
             self._objective = 'max'
 
@@ -269,7 +289,10 @@ class LinearProgrammingModel:
 
     def __to_ndarray(self, source):
         if isinstance(source, np.ndarray):
-            # add dtype validation
+            if not np.issubdtype(source.dtype, np.number):
+                raise TypeError()
+            
+            # add dtype conversion
             return source
 
         if isinstance(source, list):
@@ -415,49 +438,49 @@ class LinearProgrammingModel:
 
     @property
     def A(self):
-        """ Returns constraint coefficient matrix. """
+        """ Gets the constraint coefficient matrix. """
         return self._A
 
 
 
     @property
     def b(self):
-        """ Returns constraint vector. """
+        """ Gets the constraint vector. """
         return self._b
 
 
 
     @property
     def c(self):
-        """ Returns objective function coefficient vector. """
+        """ Gets the coefficient vector. """
         return self._c
 
 
 
     @property
     def z(self):
-        """ Returns objective function constant. """
+        """ Gets the constant. """
         return self._z
 
 
 
     @property
     def operators(self):
-        """ Returns the operators on the constraint. """
+        """ Gets the constraint operators. """
         return self._operators
 
 
 
     @property
-    def get_objective(self):
-        """ Returns the objective of this model. """
+    def objective(self):
+        """ Gets the objective. """
         return self._objective
 
 
 
     @property
     def is_sef(self):
-        """ Returns if model is in SEF. """
+        """ Gets if the model is in standard equality form. """
         return self._is_sef
 
 
