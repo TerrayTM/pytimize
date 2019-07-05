@@ -29,7 +29,7 @@ class TestToCanonicalForm(TestCase):
         basis = [1, 2, 4]
 
         p = LinearProgrammingModel(A, b, c, z)
-        p.to_canonical_form(basis)
+        p.to_canonical_form(basis, in_place=True)
         
         self.assertTrue(np.array_equal(p.A, expected_A), "Should compute correct coefficient matrix.")
         self.assertTrue(np.array_equal(p.b, expected_b), "Should compute correct constraints.")
