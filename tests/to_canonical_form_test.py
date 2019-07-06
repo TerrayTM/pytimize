@@ -26,14 +26,30 @@ class TestToCanonicalForm(TestCase):
         expected_c = np.array([0, 0, -2.5, 0, -0.5])
         expected_z = 17
 
-        basis = [1, 2, 4]
-
         p = LinearProgrammingModel(A, b, c, z)
-        p.to_canonical_form(basis, in_place=True)
         
-        self.assertTrue(np.array_equal(p.A, expected_A), "Should compute correct coefficient matrix.")
-        self.assertTrue(np.array_equal(p.b, expected_b), "Should compute correct constraints.")
-        self.assertTrue(np.array_equal(p.c, expected_c), "Should compute correct coefficient vector.")
+        result_one = p.to_canonical_form([1, 2, 4])
+        
+        self.assertTrue(np.array_equal(result_one.A, expected_A), "Should compute correct coefficient matrix.")
+        self.assertTrue(np.array_equal(result_one.b, expected_b), "Should compute correct constraints.")
+        self.assertTrue(np.array_equal(result_one.c, expected_c), "Should compute correct coefficient vector.")
+        self.assertTrue(p.z == expected_z, "Should compute correct constant.")
+
+        expected_A = np.array([
+            [1, 0.5, 0, 0.5, 0],
+            [0, 0.5, 1, -0.5, 0],
+            [0, 1.5, 0, 0.5, 1]
+        ])
+        expected_b = np.array([5, 1, 9])
+        expected_c = np.array([0, 2, 0, -1, 0])
+        expected_z = 10
+
+        result_two = p.to_canonical_form([1, 3, 5])
+        print(result_two)
+        
+        self.assertTrue(np.array_equal(result_two.A, expected_A), "Should compute correct coefficient matrix.")
+        self.assertTrue(np.array_equal(result_two.b, expected_b), "Should compute correct constraints.")
+        self.assertTrue(np.array_equal(result_two.c, expected_c), "Should compute correct coefficient vector.")
         self.assertTrue(p.z == expected_z, "Should compute correct constant.")
 
     def test_invalid_basis(self):
