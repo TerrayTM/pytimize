@@ -8,7 +8,7 @@ from objective import Objective
 class LinearProgrammingModel:
     def __init__(self, A, b, c, z, objective=Objective.max, operators=None, free_vars=[]):
         """
-        Constructs a LP (P) formulation of the form 'func{cTx + z : Ax = b, vars >= 0}'
+        Constructs a LP formulation of the form 'func{cx + z : Ax = b, vars >= 0}'
         where 'func' denotes either min or max, 'T' denotes the transpose operator, and
         'vars' denotes the variables that are constrained to be greater than or equal to 0.
 
@@ -46,6 +46,31 @@ class LinearProgrammingModel:
 
     def __str__(self):
         # To do: better display for formulation
+        """
+        To do:
+        Return string respresentation of this form
+        min or max cx + z
+        Ax = b
+
+        For example:
+
+        Max [1, 2, 3]x + 10
+        Subject To:
+
+        [ 1.  5. -5. ]     =   [ 1 ]
+        [ 2. -1.  1. ]x   <=   [ 2 ]
+        [ 1.  2. -2. ]    >=   [ 3 ]
+
+        
+        Max is in self._objective
+        A is self._A
+        x is a vector
+        10 is from self._z
+        b is from self._b
+        The equation symbols are from self._operators with index 0 corresponding to row 0
+        self._operators format might change
+
+        """
         return f"A:\n{str(self._A)}\n\nb:\n{self._b}\n\nc:\n{self._c}\n\nz:\n{self._z}\n\nOperators:\n{self._operators}"
 
 
@@ -236,7 +261,7 @@ class LinearProgrammingModel:
         """
         Converts expression to standard equality form.
 
-        :return: Standard equality form representation of this model.
+        :return: LinearProgrammingModel
 
         """
         if not in_place:
@@ -245,11 +270,11 @@ class LinearProgrammingModel:
             return copy.to_sef(in_place=True)
 
         if self._is_sef:
-            return
+            return self
 
         if self._objective == Objective.min:
             self._c = -self._c
-            self._objective = 'max'
+            self._objective = Objective.max
 
         # ASSUME FREEE VARS IS IN ASC ORDER
         for i in range(len(self._free_vars)):
@@ -292,11 +317,13 @@ class LinearProgrammingModel:
             if not np.issubdtype(source.dtype, np.number):
                 raise TypeError()
             
-            # add dtype conversion
+            if not np.issubdtype(source.dtype, np.float):
+                source = source.astype(float)
+                    
             return source
 
         if isinstance(source, list):
-        # Add array dimension validation
+            # Check for dimension and jagged array
             return np.array(source, dtype=float)
 
         raise TypeError()
@@ -482,40 +509,3 @@ class LinearProgrammingModel:
     def is_sef(self):
         """ Gets if the model is in standard equality form. """
         return self._is_sef
-
-
-if __name__ == "__main__":
-
-    a = np.array([[1, 2, 3], [2, 4, 6]])
-
-    b= np.zeros(3) #use 0 instead of np.zeros
-
-
-    A = np.array([
-        [1,5,3],
-        [2,-1,2],
-        [1,2,-1]
-    ])
-
-    b=np.array([
-    5,4,2
-    ]).T
-
-    c=np.array([-1,2,-4]).T
-
-    lp = LinearProgrammingModel(A=A, b=b, c=c, z=0, operators=['>=', '<=', '='], free_vars=[3], objective='min')
-
-    """ 
-    # Testing modified code
-    d = np.array([
-        [0, 0, 0], 
-        [1, 7, 3], 
-        [0, 0, 0], 
-        [1, -3, 2],
-        [1, 1, 2]
-        ], dtype=float)
-
-    print(lp.rref(d))
-    """
-
-    print(lp.to_sef())
