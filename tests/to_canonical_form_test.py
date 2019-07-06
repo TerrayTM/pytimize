@@ -5,6 +5,7 @@ sys.path.append('../optimization')
 
 from main import LinearProgrammingModel
 from unittest import TestCase, main
+from math import isclose
 
 class TestToCanonicalForm(TestCase):
     def test_compute_canonical_form(self):
@@ -30,10 +31,10 @@ class TestToCanonicalForm(TestCase):
         
         result_one = p.to_canonical_form([1, 2, 4])
         
-        self.assertTrue(np.array_equal(result_one.A, expected_A), "Should compute correct coefficient matrix.")
-        self.assertTrue(np.array_equal(result_one.b, expected_b), "Should compute correct constraints.")
-        self.assertTrue(np.array_equal(result_one.c, expected_c), "Should compute correct coefficient vector.")
-        self.assertTrue(p.z == expected_z, "Should compute correct constant.")
+        self.assertTrue(np.allclose(result_one.A, expected_A), "Should compute correct coefficient matrix.")
+        self.assertTrue(np.allclose(result_one.b, expected_b), "Should compute correct constraints.")
+        self.assertTrue(np.allclose(result_one.c, expected_c), "Should compute correct coefficient vector.")
+        self.assertTrue(isclose(result_one.z, expected_z), "Should compute correct constant.")
 
         expected_A = np.array([
             [1, 0.5, 0, 0.5, 0],
@@ -45,12 +46,11 @@ class TestToCanonicalForm(TestCase):
         expected_z = 10
 
         result_two = p.to_canonical_form([1, 3, 5])
-        print(result_two)
         
-        self.assertTrue(np.array_equal(result_two.A, expected_A), "Should compute correct coefficient matrix.")
-        self.assertTrue(np.array_equal(result_two.b, expected_b), "Should compute correct constraints.")
-        self.assertTrue(np.array_equal(result_two.c, expected_c), "Should compute correct coefficient vector.")
-        self.assertTrue(p.z == expected_z, "Should compute correct constant.")
+        self.assertTrue(np.allclose(result_two.A, expected_A), "Should compute correct coefficient matrix.")
+        self.assertTrue(np.allclose(result_two.b, expected_b), "Should compute correct constraints.")
+        self.assertTrue(np.allclose(result_two.c, expected_c), "Should compute correct coefficient vector.")
+        self.assertTrue(isclose(result_two.z, expected_z), "Should compute correct constant.")
 
     def test_invalid_basis(self):
         p = LinearProgrammingModel([[1, 2, 3], [4, 5, 6]], [1, 2], [1, 2], 0)
