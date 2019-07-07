@@ -5,6 +5,7 @@ sys.path.append("../optimization")
 
 from main import LinearProgrammingModel
 from unittest import TestCase, main
+from math import isclose
 
 class TestCopy(TestCase):
     def test_copy(self):
@@ -21,10 +22,10 @@ class TestCopy(TestCase):
         p = LinearProgrammingModel(A, b, c, z)
         copy = p.copy()
 
-        self.assertTrue(np.array_equal(p.A, copy.A), "Should be the same coefficient matrix.")
-        self.assertTrue(np.array_equal(p.b, copy.b), "Should be the same constraints.")
-        self.assertTrue(np.array_equal(p.c, copy.c), "Should be the same coefficient vector.")
-        self.assertTrue(p.z == copy.z, "Should be the same constant.")
+        self.assertTrue(np.allclose(p.A, copy.A), "Should be the same coefficient matrix.")
+        self.assertTrue(np.allclose(p.b, copy.b), "Should be the same constraints.")
+        self.assertTrue(np.allclose(p.c, copy.c), "Should be the same coefficient vector.")
+        self.assertTrue(isclose(p.z, copy.z), "Should be the same constant.")
 
 if __name__ == "__main__":
     main()
