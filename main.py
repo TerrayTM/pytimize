@@ -4,7 +4,9 @@ import numpy as np
 sys.path.append('./enums');
 
 from objective import Objective
-# To do: Rename T to transpose for variable names
+
+# To do: redo pydoc comment style
+
 class LinearProgrammingModel:
     def __init__(self, A, b, c, z, objective=Objective.max, operators=None, free_vars=[]):
         """
@@ -27,6 +29,9 @@ class LinearProgrammingModel:
         b = self.__to_ndarray(b)
         c = self.__to_ndarray(c)
 
+        if (not A.ndim == 2 or not b.ndim == 1 or
+                not c.ndim == 1 or not A.shape[0] == b.shape[0] or not A.shape[1] == c.shape[0]):
+            raise ValueError()
         if not type(z) is float and not type(z) is int:
             raise TypeError()
         if not operators:
@@ -236,13 +241,34 @@ class LinearProgrammingModel:
     
 
 
-    def evaluate_objective_function(self, x):
-        pass
-    
+    def evaluate(self, x):
+        """
+        Evaluates the objective function with a given x vector. Does not 
+        check if x satisfies the constraints.
+
+        :return: float
+        """
+        x = self.__to_ndarray(x)
+        
+        if not self.__is_vector_of_size(x, self._c[0]):
+            raise TypeError()
+        
+        return self._c @ x + self._z
 
 
-    def evaluate_value(self, x):
-        pass
+
+    def value_of(self, x):
+        """
+        Computes the value of a given x vector. The vector must satisfy the constraints.
+        
+        :return: float
+        """
+        x = self.__to_ndarray(x)
+
+        if not self.is_solution_feasible(x):
+            raise TypeError()
+        
+        return self.evaluate(x)
 
 
 
@@ -317,7 +343,7 @@ class LinearProgrammingModel:
             if not np.issubdtype(source.dtype, np.number):
                 raise TypeError()
             
-            if not np.issubdtype(source.dtype, np.float):
+            if not np.issubdtype(source.dtype, np.floating):
                 source = source.astype(float)
                     
             return source
