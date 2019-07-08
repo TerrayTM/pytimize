@@ -6,9 +6,11 @@ sys.path.append('./enums');
 from objective import Objective
 
 # To do: redo pydoc comment style
+# To do: update pydoc comments
+# To do: check all and any expressions
 
 class LinearProgrammingModel:
-    def __init__(self, A, b, c, z, objective=Objective.max, operators=None, free_vars=[]):
+    def __init__(self, A, b, c, z, objective=Objective.max, inequalities=None, free_vars=[]):
         """
         Constructs a LP formulation of the form 'func{cx + z : Ax = b, vars >= 0}'
         where 'func' denotes either min or max, 'T' denotes the transpose operator, and
@@ -29,22 +31,42 @@ class LinearProgrammingModel:
         b = self.__to_ndarray(b)
         c = self.__to_ndarray(c)
 
-        if (not A.ndim == 2 or not b.ndim == 1 or
-                not c.ndim == 1 or not A.shape[0] == b.shape[0] or not A.shape[1] == c.shape[0]):
+        # To do: add tests for invalid inequalities type or invalid dimensions
+        has_invalid_values = any([
+            not A.ndim == 2 or not b.ndim == 1 or not c.ndim == 1 or not A.shape[0] == b.shape[0] or not A.shape[1] == c.shape[0],
+            inequalities and not all(inequality in ['=', '>=', '<='] for inequality in inequalities),
+            not type(z) is float and not type(z) is int,
+            not isinstance(objective, Objective)
+        ])
+        
+        if has_invalid_values:
             raise ValueError()
-        if not type(z) is float and not type(z) is int:
-            raise TypeError()
-        if not operators:
-            operators = ['=' for i in range(b.shape[0])]
+
+        left_inequalities = []
+        right_inequalities = []
+        sef_condition = True
+
+        if inequalities:
+            for i in range(len(inequalities)):
+                inequality = inequalities[i]
+
+                if inequality == '>=':
+                    left_inequalities.append(i)
+
+                    sef_condition = False
+                elif inequality == '<=':
+                    right_inequalities.append(i)
+
+                    sef_condition = False
 
         self._A = A
         self._b = b
         self._c = c
         self._z = z
         self._objective = objective
-        self._is_sef = all(
-            operator == '=' for operator in operators) and len(free_vars) == 0
-        self._operators = operators
+        self._is_sef = sef_condition and len(free_vars) == 0
+        self._left_inequalities = left_inequalities
+        self._right_inequalities = right_inequalities
         self._free_vars = self.__convert_indices(free_vars, 0, c.shape[0])
 
 
@@ -341,7 +363,7 @@ class LinearProgrammingModel:
     def __to_ndarray(self, source):
         if isinstance(source, np.ndarray):
             if not np.issubdtype(source.dtype, np.number):
-                raise TypeError()
+                raise ValueError()
             
             if not np.issubdtype(source.dtype, np.floating):
                 source = source.astype(float)
@@ -352,7 +374,7 @@ class LinearProgrammingModel:
             # Check for dimension and jagged array
             return np.array(source, dtype=float)
 
-        raise TypeError()
+        raise ValueError()
 
 
     def __convert_indices(self, indices, min_value=None, max_value=None):
