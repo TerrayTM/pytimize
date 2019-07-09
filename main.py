@@ -94,8 +94,8 @@ class LinearProgrammingModel:
         x is a vector
         10 is from self._z
         b is from self._b
-        The equation symbols are from self._operators with index 0 corresponding to row 0
-        self._operators format might change
+        The equation symbols are from self._left_inequalities (>=) and self.right_inequalities (<=)
+        Make sure that the numbers are justified correctly (some numbers might be longer than others)
 
         """
         return f"A:\n{str(self._A)}\n\nb:\n{self._b}\n\nc:\n{self._c}\n\nz:\n{self._z}\n\nOperators:\n{self._operators}"
