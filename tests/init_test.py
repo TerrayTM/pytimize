@@ -96,11 +96,11 @@ class TestInit(TestCase):
         c = np.array([100, 300])
         z = 5
 
-        with self.assertRaises(ValueError, msg="Should throw exception if dimension mismatch between inequalities amd A."):
-            p = LinearProgrammingModel(A, b, c, z, inequalities=[])
+        with self.assertRaises(ValueError, msg="Should throw exception if dimension mismatch between inequalities and b."):
+            p = LinearProgrammingModel(A, b, c, z, inequalities=["="])
 
-        with self.assertRaises(ValueError, msg="Should throw exception if dimension mismatch between inequalities amd A."):
-            p = LinearProgrammingModel(A, b, c, z, inequalities=['=', '<=', '>=', '>='])
+        with self.assertRaises(ValueError, msg="Should throw exception if dimension mismatch between inequalities and b."):
+            p = LinearProgrammingModel(A, b, c, z, inequalities=["=", "<=", ">=", ">="])
 
     def test_invalid_values(self):
         A = np.array([
@@ -144,16 +144,22 @@ class TestInit(TestCase):
         with self.assertRaises(ValueError, msg="Should throw exception if type of objective is incorrect."):
             p = LinearProgrammingModel(A, b, c, z, objective)
 
+        with self.assertRaises(ValueError, msg="Should throw exception if type of inequalities is incorrect."):
+            p = LinearProgrammingModel(A, b, c, z, inequalities="test")
+
+        with self.assertRaises(ValueError, msg="Should throw exception if inequalities have invalid values."):
+            p = LinearProgrammingModel(A, b, c, z, inequalities=["+", "-"])
+
     def test_sef_detection(self):
         p = LinearProgrammingModel([[1, 2, 3], [4, 5, 6]], [10, 20], [100, 300, 500], 20)
 
         self.assertTrue(p.is_sef, "Should detect SEF form.")
 
-        p = LinearProgrammingModel([[1, 2, 3], [4, 5, 6]], [10, 20], [100, 300, 500], 20, inequalities=['=', '='])
+        p = LinearProgrammingModel([[1, 2, 3], [4, 5, 6]], [10, 20], [100, 300, 500], 20, inequalities=["=", "="])
 
         self.assertTrue(p.is_sef, "Should detect SEF form.")
 
-        p = LinearProgrammingModel([[1, 2, 3], [4, 5, 6]], [10, 20], [100, 300, 500], 20, inequalities=['<=', '='])
+        p = LinearProgrammingModel([[1, 2, 3], [4, 5, 6]], [10, 20], [100, 300, 500], 20, inequalities=["<=", "="])
 
         self.assertFalse(p.is_sef, "Should detect non-SEF form")
 

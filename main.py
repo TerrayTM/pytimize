@@ -8,6 +8,7 @@ from objective import Objective
 # To do: redo pydoc comment style
 # To do: update pydoc comments
 # To do: check all and any expressions
+# To do: replace single quote with double
 
 class LinearProgrammingModel:
     def __init__(self, A, b, c, z, objective=Objective.max, inequalities=None, free_vars=[]):
@@ -33,8 +34,8 @@ class LinearProgrammingModel:
 
         # To do: add tests for invalid inequalities type or invalid dimensions
         has_invalid_values = any([
+            inequalities and (not isinstance(inequalities, list) or not all(inequality in ["=", ">=", "<="] for inequality in inequalities) or not len(inequalities) == b.shape[0]),
             not A.ndim == 2 or not b.ndim == 1 or not c.ndim == 1 or not A.shape[0] == b.shape[0] or not A.shape[1] == c.shape[0],
-            inequalities and not all(inequality in ['=', '>=', '<='] for inequality in inequalities),
             not type(z) is float and not type(z) is int,
             not isinstance(objective, Objective)
         ])
