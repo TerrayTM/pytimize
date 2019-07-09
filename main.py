@@ -440,14 +440,14 @@ class LinearProgrammingModel:
 
         if len(indices) > 0:
             conditions = [
-                min_value and min(indices) < min_value,
+                not min_value == None and min(indices) < min_value,
                 max_value and max(indices) >= max_value,
                 any(not type(i) == int for i in indices)
             ]
 
             if any(conditions):
                 raise IndexError()
-        
+                
         return indices
 
 

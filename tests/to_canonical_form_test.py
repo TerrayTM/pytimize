@@ -53,10 +53,19 @@ class TestToCanonicalForm(TestCase):
         self.assertTrue(isclose(result_two.z, expected_z), "Should compute correct constant.")
 
     def test_invalid_basis(self):
-        p = LinearProgrammingModel([[1, 2, 3], [4, 5, 6]], [1, 2], [1, 2], 0)
+        p = LinearProgrammingModel([[1, 2, 3], [4, 5, 6]], [1, 2], [1, 2, 3], 0)
+        
+        #with self.assertRaises(IndexError):
+           # p.to_canonical_form([0, 1, 3]) # Check basis form square
+
+        with self.assertRaises(IndexError):
+            p.to_canonical_form([1, 5])
         
         with self.assertRaises(IndexError):
-            p.to_canonical_form([0, 1, 3])
+            p.to_canonical_form([0, 1])
+
+        with self.assertRaises(IndexError):
+            p.to_canonical_form([1.5, 2])
 
 if __name__ == "__main__":
     main()
