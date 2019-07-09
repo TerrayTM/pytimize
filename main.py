@@ -99,7 +99,7 @@ class LinearProgrammingModel:
         Make sure that the numbers are justified correctly (some numbers might be longer than others)
 
         """
-        return f"A:\n{str(self._A)}\n\nb:\n{self._b}\n\nc:\n{self._c}\n\nz:\n{self._z}\n\nOperators:\n{self._operators}"
+        return f"A:\n{str(self._A)}\n\nb:\n{self._b}\n\nc:\n{self._c}\n\nz:\n{self._z}\n\nOperators:{self.inequalities}\n"
 
 
 
@@ -302,7 +302,7 @@ class LinearProgrammingModel:
         :return: LinearProgrammingModel
 
         """
-        return LinearProgrammingModel(self._A, self._b, self._c, self._z, self._objective, self.operators, self._free_vars)
+        return LinearProgrammingModel(self._A, self._b, self._c, self._z, self._objective, self.inequalities, self._free_vars)
 
 
 
@@ -376,6 +376,56 @@ class LinearProgrammingModel:
             return np.array(source, dtype=float)
 
         raise ValueError()
+
+
+
+    def __get_inequalities(self):
+        inequalities = []
+        i = 0
+        j = 0
+        count = 0
+
+        while i < len(self._left_inequalities) and j < len(self._right_inequalities):
+            if self._left_inequalities[i] == count:
+                inequalities.append('>=')
+
+                i += 1
+            elif self._right_inequalities[j] == count:
+                inequalities.append('<=')
+
+                j += 1
+            else:
+                inequalities.append('=')
+            
+            count += 1
+
+        while i < len(self._left_inequalities):
+            if self._left_inequalities[i] == count:
+                inequalities.append(">=")
+                
+                i += 1
+            else:
+                inequalities.append("=")
+            
+            count += 1
+
+        while j < len(self._right_inequalities):
+            if self._right_inequalities[j] == count:
+                inequalities.append("<=")
+                
+                j += 1
+            else:
+                inequalities.append("=")
+            
+            count += 1
+
+        while count < self._b.shape[0]:
+            inequalities.append("=")
+
+            count += 1
+        
+        return inequalities
+
 
 
     def __convert_indices(self, indices, min_value=None, max_value=None):
@@ -541,9 +591,9 @@ class LinearProgrammingModel:
 
 
     @property
-    def operators(self):
-        """ Gets the constraint operators. """
-        return self._operators
+    def inequalities(self):
+        """ Gets the constraint inequalities. """
+        return self.__get_inequalities()
 
 
 
