@@ -39,8 +39,7 @@ class LinearProgrammingModel:
         if not self.__is_vector_of_size(b, A.shape[0]) or not self.__is_vector_of_size(c, A.shape[1]):
             raise ValueError()
 
-        left_inequalities = []
-        right_inequalities = []
+        inequality_indices = []
         sef_condition = True
 
         if not inequalities is None:
@@ -56,12 +55,8 @@ class LinearProgrammingModel:
             for i in range(len(inequalities)):
                 inequality = inequalities[i]
 
-                if inequality == '>=':
-                    left_inequalities.append(i)
-
-                    sef_condition = False
-                elif inequality == '<=':
-                    right_inequalities.append(i)
+                if inequality == '>=' or inequality == '<=':
+                    inequality_indices.append({ 'index': i, 'type': inequality })
 
                     sef_condition = False
                 elif not inequality == '=':
@@ -78,8 +73,7 @@ class LinearProgrammingModel:
         self._c = c
         self._z = z
         self._objective = objective
-        self._left_inequalities = left_inequalities
-        self._right_inequalities = right_inequalities
+        self._inequality_indices = inequality_indices
         self._is_sef = sef_condition and len(free_vars) == 0
         self._free_vars = self.__convert_indices(free_vars, 0, c.shape[0])
 
@@ -317,8 +311,7 @@ class LinearProgrammingModel:
         """
         p = LinearProgrammingModel(self._A, self._b, self._c, self._z, self._objective)
 
-        p._left_inequalities = self._left_inequalities
-        p._right_inequalities = self._right_inequalities
+        p._inequality_indices = self._inequality_indices
         p._free_vars = self._free_vars
 
         return p
@@ -376,7 +369,6 @@ class LinearProgrammingModel:
 
     def is_solution_optimal(self, x):
         self.is_solution_feasible(x)
-        pass
 
 
 
@@ -400,49 +392,26 @@ class LinearProgrammingModel:
 
     def __get_inequalities(self):
         inequalities = []
-        i = 0
-        j = 0
         count = 0
+        i = 0
 
-        while i < len(self._left_inequalities) and j < len(self._right_inequalities):
-            if self._left_inequalities[i] == count:
-                inequalities.append('>=')
+        while i < len(self._inequality_indices):
+            current = self._inequality_indices[i]
+
+            if count == current['index']:
+                inequalities.append(current['type'])
 
                 i += 1
-            elif self._right_inequalities[j] == count:
-                inequalities.append('<=')
-
-                j += 1
             else:
                 inequalities.append('=')
             
             count += 1
 
-        while i < len(self._left_inequalities):
-            if self._left_inequalities[i] == count:
-                inequalities.append(">=")
-                
-                i += 1
-            else:
-                inequalities.append("=")
-            
-            count += 1
-
-        while j < len(self._right_inequalities):
-            if self._right_inequalities[j] == count:
-                inequalities.append("<=")
-                
-                j += 1
-            else:
-                inequalities.append("=")
-            
-            count += 1
-
-        while count < self._b.shape[0]:
+        while count < len(self._b):
             inequalities.append("=")
 
             count += 1
-        
+
         return inequalities
 
 
