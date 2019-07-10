@@ -34,7 +34,9 @@ class TestCopy(TestCase):
         self.assertTrue(isclose(p.z, copy.z), "Should be the same constant.")
         self.assertTrue(copy.objective == Objective.min, "Should be the same objective.")
         self.assertTrue(copy.inequalities == ['=', '>=', '<=', '=', '>=', '<=', '=', '='], "Should be the same inequalities.")
-        
+
+        #test copy is real and not by reference
+        #add case for free_vars
 
 if __name__ == "__main__":
     main()

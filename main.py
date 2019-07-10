@@ -315,7 +315,13 @@ class LinearProgrammingModel:
         :return: LinearProgrammingModel
 
         """
-        return LinearProgrammingModel(self._A, self._b, self._c, self._z, self._objective, self.inequalities, self._free_vars)
+        p = LinearProgrammingModel(self._A, self._b, self._c, self._z, self._objective)
+
+        p._left_inequalities = self._left_inequalities
+        p._right_inequalities = self._right_inequalities
+        p._free_vars = self._free_vars
+
+        return p
 
 
 
@@ -351,7 +357,7 @@ class LinearProgrammingModel:
         for i in range(len(self._operators)):
           operator = self._operators[i]
 
-          if (not operator == '='):
+          if not operator == '=':
             self._A = np.c_[self._A, np.zeros(self._A.shape[0])]
             self._c = np.r_[self._c, 0]
 
