@@ -102,7 +102,11 @@ class LinearProgrammingModel:
         x is a vector
         10 is from self._z
         b is from self._b
-        The equation symbols are from self._left_inequalities (>=) and self.right_inequalities (<=)
+        The equation symbols are from self.__inequality_indices
+        self._inequality_indices is a list of dicts [{}, {}, {}...]
+        Each dict is of form { index: ..., type: ... } where type is either <= or >=
+        The list stores the indices that are NOT equal signs (meaning if an index does not exist in list, it is a equal sign)
+        The list indices are in increasing order. The index key points to the row that has the specified type ('<=' or '>=')
         Make sure that the numbers are justified correctly (some numbers might be longer than others)
 
         """
