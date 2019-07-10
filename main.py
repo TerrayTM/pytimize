@@ -9,6 +9,7 @@ from objective import Objective
 # To do: update pydoc comments
 # To do: check all and any expressions
 # To do: replace single quote with double
+# To do: check free_vars in constructor
 
 class LinearProgrammingModel:
     def __init__(self, A, b, c, z, objective=Objective.max, inequalities=None, free_vars=[]):
@@ -32,22 +33,26 @@ class LinearProgrammingModel:
         b = self.__to_ndarray(b)
         c = self.__to_ndarray(c)
 
-        # To do: add tests for invalid inequalities type or invalid dimensions
-        has_invalid_values = any([
-            inequalities and (not isinstance(inequalities, list) or not all(inequality in ["=", ">=", "<="] for inequality in inequalities) or not len(inequalities) == b.shape[0]),
-            not A.ndim == 2 or not b.ndim == 1 or not c.ndim == 1 or not A.shape[0] == b.shape[0] or not A.shape[1] == c.shape[0],
-            not type(z) is float and not type(z) is int,
-            not isinstance(objective, Objective)
-        ])
+        if not A.ndim == 2:
+            raise ValueError()
         
-        if has_invalid_values:
+        if not self.__is_vector_of_size(b, A.shape[0]) or not self.__is_vector_of_size(c, A.shape[1]):
             raise ValueError()
 
         left_inequalities = []
         right_inequalities = []
         sef_condition = True
 
-        if inequalities:
+        if not inequalities is None:
+            if not isinstance(inequalities, list) and not isinstance(inequalities, np.ndarray):
+                raise ValueError()
+
+            if isinstance(inequalities, np.ndarray):
+                inequalities = inequalities.tolist()
+
+            if not len(inequalities) == b.shape[0]:
+                raise ValueError()
+
             for i in range(len(inequalities)):
                 inequality = inequalities[i]
 
@@ -59,15 +64,23 @@ class LinearProgrammingModel:
                     right_inequalities.append(i)
 
                     sef_condition = False
+                elif not inequality == '=':
+                    raise ValueError()
+            
+        if not type(z) is float and not type(z) is int:
+            raise ValueError()
+
+        if not isinstance(objective, Objective):
+            raise ValueError()
 
         self._A = A
         self._b = b
         self._c = c
         self._z = z
         self._objective = objective
-        self._is_sef = sef_condition and len(free_vars) == 0
         self._left_inequalities = left_inequalities
         self._right_inequalities = right_inequalities
+        self._is_sef = sef_condition and len(free_vars) == 0
         self._free_vars = self.__convert_indices(free_vars, 0, c.shape[0])
 
 
@@ -237,7 +250,7 @@ class LinearProgrammingModel:
 
         """
         if not self.__is_vector_of_size(x, self._c.shape[0]):
-            return False
+            raise ValueError()
 
         if self._is_sef:
             return (x >= 0).all() and np.array_equal(self._A @ x, self._b)
@@ -453,11 +466,7 @@ class LinearProgrammingModel:
 
 
     def __is_vector_of_size(self, x, n):
-        return all([
-            type(x) is np.ndarray,
-            x.ndim == 1,
-            x.shape[0] == n
-        ])
+        return isinstance(x, np.ndarray) and x.ndim == 1 and x.shape[0] == n
 
 
 

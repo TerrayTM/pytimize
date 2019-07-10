@@ -21,18 +21,24 @@ class TestInit(TestCase):
         b = np.array([6, 8, 10])
         c = np.array([100, 200, 300])
         z = 5
+        inequalities = np.array(["=", "=", "="])
 
-        p = LinearProgrammingModel(A, b, c, z)
+        p = LinearProgrammingModel(A, b, c, z, Objective.min, inequalities)
 
         self.assertTrue(np.allclose(p.A, A), "Should construct coefficient matrix.")
         self.assertTrue(np.allclose(p.b, b), "Should construct constraints.")
         self.assertTrue(np.allclose(p.c, c), "Should construct coefficient vector.")
         self.assertTrue(isclose(p.z, z), "Should construct constant.")
+        self.assertTrue(p.objective == Objective.min, "Should construct objective.")
+        self.assertTrue(p.inequalities == ["=", "=", "="], "Should construct inequalities.")
+        self.assertTrue(p.is_sef, "Should detect SEF form.")
         
         self.assertTrue(np.issubdtype(p.A.dtype, np.floating), "Should be of type float.")
         self.assertTrue(np.issubdtype(p.b.dtype, np.floating), "Should be of type float.")
         self.assertTrue(np.issubdtype(p.c.dtype, np.floating), "Should be of type float.")
         self.assertTrue(type(p.z) == float or type(p.z) == int, "Should be of type float or int.")
+        self.assertTrue(isinstance(p.objective, Objective), "Should be enum type Objective.")
+        self.assertTrue(isinstance(p.inequalities, list), "Should be of type list.")
 
     def test_invalid_dimensions(self):
         A = np.array([
@@ -148,7 +154,7 @@ class TestInit(TestCase):
             p = LinearProgrammingModel(A, b, c, z, inequalities="test")
 
         with self.assertRaises(ValueError, msg="Should throw exception if inequalities have invalid values."):
-            p = LinearProgrammingModel(A, b, c, z, inequalities=["+", "-"])
+            p = LinearProgrammingModel(A, b, c, z, inequalities=["+", 23])
 
     def test_sef_detection(self):
         p = LinearProgrammingModel([[1, 2, 3], [4, 5, 6]], [10, 20], [100, 300, 500], 20)
@@ -164,7 +170,6 @@ class TestInit(TestCase):
         self.assertFalse(p.is_sef, "Should detect non-SEF form")
 
         # To do: add cases on free variables
-
 
 if __name__ == "__main__":
     main()
