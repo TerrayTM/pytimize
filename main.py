@@ -4,6 +4,7 @@ import numpy as np
 sys.path.append('./enums');
 
 from objective import Objective
+from math import isclose
 
 # To do: redo pydoc comment style
 # To do: update pydoc comments
@@ -129,6 +130,9 @@ class LinearProgrammingModel:
             
             return copy.to_canonical_form(basis, show_steps, True)
 
+        if not self._is_sef:
+            self.to_sef(True)  # To do: add test cases
+
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
 
         A_b = self._A[:, basis]
@@ -157,6 +161,10 @@ class LinearProgrammingModel:
 
     #Separate this function into one private and one public
     def compute_simplex_iteration(self, basis, in_place=False):
+        if not in_place:
+            copy = self.copy()
+
+            return copy.compute_simplex_iteration(basis, True)
 
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
         
@@ -200,10 +208,7 @@ class LinearProgrammingModel:
         yTA = y_transpose @ self._A
         yTb = y_transpose @ self._b
 
-        return all([
-            (yTA >= 0).all(),
-            (yTb < 0).all()
-        ])
+        return (yTA >= 0).all() and (yTb < 0).all()
 
 
 
@@ -224,7 +229,7 @@ class LinearProgrammingModel:
             (Ad == 0).all(),
             (d >= 0).all(),
             (cd > 0).all(),
-            self.is_solution_feasible(x)
+            self.is_feasible(x)
         ])
 
 
@@ -238,7 +243,7 @@ class LinearProgrammingModel:
 
 
 
-    def is_solution_feasible(self, x):
+    def is_feasible(self, x):
         """
         Checks if the given vector 'x' is a feasible solution.
 
@@ -247,32 +252,41 @@ class LinearProgrammingModel:
         :return: A boolean value indicating if the solution is feasible.
 
         """
+        x = self.__to_ndarray(x)
+
         if not self.__is_vector_of_size(x, self._c.shape[0]):
             raise ValueError()
 
         if self._is_sef:
-            return (x >= 0).all() and np.array_equal(self._A @ x, self._b)
+            return (x >= 0).all() and np.allclose(self._A @ x, self._b)
 
-        for i in range(self._A.shape[0]):
+        index = 0
+        length = len(self._inequality_indices)
+
+        for i in range(x.shape[0]):
             value = self._A[i, :] @ x
             
             if not i in self._free_vars and x[i] < 0:
                 return False
+
+            if index < length:
+                current = self._inequality_indices[index]
+
+                if i == current['index']:
+                    if current['type'] == '<=' and value > self._b[i]:
+                        return False
+                    elif current['type'] == '>=' and value < self._b[i]:
+                        return False
+                    
+                    index += 1
+
+                    continue
             
-            operator = self._operators[i]
-            b = self._b[i]
-
-            fail_conditions = [
-                operator == '=' and value != b,
-                operator == '>=' and value < b,
-                operator == '<=' and value > b
-            ]
-
-            if any(fail_conditions):
+            if not isclose(value, self._b[i]):
                 return False
         
         return True
-    
+
 
 
     def evaluate(self, x):
@@ -299,7 +313,7 @@ class LinearProgrammingModel:
         """
         x = self.__to_ndarray(x)
 
-        if not self.is_solution_feasible(x):
+        if not self.is_feasible(x):
             raise TypeError()
         
         return self.evaluate(x)
@@ -372,7 +386,7 @@ class LinearProgrammingModel:
 
 
     def is_solution_optimal(self, x):
-        self.is_solution_feasible(x)
+        self.is_feasible(x)
 
 
 
@@ -396,25 +410,21 @@ class LinearProgrammingModel:
 
     def __get_inequalities(self):
         inequalities = []
-        count = 0
-        i = 0
+        index = 0
+        length = len(self._inequality_indices)
 
-        while i < len(self._inequality_indices):
-            current = self._inequality_indices[i]
+        for i in range(self._b.shape[0]):
+            if index < length:
+                current = self._inequality_indices[index]
+                
+                if i == current['index']:
+                    inequalities.append(current['type'])
 
-            if count == current['index']:
-                inequalities.append(current['type'])
-
-                i += 1
+                    index += 1
+                else:
+                    inequalities.append('=')
             else:
-                inequalities.append('=')
-            
-            count += 1
-
-        while count < len(self._b):
-            inequalities.append("=")
-
-            count += 1
+                inequalities.append("=")
 
         return inequalities
 
