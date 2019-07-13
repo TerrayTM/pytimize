@@ -19,3 +19,13 @@ Planned Features:
 * Duality Theory
 * Shortest Path Solver
 * And More!
+
+### Running Tests
+
+Run All Tests
+
+`python -m unittest discover -s .\tests -p '*_test.py'`
+
+Run Specific Test
+
+`python .\tests\[file name].py`

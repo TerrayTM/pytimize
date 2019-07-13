@@ -71,11 +71,13 @@ class LinearProgrammingModel:
                 raise ValueError()
 
         free_variables = self.__convert_indices(free_variables or [], 0, c.shape[0])
+        free_variables.sort()
 
         self._A = A
         self._b = b
         self._c = c
         self._z = z
+        self._steps = []
         self._objective = objective
         self._inequality_indices = inequality_indices
         self._is_sef = sef_condition and len(free_variables) == 0 and objective == Objective.max
@@ -268,7 +270,7 @@ class LinearProgrammingModel:
 
         for i in range(x.shape[0]):
             value = self._A[i, :] @ x
-            
+
             if not i in self._free_variables and x[i] < 0:
                 return False
 
@@ -302,7 +304,7 @@ class LinearProgrammingModel:
         x = self.__to_ndarray(x)
         
         if not self.__is_vector_of_size(x, self._c[0]):
-            raise TypeError()
+            raise ValueError()
         
         return self._c @ x + self._z
 
@@ -317,7 +319,7 @@ class LinearProgrammingModel:
         x = self.__to_ndarray(x)
 
         if not self.is_feasible(x):
-            raise TypeError()
+            raise ValueError()
         
         return self.evaluate(x)
 
@@ -358,7 +360,6 @@ class LinearProgrammingModel:
             self._c = -self._c
             self._objective = Objective.max
 
-        # ASSUME FREEE VARS IS IN ASC ORDER
         for i in range(len(self._free_variables)):
             free_variables = self._free_variables[i]
             index = free_variables + i
@@ -390,6 +391,18 @@ class LinearProgrammingModel:
 
     def is_solution_optimal(self, x):
         self.is_feasible(x)
+
+
+
+    def clear_steps(in_place=False):
+        if not in_place:
+            copy = self.copy()
+
+            return copy.clear_steps()
+
+        self._steps = []
+
+        return self
 
 
 
@@ -491,7 +504,7 @@ class LinearProgrammingModel:
         return array_like
 
 
-
+    # Bug: Fix equality comparision with floating point values
     def __is_in_rref(self, arr):
         """
         Returns whether or not the given array is in RREF.
@@ -538,7 +551,7 @@ class LinearProgrammingModel:
         return True
 
 
-
+    # Bug: Fix equality comparision with floating point values
     def __rref(self, arr):
         """
         Returns an array that has been row reduced into row reduced echelon 
@@ -639,3 +652,10 @@ class LinearProgrammingModel:
     def is_sef(self):
         """ Gets if the model is in standard equality form. """
         return self._is_sef
+
+
+
+    @property
+    def steps(self):
+        """ Gets the steps of all operations performed. """
+        return self._steps
