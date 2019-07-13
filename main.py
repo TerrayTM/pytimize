@@ -248,7 +248,7 @@ class LinearProgrammingModel:
 
 
 
-    def is_feasible(self, x):
+    def is_feasible(self, x, show_steps=True):
         """
         Checks if the given vector "x" is a feasible solution.
 
@@ -262,16 +262,41 @@ class LinearProgrammingModel:
         if not self.__is_vector_of_size(x, self._c.shape[0]):
             raise ValueError()
 
+        show_steps and self._steps.append(f"Is {x} feasible?")
+
         if self._is_sef:
-            return (x >= 0).all() and np.allclose(self._A @ x, self._b)
+            all_nonnegative = (x >= 0).all()
+            satisfy_constraints = np.allclose(self._A @ x, self._b)
+            is_feasible = all_nonnegative and satisfy_constraints
+
+            show_steps and is_feasible and self._steps.extend([
+                f"{x} is feasible because:", 
+                "* P is in SEF.", 
+                f"* All entries of {x} are nonnegative.",
+                "* Constraints are satisfied (Ax = b).",
+            ])
+            show_steps and not is_feasible and self._steps.extend(list(filter(None, [
+                f"{x} is not feasible because:",
+                "* P is in SEF.",
+                f"* Some entries of {x} is negative." if not all_nonnegative else None,
+                "* Constraints are not satisfied (Ax ≠ b)." if not satisfy_constraints else None
+            ])))
+
+            return is_feasible
 
         index = 0
         length = len(self._inequality_indices)
 
         for i in range(x.shape[0]):
-            value = self._A[i, :] @ x
+            row = self._A[i, :]
+            value = row @ x
 
             if not i in self._free_variables and x[i] < 0:
+                show_steps and self._steps.extend([
+                    f"{x} is not feasible because:",
+                    f"* Entry at index {i + 1} is negative and it is not a free variable."
+                ])
+
                 return False
 
             if index < length:
@@ -279,8 +304,18 @@ class LinearProgrammingModel:
 
                 if i == current["index"]:
                     if current["type"] == "<=" and value > self._b[i]:
+                        show_steps and self._steps.extend([
+                            f"{x} is not feasible because:",
+                            f"* {row} • {x} = {value} and {value} is not ≤ {self._b[i]}."
+                        ])
+
                         return False
                     elif current["type"] == ">=" and value < self._b[i]:
+                        show_steps and self._steps.extend([
+                            f"{x} is not feasible because:",
+                            f"* {row} • {x} = {value} and {value} is not ≥ {self._b[i]}."
+                        ])
+
                         return False
                     
                     index += 1
@@ -288,8 +323,19 @@ class LinearProgrammingModel:
                     continue
             
             if not isclose(value, self._b[i]):
+                show_steps and self._steps.extend([
+                    f"{x} is not feasible because:",
+                    f"* {row} • {x} = {value} and {value} ≠ {self._b[i]}."
+                ])
+
                 return False
         
+        show_steps and self._steps.extend([
+            f"{x} is feasible because:",
+            "* Constraints are satisfied.",
+            "* All entries are either nonnegative or is a free variable."
+        ])
+
         return True
 
 
