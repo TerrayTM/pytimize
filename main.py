@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 
-sys.path.append('./enums');
+sys.path.append("./enums");
 
 from objective import Objective
 from math import isclose
@@ -14,17 +14,17 @@ from math import isclose
 class LinearProgrammingModel:
     def __init__(self, A, b, c, z, objective=Objective.max, inequalities=None, free_variables=None):
         """
-        Constructs a LP formulation of the form 'func{cx + z : Ax = b, vars >= 0}'
-        where 'func' denotes either min or max, 'T' denotes the transpose operator, and
-        'vars' denotes the variables that are constrained to be greater than or equal to 0.
+        Constructs a LP formulation of the form "func{cx + z : Ax = b, vars >= 0}"
+        where "func" denotes either min or max, "T" denotes the transpose operator, and
+        "vars" denotes the variables that are constrained to be greater than or equal to 0.
 
         :param A: An m x n constraint coefficient matrix.
         :param b: A column vector with n float entries.
         :param c: A row vector with n float entries.
         :param z: A float constant.
-        :para objective: Describes whether the objective is to maximize or minimize. Can only be 'max' or 'min'.
+        :para objective: Describes whether the objective is to maximize or minimize. Can only be "max" or "min".
         :param operators: An array with m entries denoting the constraint type of each equation.
-                          Entries can be '=', '>=' or '<='. If left empty, array will be autofilled with equal signs.
+                          Entries can be "=", ">=" or "<=". If left empty, array will be autofilled with equal signs.
         :param free_vars: An array of integer indices describing the variables that are free.
                           Use standard math index numbering (meaning the first variable starts at index 1).
 
@@ -51,11 +51,11 @@ class LinearProgrammingModel:
             for i in range(len(inequalities)):
                 inequality = inequalities[i]
 
-                if inequality == '>=' or inequality == '<=':
-                    inequality_indices.append({ 'index': i, 'type': inequality })
+                if inequality == ">=" or inequality == "<=":
+                    inequality_indices.append({ "index": i, "type": inequality })
 
                     sef_condition = False
-                elif not inequality == '=':
+                elif not inequality == "=":
                     raise ValueError()
             
         if not type(z) is float and not type(z) is int:
@@ -110,7 +110,7 @@ class LinearProgrammingModel:
         self._inequality_indices is a list of dicts [{}, {}, {}...]
         Each dict is of form { index: ..., type: ... } where type is either <= or >=
         The list stores the indices that are NOT equal signs (meaning if an index does not exist in list, it is a equal sign)
-        The list indices are in increasing order. The index key points to the row that has the specified type ('<=' or '>=')
+        The list indices are in increasing order. The index key points to the row that has the specified type ("<=" or ">=")
         Make sure that the numbers are justified correctly (some numbers might be longer than others)
 
         """
@@ -248,7 +248,7 @@ class LinearProgrammingModel:
 
     def is_feasible(self, x):
         """
-        Checks if the given vector 'x' is a feasible solution.
+        Checks if the given vector "x" is a feasible solution.
 
         :param x: A row vector.
 
@@ -275,10 +275,10 @@ class LinearProgrammingModel:
             if index < length:
                 current = self._inequality_indices[index]
 
-                if i == current['index']:
-                    if current['type'] == '<=' and value > self._b[i]:
+                if i == current["index"]:
+                    if current["type"] == "<=" and value > self._b[i]:
                         return False
-                    elif current['type'] == '>=' and value < self._b[i]:
+                    elif current["type"] == ">=" and value < self._b[i]:
                         return False
                     
                     index += 1
@@ -371,16 +371,16 @@ class LinearProgrammingModel:
         for i in range(len(self._operators)):
           operator = self._operators[i]
 
-          if not operator == '=':
+          if not operator == "=":
             self._A = np.c_[self._A, np.zeros(self._A.shape[0])]
             self._c = np.r_[self._c, 0]
 
-            if (operator == '>='):
+            if (operator == ">="):
               self._A[i, -1] = -1
-            elif (operator == '<='):
+            elif (operator == "<="):
               self._A[i, -1] = 1
             
-            self._operators[i] = '='
+            self._operators[i] = "="
 
         self._is_sef = True
 
@@ -436,12 +436,12 @@ class LinearProgrammingModel:
             if index < length:
                 current = self._inequality_indices[index]
                 
-                if i == current['index']:
-                    inequalities.append(current['type'])
+                if i == current["index"]:
+                    inequalities.append(current["type"])
 
                     index += 1
                 else:
-                    inequalities.append('=')
+                    inequalities.append("=")
             else:
                 inequalities.append("=")
 
@@ -512,7 +512,7 @@ class LinearProgrammingModel:
             row_has_leading_one = False
             for col in range(shape[1]):
                 if arr[row, col] == 0:
-                    # haven't found a non-zero entry yet, search rest of row
+                    # have not found a non-zero entry yet, search rest of row
                     continue
 
                 elif has_zero_row:

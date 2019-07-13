@@ -25,7 +25,7 @@ class TestCopy(TestCase):
         c = np.array([100, 200, 300])
         z = 5
 
-        p = LinearProgrammingModel(A, b, c, z, Objective.min, ['=', '>=', '<=', '=', '>=', '<=', '=', '='])
+        p = LinearProgrammingModel(A, b, c, z, Objective.min, ["=", ">=", "<=", "=", ">=", "<=", "=", "="])
         copy = p.copy()
 
         self.assertTrue(np.allclose(p.A, copy.A), "Should be the same coefficient matrix.")
@@ -33,7 +33,7 @@ class TestCopy(TestCase):
         self.assertTrue(np.allclose(p.c, copy.c), "Should be the same coefficient vector.")
         self.assertTrue(isclose(p.z, copy.z), "Should be the same constant.")
         self.assertTrue(copy.objective == Objective.min, "Should be the same objective.")
-        self.assertTrue(copy.inequalities == ['=', '>=', '<=', '=', '>=', '<=', '=', '='], "Should be the same inequalities.")
+        self.assertTrue(copy.inequalities == ["=", ">=", "<=", "=", ">=", "<=", "=", "="], "Should be the same inequalities.")
 
         #test copy is real and not by reference
         #add case for free_vars

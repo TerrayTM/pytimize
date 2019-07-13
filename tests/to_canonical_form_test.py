@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 
-sys.path.append('../optimization')
+sys.path.append("../optimization")
 
 from main import LinearProgrammingModel
 from unittest import TestCase, main
