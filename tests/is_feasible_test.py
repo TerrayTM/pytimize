@@ -8,6 +8,8 @@ from main import LinearProgrammingModel
 from unittest import TestCase, main
 from objective import Objective
 
+# Add test for free variables and negative values
+
 class IsFeasibleTest(TestCase):
     def setUp(self):
         self.A = np.array([
@@ -48,7 +50,6 @@ class IsFeasibleTest(TestCase):
         self.assertTrue(p.is_feasible([-42, 1, -23]), "Should output true.")
         self.assertTrue(p.is_feasible([-10, 0, -1]), "Should output true.")
         self.assertFalse(p.is_feasible([-10, -2, -2]), "Should output false.")
-
 
     def test_invalid_dimension(self):
         p = LinearProgrammingModel(self.A, self.b, self.c, self.z, Objective.min)

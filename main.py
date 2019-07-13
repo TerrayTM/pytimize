@@ -25,7 +25,7 @@ class LinearProgrammingModel:
         :para objective: Describes whether the objective is to maximize or minimize. Can only be "max" or "min".
         :param operators: An array with m entries denoting the constraint type of each equation.
                           Entries can be "=", ">=" or "<=". If left empty, array will be autofilled with equal signs.
-        :param free_vars: An array of integer indices describing the variables that are free.
+        :param free_variables: An array of integer indices describing the variables that are free.
                           Use standard math index numbering (meaning the first variable starts at index 1).
 
         """
@@ -269,7 +269,7 @@ class LinearProgrammingModel:
         for i in range(x.shape[0]):
             value = self._A[i, :] @ x
             
-            if not i in self._free_vars and x[i] < 0:
+            if not i in self._free_variables and x[i] < 0:
                 return False
 
             if index < length:
@@ -333,7 +333,7 @@ class LinearProgrammingModel:
         p = LinearProgrammingModel(self._A, self._b, self._c, self._z, self._objective)
 
         p._inequality_indices = self._inequality_indices
-        p._free_vars = self._free_vars
+        p._free_variables = self._free_variables
 
         return p
 
@@ -359,14 +359,14 @@ class LinearProgrammingModel:
             self._objective = Objective.max
 
         # ASSUME FREEE VARS IS IN ASC ORDER
-        for i in range(len(self._free_vars)):
-            free_var = self._free_vars[i]
-            index = free_var + i
+        for i in range(len(self._free_variables)):
+            free_variables = self._free_variables[i]
+            index = free_variables + i
 
             self._c = np.insert(self._c, index + 1, -self._c[index])
             self._A = np.insert(self._A, index + 1, -self._A[:, index], axis=1)
         
-        self._free_vars = []
+        self._free_variables = []
 
         for i in range(len(self._operators)):
           operator = self._operators[i]
