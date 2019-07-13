@@ -10,10 +10,9 @@ from math import isclose
 # To do: update pydoc comments
 # To do: check all and any expressions
 # To do: replace single quote with double
-# To do: check free_vars in constructor
 
 class LinearProgrammingModel:
-    def __init__(self, A, b, c, z, objective=Objective.max, inequalities=None, free_vars=[]):
+    def __init__(self, A, b, c, z, objective=Objective.max, inequalities=None, free_variables=None):
         """
         Constructs a LP formulation of the form 'func{cx + z : Ax = b, vars >= 0}'
         where 'func' denotes either min or max, 'T' denotes the transpose operator, and
@@ -44,11 +43,7 @@ class LinearProgrammingModel:
         sef_condition = True
 
         if not inequalities is None:
-            if not isinstance(inequalities, list) and not isinstance(inequalities, np.ndarray):
-                raise ValueError()
-
-            if isinstance(inequalities, np.ndarray):
-                inequalities = inequalities.tolist()
+            inequalities = self.__array_like_to_list(inequalities)
 
             if not len(inequalities) == b.shape[0]:
                 raise ValueError()
@@ -69,14 +64,22 @@ class LinearProgrammingModel:
         if not isinstance(objective, Objective):
             raise ValueError()
 
+        if not free_variables is None:
+            free_variables = self.__array_like_to_list(free_variables)
+
+            if len(free_variables) > c.shape[0]:
+                raise ValueError()
+
+        free_variables = self.__convert_indices(free_variables or [], 0, c.shape[0])
+
         self._A = A
         self._b = b
         self._c = c
         self._z = z
         self._objective = objective
         self._inequality_indices = inequality_indices
-        self._is_sef = sef_condition and len(free_vars) == 0
-        self._free_vars = self.__convert_indices(free_vars, 0, c.shape[0])
+        self._is_sef = sef_condition and len(free_variables) == 0 and objective == Objective.max
+        self._free_variables = free_variables
 
 
 
@@ -401,7 +404,23 @@ class LinearProgrammingModel:
             return source
 
         if isinstance(source, list):
-            # Check for dimension and jagged array
+            length = None
+
+            for row in source:
+                if isinstance(row, list):
+                    if length == None:
+                        length = len(row)
+                    elif not len(row) == length:
+                        raise ValueError()
+
+                    for column in row:
+                        if isinstance(column, list):
+                            raise ValueError()
+                        elif not type(column) in [int, float]:
+                            raise ValueError()
+                elif not type(row) in [int, float]:
+                    raise ValueError()
+
             return np.array(source, dtype=float)
 
         raise ValueError()
@@ -454,8 +473,22 @@ class LinearProgrammingModel:
 
 
 
-    def __is_vector_of_size(self, x, n):
-        return isinstance(x, np.ndarray) and x.ndim == 1 and x.shape[0] == n
+    def __is_vector_of_size(self, vector, dimension):
+        return isinstance(vector, np.ndarray) and vector.ndim == 1 and vector.shape[0] == dimension
+
+
+
+    def __array_like_to_list(self, array_like):
+        if not isinstance(array_like, list) and not isinstance(array_like, np.ndarray):
+                raise ValueError()
+
+        if isinstance(array_like, np.ndarray):
+            if not array_like.ndim == 1:
+                raise ValueError()
+
+            array_like = array_like.tolist()
+
+        return array_like
 
 
 
