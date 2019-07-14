@@ -9,7 +9,6 @@ from math import isclose
 # To do: redo pydoc comment style
 # To do: update pydoc comments
 # To do: check all and any expressions
-# To do: replace single quote with double
 
 class LinearProgrammingModel:
     def __init__(self, A, b, c, z, objective=Objective.max, inequalities=None, free_variables=None):
@@ -39,7 +38,7 @@ class LinearProgrammingModel:
         if not self.__is_vector_of_size(b, A.shape[0]) or not self.__is_vector_of_size(c, A.shape[1]):
             raise ValueError()
 
-        inequality_indices = []
+        inequality_indices = {}
         sef_condition = True
 
         if not inequalities is None:
@@ -52,13 +51,13 @@ class LinearProgrammingModel:
                 inequality = inequalities[i]
 
                 if inequality == ">=" or inequality == "<=":
-                    inequality_indices.append({ "index": i, "type": inequality })
+                    inequality_indices[i] = inequality
 
                     sef_condition = False
                 elif not inequality == "=":
                     raise ValueError()
             
-        if not type(z) is float and not type(z) is int:
+        if not type(z) in [int, float]:
             raise ValueError()
 
         if not isinstance(objective, Objective):
@@ -87,35 +86,6 @@ class LinearProgrammingModel:
 
     def __str__(self):
         # TODO: test the function :D
-        """
-        To do:
-        Return string respresentation of this form
-        min or max cx + z
-        Ax = b
-
-        For example:
-
-        Max [1, 2, 3]x + 10
-        Subject To:
-
-        [ 1.  5. -5. ]     =   [ 1 ]
-        [ 2. -1.  1. ]x   <=   [ 2 ]
-        [ 1.  2. -2. ]    >=   [ 3 ]
-
-        
-        Max is in self._objective
-        A is self._A
-        x is a vector
-        10 is from self._z
-        b is from self._b
-        The equation symbols are from self.__inequality_indices
-        self._inequality_indices is a list of dicts [{}, {}, {}...]
-        Each dict is of form { index: ..., type: ... } where type is either <= or >=
-        The list stores the indices that are NOT equal signs (meaning if an index does not exist in list, it is a equal sign)
-        The list indices are in increasing order. The index key points to the row that has the specified type ("<=" or ">=")
-        Make sure that the numbers are justified correctly (some numbers might be longer than others)
-
-        """
         output = ""
         shape = self._A.shape
         row_length = 0
@@ -147,10 +117,7 @@ class LinearProgrammingModel:
 
             output += "   " + str(self._b[i]) + "\n"
 
-
         return f"Max {self._c}x + {self._z} \nSubject To: \n\n" + output
-
-        #return f"A:\n{str(self._A)}\n\nb:\n{self._b}\n\nc:\n{self._c}\n\nz:\n{self._z}\n\nOperators:{self.inequalities}\n"
 
 
 
@@ -319,7 +286,6 @@ class LinearProgrammingModel:
             return is_feasible
 
         index = 0
-        length = len(self._inequality_indices)
 
         for i in range(x.shape[0]):
             row = self._A[i, :]
@@ -333,30 +299,24 @@ class LinearProgrammingModel:
 
                 return False
 
-            if index < length:
-                current = self._inequality_indices[index]
+            if i in self._inequality_indices:
+                current = self._inequality_indices[i]
 
-                if i == current["index"]:
-                    if current["type"] == "<=" and value > self._b[i]:
-                        show_steps and self._steps.extend([
-                            f"{x} is not feasible because:",
-                            f"* {row} • {x} = {value} and {value} is not ≤ {self._b[i]}."
-                        ])
+                if current == "<=" and value > self._b[i]:
+                    show_steps and self._steps.extend([
+                        f"{x} is not feasible because:",
+                        f"* {row} • {x} = {value} and {value} is not ≤ {self._b[i]}."
+                    ])
 
-                        return False
-                    elif current["type"] == ">=" and value < self._b[i]:
-                        show_steps and self._steps.extend([
-                            f"{x} is not feasible because:",
-                            f"* {row} • {x} = {value} and {value} is not ≥ {self._b[i]}."
-                        ])
+                    return False
+                elif current == ">=" and value < self._b[i]:
+                    show_steps and self._steps.extend([
+                        f"{x} is not feasible because:",
+                        f"* {row} • {x} = {value} and {value} is not ≥ {self._b[i]}."
+                    ])
 
-                        return False
-                    
-                    index += 1
-
-                    continue
-            
-            if not isclose(value, self._b[i]):
+                    return False
+            elif not isclose(value, self._b[i]):
                 show_steps and self._steps.extend([
                     f"{x} is not feasible because:",
                     f"* {row} • {x} = {value} and {value} ≠ {self._b[i]}."
@@ -416,6 +376,8 @@ class LinearProgrammingModel:
 
         p._inequality_indices = self._inequality_indices
         p._free_variables = self._free_variables
+        p._is_sef = self._is_sef
+        p._steps = self._steps
 
         return p
 
@@ -449,20 +411,17 @@ class LinearProgrammingModel:
         
         self._free_variables = []
 
-        for i in range(len(self._operators)):
-          operator = self._operators[i]
+        for i in range(len(self._b.shape[0]))
+            if i in self.inequality_indices:
+                self._A = np.c_[self._A, np.zeros(self._A.shape[0])]
+                self._c = np.r_[self._c, 0]
 
-          if not operator == "=":
-            self._A = np.c_[self._A, np.zeros(self._A.shape[0])]
-            self._c = np.r_[self._c, 0]
+                if (operator == ">="):
+                    self._A[i, -1] = -1
+                elif (operator == "<="):
+                    self._A[i, -1] = 1
 
-            if (operator == ">="):
-              self._A[i, -1] = -1
-            elif (operator == "<="):
-              self._A[i, -1] = 1
-            
-            self._operators[i] = "="
-
+        self.inequality_indices = {}
         self._is_sef = True
 
         return self
@@ -522,19 +481,10 @@ class LinearProgrammingModel:
 
     def __get_inequalities(self):
         inequalities = []
-        index = 0
-        length = len(self._inequality_indices)
 
         for i in range(self._b.shape[0]):
-            if index < length:
-                current = self._inequality_indices[index]
-                
-                if i == current["index"]:
-                    inequalities.append(current["type"])
-
-                    index += 1
-                else:
-                    inequalities.append("=")
+            if i in self._inequality_indices:
+                inequalities.append(self._inequality_indices[i])
             else:
                 inequalities.append("=")
 
