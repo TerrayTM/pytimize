@@ -10,7 +10,7 @@ from objective import Objective
 
 # Add test for free variables and negative values
 
-class IsFeasibleTest(TestCase):
+class TestIsFeasible(TestCase):
     def setUp(self):
         self.A = np.array([
             [1, 2, 3],
