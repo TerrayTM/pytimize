@@ -35,7 +35,7 @@ class TestStr(TestCase):
 
         # This test case should fail because you forgot the brackets around 'b'
         # Once you got that this should pass
-        self.assertEqual(str(p), expected)
+        self.assertEqual(str(p), expected, "Should output in correct string format.")
        
 if __name__ == "__main__":
     main()
