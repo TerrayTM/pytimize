@@ -1,5 +1,4 @@
 import sys
-import math
 import numpy as np
 
 sys.path.append("./enums")
@@ -87,7 +86,7 @@ class LinearProgrammingModel:
 
 
     def __str__(self):
-        # To do: better display for formulation
+        # TODO: test the function :D
         """
         To do:
         Return string respresentation of this form
@@ -117,7 +116,41 @@ class LinearProgrammingModel:
         Make sure that the numbers are justified correctly (some numbers might be longer than others)
 
         """
-        return f"A:\n{str(self._A)}\n\nb:\n{self._b}\n\nc:\n{self._c}\n\nz:\n{self._z}\n\nOperators:{self.inequalities}\n"
+        output = ""
+        shape = self._A.shape
+        row_length = 0
+
+        # find max length of row for formatting
+        for i in range(shape[0]):
+            length = len(str(self._A[i, :]))
+            if length > row_length:
+                row_length = length
+
+        for i in range(shape[0]):
+            spaces = row_length + 5  # format output nicely
+            output += str(self._A[i, :])
+            spaces -= len(str(self._A[i, :]))
+
+            if i == shape[0]//2:
+                output += "x"
+                spaces -= 1
+
+            if i in self._inequality_indices:
+                spaces -= 1
+            
+            output += " " * spaces
+            
+            if i in self._inequality_indices:
+                output += self._inequality_indices[i]
+            else:
+                output += "="
+
+            output += "   " + str(self._b[i]) + "\n"
+
+
+        return f"Max {self._c}x + {self._z} \nSubject To: \n\n" + output
+
+        #return f"A:\n{str(self._A)}\n\nb:\n{self._b}\n\nc:\n{self._c}\n\nz:\n{self._z}\n\nOperators:{self.inequalities}\n"
 
 
 
@@ -192,7 +225,7 @@ class LinearProgrammingModel:
 
                 break
         
-        if (self.A[:, k] <= 0).all():
+        if (self._A[:, k] <= 0).all():
             #unbounded
             return
         
@@ -571,7 +604,7 @@ class LinearProgrammingModel:
         for row in range(shape[0]):
             row_has_leading_one = False
             for col in range(shape[1]):
-                if math.isclose(arr[row, col], 0):
+                if isclose(arr[row, col], 0):
                     # have not found a non-zero entry yet, search rest of row
                     continue
 
@@ -579,11 +612,11 @@ class LinearProgrammingModel:
                     # row has non-zero entries but there is a zero row above it
                     return False
 
-                elif math.isclose(arr[row, col], 1):
+                elif isclose(arr[row, col], 1):
                     # found a leading one, check rest of column for zeros
                     row_has_leading_one = True
                     for r in range(shape[0]):
-                        if r != row and not math.isclose(arr[r, col], 0):
+                        if r != row and not isclose(arr[r, col], 0):
                             return False
                     break
 
@@ -614,24 +647,24 @@ class LinearProgrammingModel:
         col = 0
         for row in range(shape[0]):
             # Get a 1 in the row,col entry
-            if not math.isclose(arr[row, col], 1):
+            if not isclose(arr[row, col], 1):
                 i = 0
-                while math.isclose(arr[row, col], 0):
+                while isclose(arr[row, col], 0):
                     # If number in row,col is 0, find a lower row with a non-zero entry
                     # If all lower rows have a 0 in the column, move on to the next column
-                    if math.isclose(i + row, shape[0]):
+                    if isclose(i + row, shape[0]):
                         i = 0
                         col += 1
-                        if math.isclose(col, shape[1]):
+                        if isclose(col, shape[1]):
                             break
                         continue
-                    if not math.isclose(arr[row + i, col], 0):
+                    if not isclose(arr[row + i, col], 0):
                         # Found a lower row with non-zero entry, swap rows
                         arr[[row, row + i]] = arr[[row + i, row]]
                         break
                     i += 1
                 
-                if math.isclose(col, shape[1]):
+                if isclose(col, shape[1]):
                     # Everything left is 0
                     break
 
@@ -646,7 +679,7 @@ class LinearProgrammingModel:
                     arr[i, :] -= arr[row, :] * multiple
                         
             col += 1
-            if math.isclose(col, shape[1]):
+            if isclose(col, shape[1]):
                 break
 
         return arr
@@ -654,14 +687,12 @@ class LinearProgrammingModel:
 
 
 
-    def __make_indep(self, arr):
+    def __make_indep(self):
         """
-        Returns an array that has had its linearly dependent rows removed.
-
-        :param arr: An m x n matrix.
-
-        :return: An m x n matrix that is linearly independent.
+        Converts the augmented matrix [A|b] to be linearly independent.
         """
+        arr = np.c_[self._A, self._b]
+
         shape = arr.shape
 
         # iterate through rows and check each one against every other row for multiple
@@ -674,21 +705,21 @@ class LinearProgrammingModel:
                 multiple = 0
                 duplicate = True
                 for col in range(shape[1]):
-                    if math.isclose(arr[i, col], 0):
-                        if math.isclose(arr[j, col], 0):
+                    if isclose(arr[i, col], 0):
+                        if isclose(arr[j, col], 0):
                             # both zero entries, move on to next column
                             continue
                         # one row has a zero while other doesn't, move on to next row
                         duplicate = False
                         break
-                    elif math.isclose(arr[j, col], 0):
+                    elif isclose(arr[j, col], 0):
                         # one row has a zero while other doesn't
                         duplicate = False
                         break
                     
                     if col == 0:
                         multiple = arr[i, col] / arr[j, col]
-                    elif not math.isclose(arr[i, col] / arr[j, col], multiple):
+                    elif not isclose(arr[i, col] / arr[j, col], multiple):
                         duplicate = False
                         break
 
@@ -702,16 +733,9 @@ class LinearProgrammingModel:
             if np.count_nonzero(arr[shape[0] - 1 - i, :]) == 0:
                 new_arr = np.delete(new_arr, shape[0] - 1 - i, 0)
 
-        return new_arr
-
-
-
-    def __make_arr_indep(self):
-        """
-        Converts A and b into linearly independent matrices.
-        """
-        self.A = self.__make_indep(self.A)
-        self.b = self.__make_indep(self.b)
+        new_shape = new_arr.shape
+        self._b = new_arr[:, new_shape[1] - 1]
+        self._A = np.delete(new_arr, new_shape[1] - 1, 1)
 
 
 
