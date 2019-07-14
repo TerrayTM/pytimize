@@ -115,7 +115,7 @@ class LinearProgrammingModel:
             output += str(self._A[i, :])
             spaces -= len(str(self._A[i, :]))
 
-            if i == shape[0]//2:
+            if i == shape[0] // 2:
                 output += "x"
                 spaces -= 1
 
@@ -129,9 +129,9 @@ class LinearProgrammingModel:
             else:
                 output += "="
 
-            output += "   " + str(self._b[i]) + "\n"
+            output += f"   {str(self._b[i])}\n"
 
-        return f"Max {self._c}x + {self._z} \nSubject To: \n\n" + output
+        return f"Max {self._c}x + {self._z}\nSubject To:\n\n{output}"
 
 
 
@@ -210,6 +210,7 @@ class LinearProgrammingModel:
             #unbounded
             return
         
+        # Not Done; Review Needed
         return self
 
 
@@ -580,7 +581,7 @@ class LinearProgrammingModel:
                     # found a leading one, check rest of column for zeros
                     row_has_leading_one = True
                     for r in range(shape[0]):
-                        if r != row and not isclose(arr[r, col], 0):
+                        if not r == row and not isclose(arr[r, col], 0):
                             return False
                     break
 
@@ -606,7 +607,7 @@ class LinearProgrammingModel:
         :return: An m x n matrix in RREF that is row equivalent to the given matrix.
 
         """
-        arr = arr.astype(np.float64)
+        arr = arr.astype(np.floating)
         shape = arr.shape
         col = 0
         for row in range(shape[0]):
@@ -638,7 +639,7 @@ class LinearProgrammingModel:
 
             # Subtract a multiple of row from all other rows to get 0s in rest of col
             for i in range(shape[0]):
-                if i != row:
+                if not i == row:
                     multiple = arr[i, col] / arr[row, col]
                     arr[i, :] -= arr[row, :] * multiple
                         
