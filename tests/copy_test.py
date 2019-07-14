@@ -25,18 +25,41 @@ class TestCopy(TestCase):
         c = np.array([100, 200, 300])
         z = 5
 
-        p = LinearProgrammingModel(A, b, c, z, Objective.min, ["=", ">=", "<=", "=", ">=", "<=", "=", "="])
+        p = LinearProgrammingModel(A, b, c, z, Objective.min, ["=", ">=", "<=", "=", ">=", "<=", "=", "="], [2, 3])
+        
+        p._steps.append('one two three')
+
         copy = p.copy()
 
         self.assertTrue(np.allclose(p.A, copy.A), "Should be the same coefficient matrix.")
         self.assertTrue(np.allclose(p.b, copy.b), "Should be the same constraint values.")
         self.assertTrue(np.allclose(p.c, copy.c), "Should be the same coefficient vector.")
         self.assertTrue(isclose(p.z, copy.z), "Should be the same constant.")
-        self.assertTrue(copy.objective == Objective.min, "Should be the same objective.")
-        self.assertTrue(copy.inequalities == ["=", ">=", "<=", "=", ">=", "<=", "=", "="], "Should be the same inequalities.")
+        self.assertEqual(copy.objective, Objective.min, "Should be the same objective.")
+        self.assertFalse(copy.is_sef, "Should be the same SEF state.")
+        self.assertEqual(copy.inequalities, ["=", ">=", "<=", "=", ">=", "<=", "=", "="], "Should be the same inequalities.")
+        self.assertEqual(copy.free_variables, [2, 3], "Should be the same free variables.")
+        self.assertEqual(copy.steps, ["one two three"], "Should be the same steps.")
 
-        #test copy is real and not by reference
-        #add case for free_vars
+        copy._A[[1, 2]] = -10000
+        copy._b[3] = -100
+        copy._c[0] = -99
+        copy._z = 123456
+        copy._objective = Objective.max
+        copy._inequality_indices[0] = "<="
+        copy._free_variables.append(0)
+        copy._is_sef = True
+        copy._steps.append('test')
+
+        self.assertFalse(np.allclose(p.A, copy.A), "Should not copy by reference.")
+        self.assertFalse(np.allclose(p.b, copy.b), "Should not copy by reference.")
+        self.assertFalse(np.allclose(p.c, copy.c), "Should not copy by reference.")
+        self.assertFalse(isclose(p.z, copy.z), "Should not copy by reference.")
+        self.assertNotEqual(copy.objective, p.objective, "Should not copy by reference.")
+        self.assertNotEqual(copy.inequalities, p.inequalities, "Should not copy by reference.")
+        self.assertNotEqual(copy.free_variables, p.free_variables, "Should not copy by reference.")
+        self.assertNotEqual(copy.is_sef, p.is_sef, "Should not copy by reference.")
+        self.assertNotEqual(copy.steps, p.steps, "Should not copy by reference.")
 
 if __name__ == "__main__":
     main()
