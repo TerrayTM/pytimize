@@ -13,19 +13,33 @@ from math import isclose
 class LinearProgrammingModel:
     def __init__(self, A, b, c, z, objective=Objective.max, inequalities=None, free_variables=None):
         """
-        Constructs a LP formulation of the form "func{cx + z : Ax = b, vars >= 0}"
-        where "func" denotes either min or max, "T" denotes the transpose operator, and
-        "vars" denotes the variables that are constrained to be greater than or equal to 0.
+        Constructs a linear programming model of the form [objective]{cx + z : Ax [inequalities] b, variables >= 0},
+        where objective denotes whether this is a maximization or minimization problem, inequalities is a list of 
+        operators between Ax and b, and variables are entries of x that are not free.
 
-        :param A: An m x n constraint coefficient matrix.
-        :param b: A column vector with n float entries.
-        :param c: A row vector with n float entries.
-        :param z: A float constant.
-        :para objective: Describes whether the objective is to maximize or minimize. Can only be "max" or "min".
-        :param operators: An array with m entries denoting the constraint type of each equation.
-                          Entries can be "=", ">=" or "<=". If left empty, array will be autofilled with equal signs.
-        :param free_variables: An array of integer indices describing the variables that are free.
-                          Use standard math index numbering (meaning the first variable starts at index 1).
+        Parameters
+        ----------
+        A : 2D array-like of int, float
+            The coefficient matrix of the model. 
+
+        b : array-like of int, float
+            The constraint values of the model.
+
+        c : array-like of int, float
+            The coefficient vector of the objective function.
+
+        z : int, float
+            The constant of the objective function.
+
+        objective : Objective, optional (default=Objective.max)
+            The objective of the linear programming model.
+
+        inequalities : array-like of {"=", ">=", "<="}, optional (default=None)
+            The operator type between Ax and b. Each index of the array-like corresponds to the same index of the 
+            constraint row. If input is "None", the constraint becomes Ax = b.
+
+        free_variables : array-like of int, optional (default=None)
+            The variables that are not bounded to be nonnegative. Use math indexing to represent the free ones.
 
         """
         A = self.__to_ndarray(A)
@@ -411,7 +425,7 @@ class LinearProgrammingModel:
         
         self._free_variables = []
 
-        for i in range(len(self._b.shape[0]))
+        for i in range(len(self._b.shape[0])):
             if i in self.inequality_indices:
                 self._A = np.c_[self._A, np.zeros(self._A.shape[0])]
                 self._c = np.r_[self._c, 0]

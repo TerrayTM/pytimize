@@ -29,7 +29,7 @@ class TestCopy(TestCase):
         copy = p.copy()
 
         self.assertTrue(np.allclose(p.A, copy.A), "Should be the same coefficient matrix.")
-        self.assertTrue(np.allclose(p.b, copy.b), "Should be the same constraints.")
+        self.assertTrue(np.allclose(p.b, copy.b), "Should be the same constraint values.")
         self.assertTrue(np.allclose(p.c, copy.c), "Should be the same coefficient vector.")
         self.assertTrue(isclose(p.z, copy.z), "Should be the same constant.")
         self.assertTrue(copy.objective == Objective.min, "Should be the same objective.")

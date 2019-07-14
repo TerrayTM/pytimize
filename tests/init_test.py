@@ -26,7 +26,7 @@ class TestInit(TestCase):
         p = LinearProgrammingModel(self.A, self.b, self.c, self.z, Objective.min, inequalities, [])
 
         self.assertTrue(np.allclose(p.A, self.A), "Should construct coefficient matrix.")
-        self.assertTrue(np.allclose(p.b, self.b), "Should construct constraints.")
+        self.assertTrue(np.allclose(p.b, self.b), "Should construct constraint values.")
         self.assertTrue(np.allclose(p.c, self.c), "Should construct coefficient vector.")
         self.assertTrue(isclose(p.z, self.z), "Should construct constant.")
         self.assertTrue(p.objective == Objective.min, "Should construct objective.")
@@ -43,7 +43,7 @@ class TestInit(TestCase):
         p = LinearProgrammingModel(self.A.tolist(), self.b.tolist(), self.c.tolist(), self.z)
 
         self.assertTrue(np.allclose(p.A, self.A), "Should construct coefficient matrix.")
-        self.assertTrue(np.allclose(p.b, self.b), "Should construct constraints.")
+        self.assertTrue(np.allclose(p.b, self.b), "Should construct constraint values.")
         self.assertTrue(np.allclose(p.c, self.c), "Should construct coefficient vector.")
         self.assertTrue(isclose(p.z, self.z), "Should construct constant.")
         self.assertTrue(p.is_sef, "Should detect SEF form.")

@@ -32,7 +32,7 @@ class TestToCanonicalForm(TestCase):
         result_one = p.to_canonical_form([1, 2, 4])
         
         self.assertTrue(np.allclose(result_one.A, expected_A), "Should compute correct coefficient matrix.")
-        self.assertTrue(np.allclose(result_one.b, expected_b), "Should compute correct constraints.")
+        self.assertTrue(np.allclose(result_one.b, expected_b), "Should compute correct constraint values.")
         self.assertTrue(np.allclose(result_one.c, expected_c), "Should compute correct coefficient vector.")
         self.assertTrue(isclose(result_one.z, expected_z), "Should compute correct constant.")
 
@@ -48,7 +48,7 @@ class TestToCanonicalForm(TestCase):
         result_two = p.to_canonical_form([1, 3, 5])
         
         self.assertTrue(np.allclose(result_two.A, expected_A), "Should compute correct coefficient matrix.")
-        self.assertTrue(np.allclose(result_two.b, expected_b), "Should compute correct constraints.")
+        self.assertTrue(np.allclose(result_two.b, expected_b), "Should compute correct constraint values.")
         self.assertTrue(np.allclose(result_two.c, expected_c), "Should compute correct coefficient vector.")
         self.assertTrue(isclose(result_two.z, expected_z), "Should compute correct constant.")
 
