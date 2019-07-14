@@ -97,7 +97,7 @@ class LinearProgrammingModel:
         self._free_variables = free_variables
 
 
-
+    # TODO: replace >= and <= in output with actual symbols (Google to find them)
     def __str__(self):
         # TODO: test the function :D
         output = ""
@@ -387,12 +387,12 @@ class LinearProgrammingModel:
         :return: LinearProgrammingModel
 
         """
-        p = LinearProgrammingModel(self._A, self._b, self._c, self._z, self._objective)
+        p = LinearProgrammingModel(self._A.copy(), self._b.copy(), self._c.copy(), self._z, self._objective)
 
-        p._inequality_indices = self._inequality_indices
-        p._free_variables = self._free_variables
+        p._inequality_indices = self._inequality_indices.copy()
+        p._free_variables = self._free_variables.copy()
+        p._steps = self._steps.copy()
         p._is_sef = self._is_sef
-        p._steps = self._steps
 
         return p
 
@@ -426,8 +426,9 @@ class LinearProgrammingModel:
         
         self._free_variables = []
 
-        for i in range(len(self._b.shape[0])):
-            if i in self.inequality_indices:
+        for i in range(self._b.shape[0]):
+            if i in self._inequality_indices:
+                operator = self._inequality_indices[i]
                 self._A = np.c_[self._A, np.zeros(self._A.shape[0])]
                 self._c = np.r_[self._c, 0]
 
@@ -504,6 +505,11 @@ class LinearProgrammingModel:
                 inequalities.append("=")
 
         return inequalities
+
+
+
+    def __get_free_variables(self):
+        return list(map(lambda i: i + 1, self._free_variables))
 
 
 
@@ -757,3 +763,11 @@ class LinearProgrammingModel:
     def steps(self):
         """ Gets the steps of all operations performed. """
         return self._steps
+    
+
+
+    @property
+    def free_variables(self):
+        """ Gets the free variable indices. """
+        return self.__get_free_variables()
+
