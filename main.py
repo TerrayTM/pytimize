@@ -1,7 +1,8 @@
 import sys
+import math
 import numpy as np
 
-sys.path.append("./enums");
+sys.path.append("./enums")
 
 from objective import Objective
 from math import isclose
@@ -191,7 +192,7 @@ class LinearProgrammingModel:
 
                 break
         
-        if (A[:, k] <= 0).all():
+        if (self.A[:, k] <= 0).all():
             #unbounded
             return
         
@@ -440,7 +441,7 @@ class LinearProgrammingModel:
 
 
 
-    def clear_steps(in_place=False):
+    def clear_steps(self, in_place=False):
         if not in_place:
             copy = self.copy()
 
@@ -550,7 +551,7 @@ class LinearProgrammingModel:
         return array_like
 
 
-    # Bug: Fix equality comparision with floating point values
+    
     def __is_in_rref(self, arr):
         """
         Returns whether or not the given array is in RREF.
@@ -570,7 +571,7 @@ class LinearProgrammingModel:
         for row in range(shape[0]):
             row_has_leading_one = False
             for col in range(shape[1]):
-                if arr[row, col] == 0:
+                if math.isclose(arr[row, col], 0):
                     # have not found a non-zero entry yet, search rest of row
                     continue
 
@@ -578,11 +579,11 @@ class LinearProgrammingModel:
                     # row has non-zero entries but there is a zero row above it
                     return False
 
-                elif arr[row, col] == 1:
+                elif math.isclose(arr[row, col], 1):
                     # found a leading one, check rest of column for zeros
                     row_has_leading_one = True
                     for r in range(shape[0]):
-                        if r != row and arr[r, col] != 0:
+                        if r != row and not math.isclose(arr[r, col], 0):
                             return False
                     break
 
@@ -597,7 +598,7 @@ class LinearProgrammingModel:
         return True
 
 
-    # Bug: Fix equality comparision with floating point values
+    
     def __rref(self, arr):
         """
         Returns an array that has been row reduced into row reduced echelon 
@@ -613,24 +614,24 @@ class LinearProgrammingModel:
         col = 0
         for row in range(shape[0]):
             # Get a 1 in the row,col entry
-            if arr[row, col] != 1:
+            if not math.isclose(arr[row, col], 1):
                 i = 0
-                while arr[row, col] == 0:
+                while math.isclose(arr[row, col], 0):
                     # If number in row,col is 0, find a lower row with a non-zero entry
                     # If all lower rows have a 0 in the column, move on to the next column
-                    if i + row == shape[0]:
+                    if math.isclose(i + row, shape[0]):
                         i = 0
                         col += 1
-                        if col == shape[1]:
+                        if math.isclose(col, shape[1]):
                             break
                         continue
-                    if arr[row + i, col] != 0:
+                    if not math.isclose(arr[row + i, col], 0):
                         # Found a lower row with non-zero entry, swap rows
                         arr[[row, row + i]] = arr[[row + i, row]]
                         break
                     i += 1
                 
-                if col == shape[1]:
+                if math.isclose(col, shape[1]):
                     # Everything left is 0
                     break
 
@@ -645,10 +646,72 @@ class LinearProgrammingModel:
                     arr[i, :] -= arr[row, :] * multiple
                         
             col += 1
-            if col == shape[1]:
+            if math.isclose(col, shape[1]):
                 break
 
         return arr
+
+
+
+
+    def __make_indep(self, arr):
+        """
+        Returns an array that has had its linearly dependent rows removed.
+
+        :param arr: An m x n matrix.
+
+        :return: An m x n matrix that is linearly independent.
+        """
+        shape = arr.shape
+
+        # iterate through rows and check each one against every other row for multiple
+        for i in range(shape[0]):
+            for j in range(shape[0]):
+                if j <= i:
+                    # Don't check row against itself or previously checked rows
+                    continue
+                
+                multiple = 0
+                duplicate = True
+                for col in range(shape[1]):
+                    if math.isclose(arr[i, col], 0):
+                        if math.isclose(arr[j, col], 0):
+                            # both zero entries, move on to next column
+                            continue
+                        # one row has a zero while other doesn't, move on to next row
+                        duplicate = False
+                        break
+                    elif math.isclose(arr[j, col], 0):
+                        # one row has a zero while other doesn't
+                        duplicate = False
+                        break
+                    
+                    if col == 0:
+                        multiple = arr[i, col] / arr[j, col]
+                    elif not math.isclose(arr[i, col] / arr[j, col], multiple):
+                        duplicate = False
+                        break
+
+                if duplicate:
+                    # duplicate row found, turn it into a zero row for removal later
+                    arr[j, :].fill(0)
+
+        new_arr = np.copy(arr)
+        for i in range(shape[0]):
+            # iterate through array backwards and remove zero rows
+            if np.count_nonzero(arr[shape[0] - 1 - i, :]) == 0:
+                new_arr = np.delete(new_arr, shape[0] - 1 - i, 0)
+
+        return new_arr
+
+
+
+    def __make_arr_indep(self):
+        """
+        Converts A and b into linearly independent matrices.
+        """
+        self.A = self.__make_indep(self.A)
+        self.b = self.__make_indep(self.b)
 
 
 
