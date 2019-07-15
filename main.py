@@ -300,8 +300,6 @@ class LinearProgrammingModel:
 
             return is_feasible
 
-        index = 0
-
         for i in range(x.shape[0]):
             row = self._A[i, :]
             value = row @ x
