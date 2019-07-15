@@ -9,7 +9,7 @@ from math import isclose
 # To do: redo pydoc comment style
 # To do: update pydoc comments
 # To do: check all and any expressions
-
+# To do: for make independent rows, check for sef at end
 class LinearProgrammingModel:
     def __init__(self, A, b, c, z, objective=Objective.max, inequalities=None, free_variables=None):
         """
@@ -134,6 +134,73 @@ class LinearProgrammingModel:
         return f"Max {self._c}x + {self._z}\nSubject To:\n\n{output}"
 
 
+    def is_canonical_form_for(self, basis):
+        # Let basis be of A
+        # P is in canonical form for B if
+        # AB is identity matrix
+        # cB = 0
+        basis = self.__array_like_to_list(basis)
+        basis = self.__convert_indices(basis, 0, self._c.shape[0])
+
+        return all([
+            self.is_basis(basis),
+            np.allclose(self._A[basis], np.eye(len(basis))),
+            np.allclose(self._c[basis], 0)
+        ])
+
+
+    
+    def is_basic_solution(self, x, basis):
+        if not self._is_sef:
+            raise Error() # raise error if not in SEF form ?
+
+        x = self.__to_ndarray(x)
+
+        if not self.__is_vector_of_size(x, self._c):
+            raise ValueError()
+
+        # TODO Check if basis is changed by reference
+        if not self.is_basis(basis):
+            raise ValueError()
+
+        basis = self.__array_like_to_list(basis)
+        basis = self.__convert_indices(basis, 0, self._c.shape[0])
+
+        for i in range(self._c.shape[0]):
+            if not i in basis and not isclose(self._c[i], 0):
+                return False
+
+        return np.allclose(self._A @ x, self._b)
+
+
+
+    def is_feasible_basic_solution(self, x, basis):
+        x = self.__to_ndarray(x)
+
+        if not self.__is_vector_of_size(x, self._c):
+            raise ValueError()
+
+        return (x >= 0).all() self._is_basic_solution(x, basis) 
+
+
+
+    def is_basis(self, basis):
+        basis = self.__array_like_to_list(basis)
+        basis = self.__convert_indices(basis)
+
+        if not self._A.shape[0] == len(basis):
+            raise ValueError()
+
+        return not isclose(np.linalg.det(self._A[basis]), 0)
+
+
+
+    def is_feasible_basis(self):
+        # Checks if basis is feasible
+        # If the basic solution is feasible then corresponding basis is feasible
+        pass
+
+
 
     def to_canonical_form(self, basis, show_steps=True, in_place=False):
         """
@@ -180,15 +247,16 @@ class LinearProgrammingModel:
 
 
     #Separate this function into one private and one public
-    def compute_simplex_iteration(self, basis, in_place=False):
+    def compute_simplex_iteration(self, basis, show_steps=True, in_place=False):
         if not in_place:
             copy = self.copy()
 
             return copy.compute_simplex_iteration(basis, True)
 
+        basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
         
-        self.to_canonical_form(basis)
+        self.to_canonical_form(basis, in_place=True)
 
         #x is basic feasible solution for B
         x = None
@@ -196,7 +264,7 @@ class LinearProgrammingModel:
         N = [i for i in range(self._A.shape[1]) if not i in basis]
 
         if (self._c[:, N] <= 0).all():
-            return x
+            return x #optimal
 
         k = None
 
@@ -205,12 +273,19 @@ class LinearProgrammingModel:
                 k = i
 
                 break
-        
-        if (self._A[:, k] <= 0).all():
+
+        Ak = self._A[:, k]
+
+        if (Ak <= 0).all():
             #unbounded
             return
-        
-        # Not Done; Review Needed
+
+        t = self._b / Ak
+        t = np.amin(t[t > 0])
+
+        basis.append(k)
+        basis.remove(t)
+
         return self
 
 
@@ -247,7 +322,7 @@ class LinearProgrammingModel:
         cd = self._c @ d
 
         return all([
-            (Ad == 0).all(),
+            np.allclose(Ad, 0),
             (d >= 0).all(),
             (cd > 0).all(),
             self.is_feasible(x)
@@ -535,8 +610,8 @@ class LinearProgrammingModel:
 
 
 
-    def __is_vector_of_size(self, vector, dimension):
-        return isinstance(vector, np.ndarray) and vector.ndim == 1 and vector.shape[0] == dimension
+    def __is_vector_of_size(self, x, dimension):
+        return isinstance(x, np.ndarray) and x.ndim == 1 and x.shape[0] == dimension
 
 
 
@@ -554,7 +629,7 @@ class LinearProgrammingModel:
 
 
     
-    def __is_in_rref(self, arr):
+    def __is_in_rref(self, arr=self._A):
         """
         Returns whether or not the given array is in RREF.
 
@@ -601,7 +676,7 @@ class LinearProgrammingModel:
 
 
     
-    def __rref(self, arr):
+    def to_rref(self, arr):
         """
         Returns an array that has been row reduced into row reduced echelon 
         form (RREF) using the Gauss-Jordan algorithm. 
@@ -768,4 +843,11 @@ class LinearProgrammingModel:
     def free_variables(self):
         """ Gets the free variable indices. """
         return self.__get_free_variables()
+
+
+
+    @property
+    def is_in_rref(self):
+        """ Gets if the constraint is in RREF. Model must be in SEF. """
+        return self.__is_in_rref()
 
