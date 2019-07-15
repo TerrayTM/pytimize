@@ -29,16 +29,16 @@ class TestInit(TestCase):
         self.assertTrue(np.allclose(p.b, self.b), "Should construct constraint values.")
         self.assertTrue(np.allclose(p.c, self.c), "Should construct coefficient vector.")
         self.assertTrue(isclose(p.z, self.z), "Should construct constant.")
-        self.assertTrue(p.objective == Objective.min, "Should construct objective.")
-        self.assertTrue(p.inequalities == ["=", "=", "="], "Should construct inequalities.")
+        self.assertEqual(p.objective, Objective.min, "Should construct objective.")
+        self.assertEqual(p.inequalities, ["=", "=", "="], "Should construct inequalities.")
         self.assertFalse(p.is_sef, "Should detect non-SEF form.")
         
         self.assertTrue(np.issubdtype(p.A.dtype, np.floating), "Should be of type float.")
         self.assertTrue(np.issubdtype(p.b.dtype, np.floating), "Should be of type float.")
         self.assertTrue(np.issubdtype(p.c.dtype, np.floating), "Should be of type float.")
-        self.assertTrue(type(p.z) == float or type(p.z) == int, "Should be of type float or int.")
-        self.assertTrue(isinstance(p.objective, Objective), "Should be enum type Objective.")
-        self.assertTrue(isinstance(p.inequalities, list), "Should be of type list.")
+        self.assertIn(type(p.z), [float, int], "Should be of type float or int.")
+        self.assertIsInstance(p.objective, Objective, "Should be enum type Objective.")
+        self.assertIsInstance(p.inequalities, list, "Should be of type list.")
 
         p = LinearProgrammingModel(self.A.tolist(), self.b.tolist(), self.c.tolist(), self.z)
 
@@ -51,7 +51,7 @@ class TestInit(TestCase):
         self.assertTrue(np.issubdtype(p.A.dtype, np.floating), "Should be of type float.")
         self.assertTrue(np.issubdtype(p.b.dtype, np.floating), "Should be of type float.")
         self.assertTrue(np.issubdtype(p.c.dtype, np.floating), "Should be of type float.")
-        self.assertTrue(type(p.z) == float or type(p.z) == int, "Should be of type float or int.")
+        self.assertIn(type(p.z), [float, int], "Should be of type float or int.")
 
     def test_invalid_dimensions(self):
         A = np.array([
@@ -166,19 +166,19 @@ class TestInit(TestCase):
 
         p = LinearProgrammingModel(self.A, self.b, self.c, self.z, Objective.min)
 
-        self.assertFalse(p.is_sef, "Should detect non-SEF form")
+        self.assertFalse(p.is_sef, "Should detect non-SEF form.")
 
         p = LinearProgrammingModel(self.A, self.b, self.c, self.z, inequalities=["<=", "=", "="])
 
-        self.assertFalse(p.is_sef, "Should detect non-SEF form")
+        self.assertFalse(p.is_sef, "Should detect non-SEF form.")
 
         p = LinearProgrammingModel(self.A, self.b, self.c, self.z, inequalities=None, free_variables=[1])
 
-        self.assertFalse(p.is_sef, "Should detect non-SEF form")
+        self.assertFalse(p.is_sef, "Should detect non-SEF form.")
 
         p = LinearProgrammingModel(self.A, self.b, self.c, self.z, Objective.min, None, [1])
 
-        self.assertFalse(p.is_sef, "Should detect non-SEF form")
+        self.assertFalse(p.is_sef, "Should detect non-SEF form.")
 
 if __name__ == "__main__":
     main()
