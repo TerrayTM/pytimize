@@ -4,7 +4,7 @@ import numpy as np
 sys.path.append("./enums")
 
 from objective import Objective
-from math import isclose
+from math import isclose, inf
 
 # To do: redo pydoc comment style
 # To do: update pydoc comments
@@ -134,11 +134,8 @@ class LinearProgrammingModel:
         return f"Max {self._c}x + {self._z}\nSubject To:\n\n{output}"
 
 
+
     def is_canonical_form_for(self, basis):
-        # Let basis be of A
-        # P is in canonical form for B if
-        # AB is identity matrix
-        # cB = 0
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
 
@@ -180,25 +177,50 @@ class LinearProgrammingModel:
         if not self.__is_vector_of_size(x, self._c):
             raise ValueError()
 
-        return (x >= 0).all() self._is_basic_solution(x, basis) 
+        return (x >= 0).all() and self.__is_basic_solution(x, basis) 
 
 
 
     def is_basis(self, basis):
+        if not self._is_sef:
+            raise Error() # requires sef form
+
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis)
 
         if not self._A.shape[0] == len(basis):
             raise ValueError()
 
-        return not isclose(np.linalg.det(self._A[basis]), 0)
+        return not isclose(np.linalg.det(self._A[:, basis]), 0)
 
 
 
-    def is_feasible_basis(self):
-        # Checks if basis is feasible
-        # If the basic solution is feasible then corresponding basis is feasible
-        pass
+    def is_feasible_basis(self, basis):
+        return self.is_basis(basis) and (self.compute_basic_solution(basis) >= 0).all()
+
+
+
+    def compute_basic_solution(self, basis):
+        if not self.is_basis(basis):
+            raise Error()
+        
+        basis = self.__array_like_to_list(basis)
+        basis = self.__convert_indices(basis)
+
+        return self.__compute_basic_solution(basis)
+
+
+    #Move this to private methods
+    def __compute_basic_solution(self, basis):
+        components = np.linalg.inv(self._A[:, basis]) @ self._b
+        solution = np.zeros(self._c.shape[0])
+        
+        basis.sort()
+
+        for index, value in zip(basis, components):
+            solution[index] = value
+        
+        return solution
 
 
 
@@ -241,13 +263,16 @@ class LinearProgrammingModel:
 
 
 
-    def compute_simplex_solution(self, in_place=False):
+    def compute_simplex_solution(self, show_steps=True, in_place=False):
         pass
 
 
 
     #Separate this function into one private and one public
     def compute_simplex_iteration(self, basis, show_steps=True, in_place=False):
+        if not self._is_sef:
+            raise Error() #not sef
+        
         if not in_place:
             copy = self.copy()
 
@@ -258,13 +283,12 @@ class LinearProgrammingModel:
         
         self.to_canonical_form(basis, in_place=True)
 
-        #x is basic feasible solution for B
-        x = None
+        x = self.__compute_basic_solution(basis)
 
         N = [i for i in range(self._A.shape[1]) if not i in basis]
 
         if (self._c[:, N] <= 0).all():
-            return x #optimal
+            return x, self
 
         k = None
 
@@ -277,8 +301,7 @@ class LinearProgrammingModel:
         Ak = self._A[:, k]
 
         if (Ak <= 0).all():
-            #unbounded
-            return
+            return inf, self
 
         t = self._b / Ak
         t = np.amin(t[t > 0])
@@ -286,7 +309,7 @@ class LinearProgrammingModel:
         basis.append(k)
         basis.remove(t)
 
-        return self
+        return None, self
 
 
 
@@ -629,7 +652,7 @@ class LinearProgrammingModel:
 
 
     
-    def __is_in_rref(self, arr=self._A):
+    def __is_in_rref(self, arr):
         """
         Returns whether or not the given array is in RREF.
 
