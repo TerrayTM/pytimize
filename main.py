@@ -6,7 +6,6 @@ sys.path.append("./enums")
 from objective import Objective
 from math import isclose, inf
 
-# To do: redo pydoc comment style
 # To do: update pydoc comments
 # To do: check all and any expressions
 # To do: for make independent rows, check for sef at end
@@ -34,7 +33,7 @@ class LinearProgrammingModel:
         objective : Objective, optional (default=Objective.max)
             The objective of the linear programming model.
 
-        inequalities : array-like of {"=", ">=", "<="}, optional (default=None)
+        inequalities : array-like of str ["=", ">=", "<="], optional (default=None)
             The operator type between Ax and b. Each index of the array-like corresponds to the same index of the 
             constraint row. If input is "None", the constraint becomes Ax = b.
 
@@ -183,7 +182,7 @@ class LinearProgrammingModel:
 
     def is_basis(self, basis):
         if not self._is_sef:
-            raise Error() # requires sef form
+            raise ArithmeticError() # requires sef form
 
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis)
@@ -226,12 +225,23 @@ class LinearProgrammingModel:
 
     def to_canonical_form(self, basis, show_steps=True, in_place=False):
         """
-        Computes the canonical form of the formulation in terms of the given base indices.
+        Converts the linear program into canonical form for the given basis.
 
-        :param basis: An array of integer indices denoting the columns that form a base.
-                             Use standard math index numbering.
+        Parameters
+        ----------
+        basis : array-like of int
+            The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
 
-        :return: LinearProgrammingModel
+        show_steps : bool, optional (default=True)
+            Whether steps should be stored or not for this operation.
+
+        in_place : bool, optional (default=True)
+            Whether the operation should return a copy or be performed in place.
+
+        Returns
+        -------
+        result : LinearProgrammingModel
+            The copy of the linear program or self in canonical form.
 
         """
         if not in_place:
@@ -240,8 +250,9 @@ class LinearProgrammingModel:
             return copy.to_canonical_form(basis, show_steps, True)
 
         if not self._is_sef:
-            self.to_sef(True)  # To do: add test cases
+            raise ArithmeticError()  # To do: add test cases
 
+        basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
 
         A_b = self._A[:, basis]
@@ -264,12 +275,49 @@ class LinearProgrammingModel:
 
 
     def compute_simplex_solution(self, show_steps=True, in_place=False):
+        """
+        Computes the optimal solution for the linear program or returns a certificate of unboundedness
+        using the simplex algorithm.
+
+        Parameters
+        ----------
+        show_steps : bool, optional (default=True)
+            Whether steps should be stored or not for this operation.
+
+        in_place : bool, optional (default=True)
+            Whether the operation should return a copy or be performed in place.
+
+        Returns
+        -------
+        result : Tuple (ndarray of float, LinearProgrammingModel)
+            The copy of the linear program or self in canonical form.
+
+        """
         pass
 
 
 
-    #Separate this function into one private and one public
     def compute_simplex_iteration(self, basis, show_steps=True, in_place=False):
+        """
+        Computes a single iteration of the simplex algorithm.
+
+        Parameters
+        ----------
+        basis : array-like of int
+            The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
+
+        show_steps : bool, optional (default=True)
+            Whether steps should be stored or not for this operation.
+
+        in_place : bool, optional (default=True)
+            Whether the operation should return a copy or be performed in place.
+
+        Returns
+        -------
+        result : Tuple (ndarray of float, LinearProgrammingModel)
+            The copy of the linear program or self in canonical form.
+
+        """
         if not self._is_sef:
             raise Error() #not sef
         
@@ -317,11 +365,19 @@ class LinearProgrammingModel:
         """
         Verifies the certificate of infeasibility.
 
-        :param y:
+        Parameters
+        ----------
+        y : array-like of int, float
 
-        :return: A boolean value indicating if the certificate is valid.
+        Returns
+        -------
+        result: bool
+            Whether or not the certificate is valid. #review needed
 
         """
+        if not self._is_sef: # Requires SEF?
+            raise ArithmeticError()
+
         y_transpose = y.T
 
         yTA = y_transpose @ self._A
@@ -335,10 +391,15 @@ class LinearProgrammingModel:
         """
         Verifies the certificate of unboundedness.
 
-        :param x:
-        :param d:
+        Parameters
+        ----------
+        x : array-like of int, float
 
-        :result: A boolean value indicating if the certificate is valid.
+        d : array-like of int, float
+
+        Returns
+        -------
+        result:
 
         """
         Ad = self._A @ d
@@ -357,6 +418,16 @@ class LinearProgrammingModel:
         """
         Verifies the certificate of optimality.
 
+        Parameters
+        ----------
+        certificate : array-like of int
+            The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
+
+        Returns
+        -------
+        result : bool
+            The copy of the linear program or self in canonical form.
+
         """
         pass
 
@@ -366,9 +437,13 @@ class LinearProgrammingModel:
         """
         Checks if the given vector "x" is a feasible solution.
 
-        :param x: A row vector.
+        Parameters
+        ----------
+        x : array-like of int, float
 
-        :return: A boolean value indicating if the solution is feasible.
+        Returns
+        -------
+        result : bool
 
         """
         x = self.__to_ndarray(x)
@@ -757,6 +832,7 @@ class LinearProgrammingModel:
     def __make_indep(self):
         """
         Converts the augmented matrix [A|b] to be linearly independent.
+        
         """
         arr = np.c_[self._A, self._b]
 
@@ -808,69 +884,139 @@ class LinearProgrammingModel:
 
     @property
     def A(self):
-        """ Gets the constraint coefficient matrix. """
+        """ 
+        Gets the constraint coefficient matrix.
+
+        Returns
+        -------
+        result : 2D ndarray of float
+
+        """
         return self._A
 
 
 
     @property
     def b(self):
-        """ Gets the constraint vector. """
+        """ 
+        Gets the constraint vector. 
+
+        Returns
+        -------
+        result : ndarray of float
+        
+        """
         return self._b
 
 
 
     @property
     def c(self):
-        """ Gets the coefficient vector. """
+        """ 
+        Gets the coefficient vector of the objective function.
+
+        Returns
+        -------
+        result : ndarray of float
+
+        """
         return self._c
 
 
 
     @property
     def z(self):
-        """ Gets the constant. """
+        """ 
+        Gets the constant of the objective function. 
+        
+        Returns
+        -------
+        result : int, float
+
+        """
         return self._z
 
 
 
     @property
     def inequalities(self):
-        """ Gets the constraint inequalities. """
+        """
+        Gets the constraint inequalities.
+
+        Returns
+        -------
+        result : list of str ["=", ">=", "<="]
+
+        """
         return self.__get_inequalities()
 
 
 
     @property
     def objective(self):
-        """ Gets the objective. """
+        """ 
+        Gets the objective of the optimization. 
+
+        Returns
+        -------
+        result : bool
+
+        """
         return self._objective
 
 
 
     @property
     def is_sef(self):
-        """ Gets if the model is in standard equality form. """
+        """ 
+        Gets whether or not the linear program is in standard equality form.
+        
+        Returns
+        -------
+        result : bool
+
+        """
         return self._is_sef
 
 
 
     @property
     def steps(self):
-        """ Gets the steps of all operations performed. """
+        """ 
+        Gets the steps of all operations since last reset. 
+        
+        Returns
+        -------
+        result : list of dict { "id" : int, "text" : str }
+
+        """
         return self._steps
     
 
 
     @property
     def free_variables(self):
-        """ Gets the free variable indices. """
+        """ 
+        Gets the free variable indices in math indexing format.
+
+        Returns
+        -------
+        result : list of int
+
+        """
         return self.__get_free_variables()
 
 
 
     @property
-    def is_in_rref(self):
-        """ Gets if the constraint is in RREF. Model must be in SEF. """
-        return self.__is_in_rref()
+    def is_in_rref(self):   #EXPERIMENTAL
+        """ 
+        Gets if the constraint is in RREF. Model must be in SEF. 
+        
+        Returns
+        -------
+        result : bool
+
+        """
+        #return self.__is_in_rref()
 
