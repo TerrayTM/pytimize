@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+import step_descriptor as StepDescriptor
 
 sys.path.append("./enums")
 
@@ -176,7 +177,7 @@ class LinearProgrammingModel:
         if not self.__is_vector_of_size(x, self._c):
             raise ValueError()
 
-        return (x >= 0).all() and self.__is_basic_solution(x, basis) 
+        return (x >= 0).all() and self.is_basic_solution(x, basis) 
 
 
 
@@ -252,13 +253,22 @@ class LinearProgrammingModel:
         if not self._is_sef:
             raise ArithmeticError()  # To do: add test cases
 
+        show_steps and self.__append_steps(('1.1', basis))
+
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
 
-        A_b = self._A[:, basis]
-        c_b = self._c[basis]
-        A_b_inverse = np.linalg.inv(A_b)
-        y_transpose = (A_b_inverse.T @ c_b).T
+        Ab = self._A[:, basis]
+        
+        show_steps and self.__append_steps(('1.2', Ab))
+            
+        cb = self._c[basis]
+            
+        show_steps and self.__append_steps(('1.3', cb))
+        
+        A_b_inverse = np.linalg.inv(Ab)
+
+        y_transpose = (A_b_inverse.T @ cb).T
 
         A = A_b_inverse @ self._A
         b = A_b_inverse @ self._b
@@ -271,6 +281,27 @@ class LinearProgrammingModel:
         self._z = z
 
         return self
+
+
+    def __append_steps(self, steps):
+        if isinstance(steps, list):
+            for step in steps:
+                if step:
+                    key = step[0]
+
+                    self._steps.append({
+                        'key': key,
+                        'text': StepDescriptor.render_descriptor(key, step[1:])
+                    })
+        elif isinstance(steps, tuple) and steps:
+            key = steps[0]
+
+            self._steps.append({
+                'key': key,
+                'text': StepDescriptor.render_descriptor(key, steps[1:])
+            })
+
+
 
 
 
@@ -987,7 +1018,7 @@ class LinearProgrammingModel:
         
         Returns
         -------
-        result : list of dict { "id" : int, "text" : str }
+        result : list of dict { "key" : int, "text" : str }
 
         """
         return self._steps
@@ -1019,4 +1050,3 @@ class LinearProgrammingModel:
 
         """
         #return self.__is_in_rref()
-
