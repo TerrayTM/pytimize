@@ -6,6 +6,7 @@ sys.path.append("./enums")
 
 from objective import Objective
 from math import isclose, inf
+from functools import reduce
 
 # To do: update pydoc comments
 # To do: check all and any expressions
@@ -149,14 +150,13 @@ class LinearProgrammingModel:
     
     def is_basic_solution(self, x, basis):
         if not self._is_sef:
-            raise Error() # raise error if not in SEF form ?
+            raise ArithmeticError() # raise error if not in SEF form ?
 
         x = self.__to_ndarray(x)
 
         if not self.__is_vector_of_size(x, self._c):
             raise ValueError()
 
-        # TODO Check if basis is changed by reference
         if not self.is_basis(basis):
             raise ValueError()
 
@@ -202,16 +202,10 @@ class LinearProgrammingModel:
 
     def compute_basic_solution(self, basis):
         if not self.is_basis(basis):
-            raise Error()
+            raise ArithmeticError()
         
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis)
-
-        return self.__compute_basic_solution(basis)
-
-
-    #Move this to private methods
-    def __compute_basic_solution(self, basis):
         components = np.linalg.inv(self._A[:, basis]) @ self._b
         solution = np.zeros(self._c.shape[0])
         
@@ -253,25 +247,27 @@ class LinearProgrammingModel:
         if not self._is_sef:
             raise ArithmeticError()  # To do: add test cases
 
-        show_steps and self.__append_steps(('1.1', basis))
+        show_steps and self.__append_to_steps(('1.1', basis))
 
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
 
         Ab = self._A[:, basis]
         
-        show_steps and self.__append_steps(('1.2', Ab))
-            
+        show_steps and self.__append_to_steps(('1.2', Ab))
+
         cb = self._c[basis]
             
-        show_steps and self.__append_steps(('1.3', cb))
+        show_steps and self.__append_to_steps(('1.3', cb))
         
-        A_b_inverse = np.linalg.inv(Ab)
+        Ab_inverse = np.linalg.inv(Ab)
 
-        y_transpose = (A_b_inverse.T @ cb).T
+        show_steps and self.__append_to_steps(('1.4', Ab_inverse))
 
-        A = A_b_inverse @ self._A
-        b = A_b_inverse @ self._b
+        y_transpose = (Ab_inverse.T @ cb).T
+
+        A = Ab_inverse @ self._A
+        b = Ab_inverse @ self._b
         c = self._c - y_transpose @ self._A
         z = y_transpose @ self._b + self._z
 
@@ -281,27 +277,6 @@ class LinearProgrammingModel:
         self._z = z
 
         return self
-
-
-    def __append_steps(self, steps):
-        if isinstance(steps, list):
-            for step in steps:
-                if step:
-                    key = step[0]
-
-                    self._steps.append({
-                        'key': key,
-                        'text': StepDescriptor.render_descriptor(key, step[1:])
-                    })
-        elif isinstance(steps, tuple) and steps:
-            key = steps[0]
-
-            self._steps.append({
-                'key': key,
-                'text': StepDescriptor.render_descriptor(key, steps[1:])
-            })
-
-
 
 
 
@@ -362,7 +337,7 @@ class LinearProgrammingModel:
         
         self.to_canonical_form(basis, in_place=True)
 
-        x = self.__compute_basic_solution(basis)
+        x = None #TODO = self.__compute_basic_solution(basis)
 
         N = [i for i in range(self._A.shape[1]) if not i in basis]
 
@@ -466,7 +441,7 @@ class LinearProgrammingModel:
 
     def is_feasible(self, x, show_steps=True):
         """
-        Checks if the given vector "x" is a feasible solution.
+        Checks if the given vector is a feasible solution.
 
         Parameters
         ----------
@@ -482,78 +457,88 @@ class LinearProgrammingModel:
         if not self.__is_vector_of_size(x, self._c.shape[0]):
             raise ValueError()
 
-        show_steps and self._steps.append(f"Is {x} feasible?")
+        show_steps and self.__append_to_steps(("2.01", x))
 
         if self._is_sef:
             all_nonnegative = (x >= 0).all()
             satisfy_constraints = np.allclose(self._A @ x, self._b)
             is_feasible = all_nonnegative and satisfy_constraints
 
-            show_steps and is_feasible and self._steps.extend([
-                f"{x} is feasible because:", 
-                "* P is in SEF.", 
-                f"* All entries of {x} are nonnegative.",
-                "* Constraints are satisfied (Ax = b).",
+            show_steps and is_feasible and self.__append_to_steps([
+                ("2.02", x),
+                "2.03",
+                ("2.04", x),
+                "2.05"
             ])
-            show_steps and not is_feasible and self._steps.extend(list(filter(None, [
-                f"{x} is not feasible because:",
-                "* P is in SEF.",
-                f"* Some entries of {x} is negative." if not all_nonnegative else None,
-                "* Constraints are not satisfied (Ax ≠ b)." if not satisfy_constraints else None
-            ])))
+            show_steps and not is_feasible and self.__append_to_steps([
+                ("2.06", x),
+                "2.03",
+                ("2.07", x) if not all_nonnegative else None,
+                "2.08" if not satisfy_constraints else None
+            ])
 
             return is_feasible
+        
+        is_feasible = True
 
         for i in range(x.shape[0]):
             row = self._A[i, :]
             value = row @ x
+            step = None
 
             if not i in self._free_variables and x[i] < 0:
-                show_steps and self._steps.extend([
-                    f"{x} is not feasible because:",
-                    f"* Entry at index {i + 1} is negative and it is not a free variable."
+                show_steps and self.__append_to_steps([
+                    ("2.06", x) if is_feasible else None,
+                    ("2.09", i + 1),
+                    ("2.10", i + 1)
                 ])
 
-                return False
+                is_feasible = False
+
+                if not show_steps:
+                    return False
 
             if i in self._inequality_indices:
                 current = self._inequality_indices[i]
 
                 if current == "<=" and value > self._b[i]:
-                    show_steps and self._steps.extend([
-                        f"{x} is not feasible because:",
-                        f"* {row} • {x} = {value} and {value} is not ≤ {self._b[i]}."
-                    ])
+                    step = "2.11"
 
-                    return False
+                    if not show_steps:
+                        return False
                 elif current == ">=" and value < self._b[i]:
-                    show_steps and self._steps.extend([
-                        f"{x} is not feasible because:",
-                        f"* {row} • {x} = {value} and {value} is not ≥ {self._b[i]}."
-                    ])
+                    step = "2.12"
 
-                    return False
+                    if not show_steps:
+                        return False
             elif not isclose(value, self._b[i]):
-                show_steps and self._steps.extend([
-                    f"{x} is not feasible because:",
-                    f"* {row} • {x} = {value} and {value} ≠ {self._b[i]}."
+                step = "2.13"
+
+                if not show_steps:
+                    return False
+
+            if step:
+                show_steps and self.__append_to_steps([
+                    ("2.06", x) if is_feasible else None,
+                    (step, row, x, value, value, self.b[i])
                 ])
 
-                return False
+                is_feasible = False
         
-        show_steps and self._steps.extend([
-            f"{x} is feasible because:",
-            "* Constraints are satisfied.",
-            "* All entries are either nonnegative or is a free variable."
-        ])
+        if is_feasible:
+            show_steps and self.__append_to_steps([
+                ("2.02", x),
+                "2.14",
+                "2.15"
+            ])
 
-        return True
+        return is_feasible
 
 
 
     def evaluate(self, x):
         """
-        Evaluates the objective function with a given x vector. Does not 
+        Evaluates the objective function with a given vector. Does not 
         check if x satisfies the constraints.
 
         :return: float
@@ -710,8 +695,38 @@ class LinearProgrammingModel:
 
 
 
+    def __append_to_steps(self, entity):
+        if isinstance(entity, list):
+            for step in entity:
+                if step:
+                    if isinstance(step, str):
+                        key = step
+                    elif isinstance(step, tuple):
+                        key = step[0]
+                    else: 
+                        raise ValueError()
+
+                    self._steps.append({
+                        'key': key,
+                        'text': StepDescriptor.render_descriptor(key, list(step[1:]))
+                    })
+        elif isinstance(entity, tuple) and entity:
+            key = entity[0]
+
+            self._steps.append({
+                'key': key,
+                'text': StepDescriptor.render_descriptor(key, list(entity[1:]))
+            })
+
+
+
     def __get_free_variables(self):
         return list(map(lambda i: i + 1, self._free_variables))
+
+
+    
+    def __format_steps(self):
+        return reduce((lambda previous, current: f"{previous}\n{current['text']}"), self.steps, "").strip()
 
 
 
@@ -859,10 +874,10 @@ class LinearProgrammingModel:
 
 
 
-
-    def __make_indep(self):
+    #TODO: Make function return new A and b instead of changing them directly
+    def __make_independent_rows(self):
         """
-        Converts the augmented matrix [A|b] to be linearly independent.
+        Removes dependent rows from the constraints and returns the new values for A and b. The linear program must be in almost SEF.
         
         """
         arr = np.c_[self._A, self._b]
@@ -1022,6 +1037,20 @@ class LinearProgrammingModel:
 
         """
         return self._steps
+
+
+
+    @property
+    def steps_string(self):
+        """ 
+        Gets the steps of all operations since last reset in string form. 
+        
+        Returns
+        -------
+        result : str
+
+        """
+        return self.__format_steps()
     
 
 
