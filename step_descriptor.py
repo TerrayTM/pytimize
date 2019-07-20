@@ -20,7 +20,12 @@ _steps = {
     "2.12": "* {} • {} = {} and {} is Not ≥ {}",
     "2.13": "* {} • {} = {} and {} is Not ≠ {}",
     "2.14": "* Constraints are Satisfied",
-    "2.15": "* All Entries are Either Nonnegative or is a Free Variable"
+    "2.15": "* All Entries are Either Nonnegative or is a Free Variable",
+
+    "3.01": "Convert to SEF",
+    "3.02": "Take Negative of Coefficient Vector to Set Objective to Maximization",
+    "3.03": "{} => {}",
+    "3.04": "Free Variables at Index x"
 }
 
 def render_descriptor(key, arguments):

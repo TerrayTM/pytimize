@@ -585,7 +585,7 @@ class LinearProgrammingModel:
 
 
 
-    def to_sef(self, in_place=False):
+    def to_sef(self, show_steps=True, in_place=False):
         """
         Converts expression to standard equality form.
 
@@ -595,18 +595,24 @@ class LinearProgrammingModel:
         if not in_place:
             copy = self.copy()
 
-            return copy.to_sef(in_place=True)
+            return copy.to_sef(show_steps, True)
 
         if self._is_sef:
             return self
+
+        show_steps and self.__append_to_steps("3.01")
 
         if self._objective == Objective.min:
             self._c = -self._c
             self._objective = Objective.max
 
+            show_steps and self.__append_to_steps([
+                "3.02",
+                ("3.03", -self._c, self._c)
+            ])
+
         for i in range(len(self._free_variables)):
-            free_variables = self._free_variables[i]
-            index = free_variables + i
+            index = self._free_variables[i] + i
 
             self._c = np.insert(self._c, index + 1, -self._c[index])
             self._A = np.insert(self._A, index + 1, -self._A[:, index], axis=1)
@@ -710,8 +716,13 @@ class LinearProgrammingModel:
                         'key': key,
                         'text': StepDescriptor.render_descriptor(key, list(step[1:]))
                     })
-        elif isinstance(entity, tuple) and entity:
-            key = entity[0]
+        else:
+            key = entity[0] if isinstance(entity, tuple) else None
+
+            if not key and isinstance(entity, str):
+                key = entity
+            else:
+                raise ValueError()
 
             self._steps.append({
                 'key': key,
@@ -875,7 +886,7 @@ class LinearProgrammingModel:
 
 
     #TODO: Make function return new A and b instead of changing them directly
-    def __make_independent_rows(self):
+    def __remove_dependent_rows(self):
         """
         Removes dependent rows from the constraints and returns the new values for A and b. The linear program must be in almost SEF.
         
