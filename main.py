@@ -98,41 +98,68 @@ class LinearProgrammingModel:
         self._free_variables = free_variables
 
 
-    # TODO: replace >= and <= in output with actual symbols (Google to find them)
+    
     def __str__(self):
-        # TODO: test the function :D
         output = ""
         shape = self._A.shape
-        row_length = 0
 
-        # find max length of row for formatting
+        # list of spaces required for each column
+        col_spaces = []
+
+        # find max length of each column for formatting
+        for col in range(shape[1]):
+            length = 0
+            for row in range(shape[0]):
+                length = max(len(str(self._A[row, col])), length)
+            col_spaces.append(length)
+
+        # list of spaces required for b vector
+        b_spaces = 0
+
         for i in range(shape[0]):
-            length = len(str(self._A[i, :]))
-            if length > row_length:
-                row_length = length
+            b_spaces = max(len(str(self._b[i])), b_spaces)
 
-        for i in range(shape[0]):
-            spaces = row_length + 5  # format output nicely
-            output += str(self._A[i, :])
-            spaces -= len(str(self._A[i, :]))
+        # add each number
+        for row in range(shape[0]):
+            output += "["
+            for col in range(shape[1]):
+                spaces = col_spaces[col] - len(str(self._A[row, col]))
+                output += str(self._A[row, col])
+                output += " " * spaces
 
-            if i == shape[0] // 2:
-                output += "x"
-                spaces -= 1
-
-            if i in self._inequality_indices:
-                spaces -= 1
+                if not col == shape[1] - 1:
+                    # add a space between numbers only
+                    output += " "
             
-            output += " " * spaces
-            
-            if i in self._inequality_indices:
-                output += self._inequality_indices[i]
+            output += "]"
+
+            if row == shape[0]//2:
+                output += "x    "
             else:
-                output += "="
+                output += "     "
 
-            output += f"   {str(self._b[i])}\n"
+            if row in self._inequality_indices:
+                if self._inequality_indices[row] == ">=":
+                    output += "≥   "
+                else:
+                    output += "≤   "
+            else:
+                output += "=   "
 
-        return f"Max {self._c}x + {self._z}\nSubject To:\n\n{output}"
+            output += "[" + str(self._b[row])
+
+            output += " " * (b_spaces - len(str(self._b[row])))
+
+            output += "]\n"
+
+        # convert self._objective into user friendly form
+        # janky method: convert into string, remove "Objective." and turn first remaining character into uppercase :D
+        # e.g. "Objective.max" -> "Max"
+        # TODO: find better method of enum to string?
+        obj = str(self._objective)[10:]
+        obj = obj.capitalize()
+
+        return f"{obj} {self._c}x + {self._z}\nSubject To:\n\n{output}"
 
 
 
