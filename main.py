@@ -98,7 +98,7 @@ class LinearProgrammingModel:
         self._free_variables = free_variables
 
 
-    
+    # TODO include free variables in string
     def __str__(self):
         output = ""
         shape = self._A.shape
@@ -133,7 +133,7 @@ class LinearProgrammingModel:
             
             output += "]"
 
-            if row == shape[0]//2:
+            if row == shape[0] // 2:
                 output += "x    "
             else:
                 output += "     "
@@ -146,7 +146,7 @@ class LinearProgrammingModel:
             else:
                 output += "=   "
 
-            output += "[" + str(self._b[row])
+            output += f"[{self._b[row]}"
 
             output += " " * (b_spaces - len(str(self._b[row])))
 
@@ -274,22 +274,22 @@ class LinearProgrammingModel:
         if not self._is_sef:
             raise ArithmeticError()  # To do: add test cases
 
-        show_steps and self.__append_to_steps(('1.1', basis))
+        show_steps and self.__append_to_steps(('1.01', basis))
 
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
 
         Ab = self._A[:, basis]
         
-        show_steps and self.__append_to_steps(('1.2', Ab))
+        show_steps and self.__append_to_steps(('1.02', Ab))
 
         cb = self._c[basis]
             
-        show_steps and self.__append_to_steps(('1.3', cb))
+        show_steps and self.__append_to_steps(('1.03', cb))
         
         Ab_inverse = np.linalg.inv(Ab)
 
-        show_steps and self.__append_to_steps(('1.4', Ab_inverse))
+        show_steps and self.__append_to_steps(('1.04', Ab_inverse))
 
         y_transpose = (Ab_inverse.T @ cb).T
 
@@ -352,7 +352,7 @@ class LinearProgrammingModel:
 
         """
         if not self._is_sef:
-            raise Error() #not sef
+            raise ArithmeticError()
         
         if not in_place:
             copy = self.copy()
@@ -657,7 +657,7 @@ class LinearProgrammingModel:
                 elif (operator == "<="):
                     self._A[i, -1] = 1
 
-        self.inequality_indices = {}
+        self._inequality_indices = {}
         self._is_sef = True
 
         return self
@@ -746,10 +746,11 @@ class LinearProgrammingModel:
         else:
             key = entity[0] if isinstance(entity, tuple) else None
 
-            if not key and isinstance(entity, str):
-                key = entity
-            else:
-                raise ValueError()
+            if not key:
+                if isinstance(entity, str):
+                    key = entity
+                else:
+                    raise ValueError()
 
             self._steps.append({
                 'key': key,

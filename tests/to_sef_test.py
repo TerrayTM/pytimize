@@ -28,12 +28,12 @@ class TestToSEF(TestCase):
             [1, 5, 3, -3, -1, 0],
             [2, -1, 2, -2, 0, 1],
             [1, 2, -1, 1, 0, 0]
-        ])))
-        self.assertTrue(np.allclose(p.b, np.array([5, 4, 2])))
-        self.assertTrue(np.allclose(p.c, np.array([1, -2, 4, -4, 0, 0])))
-        self.assertTrue(isclose(p.z, 0))
-        self.assertEqual(p.inequalities, [])
-        self.assertEqual(p.objective, Objective.max)
+        ])), "Should compute correct coefficient matrix in SEF.")
+        self.assertTrue(np.allclose(p.b, np.array([5, 4, 2])), "Should compute correct constraint values in SEF.")
+        self.assertTrue(np.allclose(p.c, np.array([-1, 2, -4, 4, 0, 0])), "Should compute correct coefficient vector in SEF.")
+        self.assertTrue(isclose(p.z, 0), "Should compute correct constant in SEF.")
+        self.assertEqual(p.inequalities, ["=" for i in range(len(c))], "Should compute correct inequalities in SEF.")
+        self.assertEqual(p.objective, Objective.max, "Should be maximizing objective function in SEF.")
 
 if __name__ == "__main__":
     main()

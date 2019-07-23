@@ -30,7 +30,7 @@ _steps = {
 
 def render_descriptor(key, arguments):
     if not key in _steps:
-        raise KeyError(key)
+        raise KeyError()
 
     for i in range(len(arguments)):
         if isinstance(arguments[i], ndarray):

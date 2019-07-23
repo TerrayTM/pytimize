@@ -10,7 +10,7 @@ Currently Implemented Methods:
 * Verify Infeasibility
 * Verify Unboundedness
 * Check Solution Feasible
-* Convert to SEF Form
+* Convert to SEF
 
 Planned Features:
 * Simplex Method

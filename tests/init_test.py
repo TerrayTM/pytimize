@@ -31,7 +31,7 @@ class TestInit(TestCase):
         self.assertTrue(isclose(p.z, self.z), "Should construct constant.")
         self.assertEqual(p.objective, Objective.min, "Should construct objective.")
         self.assertEqual(p.inequalities, ["=", "=", "="], "Should construct inequalities.")
-        self.assertFalse(p.is_sef, "Should detect non-SEF form.")
+        self.assertFalse(p.is_sef, "Should detect non-SEF.")
         
         self.assertTrue(np.issubdtype(p.A.dtype, np.floating), "Should be of type float.")
         self.assertTrue(np.issubdtype(p.b.dtype, np.floating), "Should be of type float.")
@@ -46,7 +46,7 @@ class TestInit(TestCase):
         self.assertTrue(np.allclose(p.b, self.b), "Should construct constraint values.")
         self.assertTrue(np.allclose(p.c, self.c), "Should construct coefficient vector.")
         self.assertTrue(isclose(p.z, self.z), "Should construct constant.")
-        self.assertTrue(p.is_sef, "Should detect SEF form.")
+        self.assertTrue(p.is_sef, "Should detect SEF.")
         
         self.assertTrue(np.issubdtype(p.A.dtype, np.floating), "Should be of type float.")
         self.assertTrue(np.issubdtype(p.b.dtype, np.floating), "Should be of type float.")
@@ -158,27 +158,27 @@ class TestInit(TestCase):
     def test_sef_detection(self):
         p = LinearProgrammingModel(self.A, self.b, self.c, self.z)
 
-        self.assertTrue(p.is_sef, "Should detect SEF form.")
+        self.assertTrue(p.is_sef, "Should detect SEF.")
 
         p = LinearProgrammingModel(self.A, self.b, self.c, self.z, inequalities=["=", "=", "="])
 
-        self.assertTrue(p.is_sef, "Should detect SEF form.")
+        self.assertTrue(p.is_sef, "Should detect SEF.")
 
         p = LinearProgrammingModel(self.A, self.b, self.c, self.z, Objective.min)
 
-        self.assertFalse(p.is_sef, "Should detect non-SEF form.")
+        self.assertFalse(p.is_sef, "Should detect non-SEF.")
 
         p = LinearProgrammingModel(self.A, self.b, self.c, self.z, inequalities=["<=", "=", "="])
 
-        self.assertFalse(p.is_sef, "Should detect non-SEF form.")
+        self.assertFalse(p.is_sef, "Should detect non-SEF.")
 
         p = LinearProgrammingModel(self.A, self.b, self.c, self.z, inequalities=None, free_variables=[1])
 
-        self.assertFalse(p.is_sef, "Should detect non-SEF form.")
+        self.assertFalse(p.is_sef, "Should detect non-SEF.")
 
         p = LinearProgrammingModel(self.A, self.b, self.c, self.z, Objective.min, None, [1])
 
-        self.assertFalse(p.is_sef, "Should detect non-SEF form.")
+        self.assertFalse(p.is_sef, "Should detect non-SEF.")
 
 if __name__ == "__main__":
     main()
