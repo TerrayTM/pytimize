@@ -100,6 +100,15 @@ class LinearProgrammingModel:
 
     # TODO include free variables in string
     def __str__(self):
+        """
+        Generates a nicely formatted string representation of the linear program.
+
+        Returns
+        -------
+        result : str
+            A string representation of the model.
+
+        """
         output = ""
         shape = self._A.shape
 
@@ -164,6 +173,15 @@ class LinearProgrammingModel:
 
 
     def is_canonical_form_for(self, basis):
+        """
+        Checks if the linear program is in canonical form for the specified basis.
+
+        Returns
+        -------
+        result : bool
+            Whether or not the model is in canonical form for the basis.
+
+        """
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
 
@@ -176,6 +194,15 @@ class LinearProgrammingModel:
 
     
     def is_basic_solution(self, x, basis):
+        """
+        Checks if the given vector is a basic solution for the specified basis.
+
+        Returns
+        -------
+        result : bool
+            Whether or not the vector is a basic solution for the basis.
+
+        """
         if not self._is_sef:
             raise ArithmeticError() # raise error if not in SEF form ?
 
@@ -199,6 +226,15 @@ class LinearProgrammingModel:
 
 
     def is_feasible_basic_solution(self, x, basis):
+        """
+        Checks if the given vector is a feasible basic solution for the specified basis.
+
+        Returns
+        -------
+        result : bool
+            Whether or not the vector is a feasible basic solution for the basis.
+
+        """
         x = self.__to_ndarray(x)
 
         if not self.__is_vector_of_size(x, self._c):
@@ -209,6 +245,15 @@ class LinearProgrammingModel:
 
 
     def is_basis(self, basis):
+        """
+        Checks if the given base indices form a valid basis for the current model.
+
+        Returns
+        -------
+        result : bool
+            Whether or not the base indices form a valid basis.
+
+        """
         if not self._is_sef:
             raise ArithmeticError() # requires sef form
 
@@ -223,11 +268,29 @@ class LinearProgrammingModel:
 
 
     def is_feasible_basis(self, basis):
+        """
+        Tests if the given basis is feasible.
+
+        Returns
+        -------
+        result : bool
+            Whether or not the basis is feasible.
+
+        """
         return self.is_basis(basis) and (self.compute_basic_solution(basis) >= 0).all()
 
 
 
     def compute_basic_solution(self, basis):
+        """
+        Computes the basic solution corresponding to the specified basis.
+
+        Returns
+        -------
+        result : ndarray of float
+            The basic solution corresponding to the basis.
+
+        """
         if not self.is_basis(basis):
             raise ArithmeticError()
         
@@ -565,10 +628,12 @@ class LinearProgrammingModel:
 
     def evaluate(self, x):
         """
-        Evaluates the objective function with a given vector. Does not 
-        check if x satisfies the constraints.
+        Evaluates the objective function with a given vector. Does not check if x satisfies the constraints.
 
-        :return: float
+        Returns
+        -------
+        result : float
+
         """
         x = self.__to_ndarray(x)
         
@@ -583,7 +648,10 @@ class LinearProgrammingModel:
         """
         Computes the value of a given x vector. The vector must satisfy the constraints.
         
-        :return: float
+        Returns
+        -------
+        result : float
+        
         """
         x = self.__to_ndarray(x)
 
