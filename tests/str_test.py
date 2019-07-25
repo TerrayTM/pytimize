@@ -26,16 +26,36 @@ class TestStr(TestCase):
             "Max [100. 200. 300.]x + 5\n"
             "Subject To:\n"
             "\n"
-            "[1.0 2.0 3.0]     =   [6.0 ]\n"
-            "[4.0 5.0 6.0]x    =   [15.0]\n"
-            "[7.0 8.0 9.0]     =   [24.0]\n"
+            "[1. 2. 3.]     =   [6. ]\n"
+            "[4. 5. 6.]x    =   [15.]\n"
+            "[7. 8. 9.]     =   [24.]\n"
         )
         
         p = LinearProgrammingModel(A, b, c, z)
-
-        # This test case should fail because you forgot the brackets around 'b'
-        # Once you got that this should pass
         self.assertEqual(str(p), expected, "Should output in correct string format.")
+
+
+
+        A = np.array([
+            [1.0, 2.9589, 3],
+            [4, 0.0, -6.0],
+            [7.22, -8, 9]
+        ])
+        b = np.array([-6.11, 15.0, 0])
+        c = np.array([0, -20.012, 300.0])
+        z = 0.0
+        expected = (
+            "Max [0. -20.012 300.]x\n"
+            "Subject To:\n"
+            "\n"
+            "[1.   2.9589 3. ]     =   [-6.11]\n"
+            "[4.   0.     -6.]x    =   [15.  ]\n"
+            "[7.22 -8.    9. ]     =   [0.   ]\n"
+        )
+        
+        p = LinearProgrammingModel(A, b, c, z)
+        self.assertEqual(str(p), expected, "Should output in correct string format.")
+
        
 if __name__ == "__main__":
     main()

@@ -112,6 +112,32 @@ class LinearProgrammingModel:
         output = ""
         shape = self._A.shape
 
+        # set objective to be human readable
+        if self._objective == Objective.min:
+            obj = "Min ["
+        else:
+            obj = "Max ["
+
+        output += obj
+
+        # add c vector to output
+        for i in range(len(self._c)):
+            if self._c[i].is_integer():
+                output += str(int(self._c[i])) + "."
+            else:
+                output += str(self._c[i])
+
+            if not i == len(self._c) - 1:
+                # add a space between numbers only
+                output += " "
+        
+        output += "]x"
+
+        if not isclose(self._z, 0):
+            output += " + " + str(self._z)
+
+        output += "\nSubject To:\n\n"
+
         # list of spaces required for each column
         col_spaces = []
 
@@ -119,21 +145,33 @@ class LinearProgrammingModel:
         for col in range(shape[1]):
             length = 0
             for row in range(shape[0]):
-                length = max(len(str(self._A[row, col])), length)
+                entry_len = len(str(self._A[row, col]))
+                if self._A[row, col].is_integer():
+                    entry_len -= 1  # account for extra x.0 at end instead of x.
+                length = max(entry_len, length)
+
             col_spaces.append(length)
 
         # list of spaces required for b vector
         b_spaces = 0
 
         for i in range(shape[0]):
-            b_spaces = max(len(str(self._b[i])), b_spaces)
+            b_entry_len = len(str(self._b[i]))
+            if self._b[i].is_integer():
+                b_entry_len -= 1
+            b_spaces = max(b_entry_len, b_spaces)
 
-        # add each number
+        # add each number to output string
         for row in range(shape[0]):
             output += "["
             for col in range(shape[1]):
-                spaces = col_spaces[col] - len(str(self._A[row, col]))
-                output += str(self._A[row, col])
+                if self._A[row, col].is_integer():
+                    spaces = col_spaces[col] - len(str(self._A[row, col])) + 1
+                    output += str(int(self._A[row, col]))
+                    output += "."
+                else:
+                    spaces = col_spaces[col] - len(str(self._A[row, col]))
+                    output += str(self._A[row, col])
                 output += " " * spaces
 
                 if not col == shape[1] - 1:
@@ -155,20 +193,19 @@ class LinearProgrammingModel:
             else:
                 output += "=   "
 
-            output += f"[{self._b[row]}"
-
-            output += " " * (b_spaces - len(str(self._b[row])))
+            # add row-th entry from b
+            output += "["
+            
+            if self._b[row].is_integer():
+                output += str(int(self._b[row])) + "."
+                output += " " * (b_spaces - len(str(self._b[row])) + 1)
+            else:
+                output += str(self._b[row])
+                output += " " * (b_spaces - len(str(self._b[row])))
 
             output += "]\n"
 
-        # convert self._objective into user friendly form
-        # janky method: convert into string, remove "Objective." and turn first remaining character into uppercase :D
-        # e.g. "Objective.max" -> "Max"
-        # TODO: find better method of enum to string?
-        obj = str(self._objective)[10:]
-        obj = obj.capitalize()
-
-        return f"{obj} {self._c}x + {self._z}\nSubject To:\n\n{output}"
+        return output
 
 
 
