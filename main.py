@@ -197,7 +197,7 @@ class LinearProgrammingModel:
             output += "["
             
             if self._b[row].is_integer():
-                output += str(int(self._b[row])) + "."
+                output += f"{str(int(self._b[row]))}."
                 output += " " * (b_spaces - len(str(self._b[row])) + 1)
             else:
                 output += str(self._b[row])
