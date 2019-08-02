@@ -1,15 +1,13 @@
 import sys
 import numpy as np
-import step_descriptor as StepDescriptor
 
 sys.path.append("./enums")
 
 from objective import Objective
+from step_descriptor import render_descriptor
 from math import isclose, inf
 from functools import reduce
 
-# To do: update pydoc comments
-# To do: check all and any expressions
 # To do: for make independent rows, check for sef at end
 class LinearProgrammingModel:
     def __init__(self, A, b, c, z, objective=Objective.max, inequalities=None, free_variables=None):
@@ -322,6 +320,9 @@ class LinearProgrammingModel:
         """
         Computes the basic solution corresponding to the specified basis.
 
+        basis : array-like of int
+            The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
+
         Returns
         -------
         result : ndarray of float
@@ -330,18 +331,11 @@ class LinearProgrammingModel:
         """
         if not self.is_basis(basis):
             raise ArithmeticError()
-        
+
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis)
-        components = np.linalg.inv(self._A[:, basis]) @ self._b
-        solution = np.zeros(self._c.shape[0])
-        
-        basis.sort()
 
-        for index, value in zip(basis, components):
-            solution[index] = value
-        
-        return solution
+        return self.__compute_basic_solution(basis)
 
 
 
@@ -379,6 +373,31 @@ class LinearProgrammingModel:
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
 
+        return self.__to_canonical_form(basis, show_steps)
+
+
+
+    def __to_canonical_form(self, basis, show_steps):
+        """
+        Helper function for converting the linear program into canonical form for the given basis.
+
+        Parameters
+        ----------
+        basis : array-like of int
+            The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
+
+        show_steps : bool, optional (default=True)
+            Whether steps should be stored or not for this operation.
+
+        in_place : bool, optional (default=True)
+            Whether the operation should return a copy or be performed in place.
+
+        Returns
+        -------
+        result : LinearProgrammingModel
+            The copy of the linear program or self in canonical form.
+
+        """
         Ab = self._A[:, basis]
         
         show_steps and self.__append_to_steps(('1.02', Ab))
@@ -407,7 +426,7 @@ class LinearProgrammingModel:
 
 
 
-    def compute_simplex_solution(self, show_steps=True, in_place=False):
+    def simplex_solution(self, show_steps=True, in_place=False):
         """
         Computes the optimal solution for the linear program or returns a certificate of unboundedness
         using the simplex algorithm.
@@ -426,11 +445,15 @@ class LinearProgrammingModel:
             The copy of the linear program or self in canonical form.
 
         """
+        # Find starting basis using auxilliary linear program
+        # Loop over simplex iteration helper
+        # TODO: make helper for simplex_iteration
+        
         pass
 
 
 
-    def compute_simplex_iteration(self, basis, show_steps=True, in_place=False):
+    def simplex_iteration(self, basis, show_steps=True, in_place=False):
         """
         Computes a single iteration of the simplex algorithm.
 
@@ -457,14 +480,14 @@ class LinearProgrammingModel:
         if not in_place:
             copy = self.copy()
 
-            return copy.compute_simplex_iteration(basis, True)
+            return copy.simplex_iteration(basis, True)
 
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
         
-        self.to_canonical_form(basis, in_place=True)
+        self.__to_canonical_form(basis, show_steps)
 
-        x = None #TODO = self.__compute_basic_solution(basis)
+        x = self.__compute_basic_solution(basis)
 
         N = [i for i in range(self._A.shape[1]) if not i in basis]
 
@@ -504,7 +527,7 @@ class LinearProgrammingModel:
 
         Returns
         -------
-        result: bool
+        result : bool
             Whether or not the certificate is valid. #review needed
 
         """
@@ -532,7 +555,7 @@ class LinearProgrammingModel:
 
         Returns
         -------
-        result:
+        result :
 
         """
         Ad = self._A @ d
@@ -703,7 +726,9 @@ class LinearProgrammingModel:
         """
         Creates a copy of the current model.
 
-        :return: LinearProgrammingModel
+        Returns
+        -------
+        result : LinearProgram
 
         """
         p = LinearProgrammingModel(self._A.copy(), self._b.copy(), self._c.copy(), self._z, self._objective)
@@ -721,7 +746,9 @@ class LinearProgrammingModel:
         """
         Converts expression to standard equality form.
 
-        :return: LinearProgrammingModel
+        Returns
+        -------
+        result : LinearProgram
 
         """
         if not in_place:
@@ -770,11 +797,23 @@ class LinearProgrammingModel:
 
 
     def is_solution_optimal(self, x):
+        """
+        Checks if the given vector is a optimal solution.
+
+        Returns
+        -------
+        result : bool
+
+        """
         self.is_feasible(x)
 
 
 
     def clear_steps(self, in_place=False):
+        """
+        Clears the steps that are stored.
+
+        """
         if not in_place:
             copy = self.copy()
 
@@ -787,6 +826,14 @@ class LinearProgrammingModel:
 
 
     def __to_ndarray(self, source):
+        """
+        Converts array-like to an ndarray.
+
+        Returns
+        -------
+        result : ndarray of float
+
+        """
         if isinstance(source, np.ndarray):
             if not np.issubdtype(source.dtype, np.number):
                 raise ValueError()
@@ -820,7 +867,40 @@ class LinearProgrammingModel:
 
 
 
+    def __compute_basic_solution(self, basis):
+        """
+        Helper function for computing the basic solution corresponding to the basis.
+
+        basis : array-like of int
+            The column indices of the coefficient matrix that forms a basis. First item index starts at 0.
+
+        Returns
+        -------
+        result : ndarray of float
+            The basic solution corresponding to the basis.
+
+        """
+        components = np.linalg.inv(self._A[:, basis]) @ self._b
+        solution = np.zeros(self._c.shape[0])
+        
+        basis.sort()
+
+        for index, value in zip(basis, components):
+            solution[index] = value
+        
+        return solution
+
+
+
     def __get_inequalities(self):
+        """
+        Converts expression to standard equality form.
+
+        Returns
+        -------
+        result : LinearProgram
+
+        """
         inequalities = []
 
         for i in range(self._b.shape[0]):
@@ -834,6 +914,14 @@ class LinearProgrammingModel:
 
 
     def __append_to_steps(self, entity):
+        """
+        Converts expression to standard equality form.
+
+        Returns
+        -------
+        result : LinearProgram
+
+        """
         if isinstance(entity, list):
             for step in entity:
                 if step:
@@ -846,7 +934,7 @@ class LinearProgrammingModel:
 
                     self._steps.append({
                         'key': key,
-                        'text': StepDescriptor.render_descriptor(key, list(step[1:]))
+                        'text': render_descriptor(key, list(step[1:]))
                     })
         else:
             key = entity[0] if isinstance(entity, tuple) else None
@@ -859,17 +947,33 @@ class LinearProgrammingModel:
 
             self._steps.append({
                 'key': key,
-                'text': StepDescriptor.render_descriptor(key, list(entity[1:]))
+                'text': render_descriptor(key, list(entity[1:]))
             })
 
 
 
     def __get_free_variables(self):
+        """
+        Converts expression to standard equality form.
+
+        Returns
+        -------
+        result : LinearProgram
+
+        """
         return list(map(lambda i: i + 1, self._free_variables))
 
 
     
     def __format_steps(self):
+        """
+        Converts expression to standard equality form.
+
+        Returns
+        -------
+        result : LinearProgram
+
+        """
         return reduce((lambda previous, current: f"{previous}\n{current['text']}"), self.steps, "").strip()
 
 
@@ -899,11 +1003,27 @@ class LinearProgrammingModel:
 
 
     def __is_vector_of_size(self, x, dimension):
+        """
+        Converts expression to standard equality form.
+
+        Returns
+        -------
+        result : LinearProgram
+
+        """
         return isinstance(x, np.ndarray) and x.ndim == 1 and x.shape[0] == dimension
 
 
 
     def __array_like_to_list(self, array_like):
+        """
+        Converts expression to standard equality form.
+
+        Returns
+        -------
+        result : LinearProgram
+
+        """
         if not isinstance(array_like, list) and not isinstance(array_like, np.ndarray):
                 raise ValueError()
 
@@ -1018,7 +1138,6 @@ class LinearProgrammingModel:
 
 
 
-    #TODO: Make function return new A and b instead of changing them directly
     def __remove_dependent_rows(self):
         """
         Removes dependent rows from the constraints and returns the new values for A and b. The linear program must be in almost SEF.
