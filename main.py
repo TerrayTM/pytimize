@@ -445,6 +445,34 @@ class LinearProgram:
             The copy of the linear program or self in canonical form.
 
         """
+        if not self._is_sef:
+            raise ArithmeticError()
+        
+        if not in_place:
+            copy = self.copy()
+
+            return copy.simplex_solution(show_steps, True)
+        
+        indices = np.where(self._b < 0)
+        self._A[indices] *= -1
+        self._b[indices] *= -1
+
+        rows, columns = self._A.shape
+        auxiliary_columns = rows + columns
+
+        auxiliary_A = np.c_[self._A, np.eye(rows)]
+        auxiliary_b = np._b.copy()
+
+        auxiliary_c = np.zeros(self._A.shape[0])
+
+        auxiliary_c[columns:] = 1
+
+        auxiliary_program = LinearProgram()
+        
+        solution = (None, None)
+
+        while solution[0]:
+            solution = auxiliary_program.simplex_iteration(basis, in_place=True)
         # Find starting basis using auxilliary linear program
         # Loop over simplex iteration helper
         # TODO: make helper for simplex_iteration
@@ -480,7 +508,7 @@ class LinearProgram:
         if not in_place:
             copy = self.copy()
 
-            return copy.simplex_iteration(basis, True)
+            return copy.simplex_iteration(basis, show_steps, True)
 
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
