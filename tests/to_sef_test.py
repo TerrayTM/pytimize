@@ -4,7 +4,7 @@ import numpy as np
 sys.path.append("../optimization")
 sys.path.append("../optimization/enums")
 
-from main import LinearProgrammingModel
+from main import LinearProgram
 from unittest import TestCase, main
 from objective import Objective
 from math import isclose
@@ -20,7 +20,7 @@ class TestToSEF(TestCase):
         c = [1, -2, 4]
         z = 0
 
-        p = LinearProgrammingModel(A, b, c, z, Objective.min, [">=", "<=", "="], [3])
+        p = LinearProgram(A, b, c, z, Objective.min, [">=", "<=", "="], [3])
         
         p.to_sef(in_place=True)
 

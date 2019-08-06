@@ -4,7 +4,7 @@ import numpy as np
 sys.path.append("../optimization")
 sys.path.append("../optimization/enums")
 
-from main import LinearProgrammingModel
+from main import LinearProgram
 from unittest import TestCase, main
 from objective import Objective
 
@@ -31,7 +31,7 @@ class TestStr(TestCase):
             "[7. 8. 9.]     =   [24.]\n"
         )
         
-        p = LinearProgrammingModel(A, b, c, z)
+        p = LinearProgram(A, b, c, z)
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
         A = np.array([
@@ -51,7 +51,7 @@ class TestStr(TestCase):
             "[7.22 -8.    9. ]     ≤   [0.   ]\n"
         )
         
-        p = LinearProgrammingModel(A, b, c, z, inequalities=["<=", "<=", "<="])
+        p = LinearProgram(A, b, c, z, inequalities=["<=", "<=", "<="])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
         A = np.array([
@@ -71,7 +71,7 @@ class TestStr(TestCase):
             "[7.   -8.   90.56 ]     ≤   [0.333]\n"
         )
         
-        p = LinearProgrammingModel(A, b, c, z, Objective.min, [">=", "<=", "<="])
+        p = LinearProgram(A, b, c, z, Objective.min, [">=", "<=", "<="])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
 if __name__ == "__main__":

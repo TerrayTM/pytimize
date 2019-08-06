@@ -4,7 +4,7 @@ import numpy as np
 sys.path.append("../optimization")
 sys.path.append("../optimization/enums")
 
-from main import LinearProgrammingModel
+from main import LinearProgram
 from unittest import TestCase, main
 from objective import Objective
 from math import isclose
@@ -25,7 +25,7 @@ class TestCopy(TestCase):
         c = np.array([100, 200, 300])
         z = 5
 
-        p = LinearProgrammingModel(A, b, c, z, Objective.min, ["=", ">=", "<=", "=", ">=", "<=", "=", "="], [2, 3])
+        p = LinearProgram(A, b, c, z, Objective.min, ["=", ">=", "<=", "=", ">=", "<=", "=", "="], [2, 3])
         
         p._steps.append('one two three')
 

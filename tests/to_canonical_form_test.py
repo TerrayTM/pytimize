@@ -3,7 +3,7 @@ import numpy as np
 
 sys.path.append("../optimization")
 
-from main import LinearProgrammingModel
+from main import LinearProgram
 from unittest import TestCase, main
 from math import isclose
 
@@ -27,7 +27,7 @@ class TestToCanonicalForm(TestCase):
         expected_c = np.array([0, 0, -2.5, 0, -0.5])
         expected_z = 17
 
-        p = LinearProgrammingModel(A, b, c, z)
+        p = LinearProgram(A, b, c, z)
         
         result_one = p.to_canonical_form([1, 2, 4])
         
@@ -53,7 +53,7 @@ class TestToCanonicalForm(TestCase):
         self.assertTrue(isclose(result_two.z, expected_z), "Should compute correct constant.")
 
     def test_invalid_basis(self):
-        p = LinearProgrammingModel([[1, 2, 3], [4, 5, 6]], [1, 2], [1, 2, 3], 0)
+        p = LinearProgram([[1, 2, 3], [4, 5, 6]], [1, 2], [1, 2, 3], 0)
         
         #with self.assertRaises(IndexError):
            # p.to_canonical_form([0, 1, 3]) # Check basis form square

@@ -11,7 +11,7 @@ from functools import reduce
 # To do: update pydoc comments
 # To do: check all and any expressions
 # To do: for make independent rows, check for sef at end
-class LinearProgrammingModel:
+class LinearProgram:
     def __init__(self, A, b, c, z, objective=Objective.max, inequalities=None, free_variables=None):
         """
         Constructs a linear programming model of the form [objective]{cx + z : Ax [inequalities] b, variables >= 0},
@@ -362,7 +362,7 @@ class LinearProgrammingModel:
 
         Returns
         -------
-        result : LinearProgrammingModel
+        result : LinearProgram
             The copy of the linear program or self in canonical form.
 
         """
@@ -422,7 +422,7 @@ class LinearProgrammingModel:
 
         Returns
         -------
-        result : Tuple (ndarray of float, LinearProgrammingModel)
+        result : Tuple (ndarray of float, LinearProgram)
             The copy of the linear program or self in canonical form.
 
         """
@@ -447,7 +447,7 @@ class LinearProgrammingModel:
 
         Returns
         -------
-        result : Tuple (ndarray of float, LinearProgrammingModel)
+        result : Tuple (ndarray of float, LinearProgram)
             The copy of the linear program or self in canonical form.
 
         """
@@ -703,10 +703,10 @@ class LinearProgrammingModel:
         """
         Creates a copy of the current model.
 
-        :return: LinearProgrammingModel
+        :return: LinearProgram
 
         """
-        p = LinearProgrammingModel(self._A.copy(), self._b.copy(), self._c.copy(), self._z, self._objective)
+        p = LinearProgram(self._A.copy(), self._b.copy(), self._c.copy(), self._z, self._objective)
 
         p._inequality_indices = self._inequality_indices.copy()
         p._free_variables = self._free_variables.copy()
@@ -721,7 +721,7 @@ class LinearProgrammingModel:
         """
         Converts expression to standard equality form.
 
-        :return: LinearProgrammingModel
+        :return: LinearProgram
 
         """
         if not in_place:
