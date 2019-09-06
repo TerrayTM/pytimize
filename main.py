@@ -659,7 +659,7 @@ class LinearProgram:
         
         is_feasible = True
 
-        for i in range(x.shape[0]):
+        for i in range(self._A.shape[0]):
             row = self._A[i, :]
             value = row @ x
             step = None
