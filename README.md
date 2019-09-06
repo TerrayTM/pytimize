@@ -11,11 +11,11 @@ Currently Implemented Methods:
 * Verify Unboundedness
 * Check Solution Feasible
 * Convert to SEF
+* Simplex Iteration
+* Show Computation Steps
 
 Planned Features:
-* Simplex Method
 * Bland's Rule
-* Show Computation Steps
 * Duality Theory
 * Shortest Path Solver
 * And More!
