@@ -366,7 +366,7 @@ class LinearProgram:
             return copy.to_canonical_form(basis, show_steps, True)
 
         if not self._is_sef:
-            raise ArithmeticError()  # To do: add test cases
+            raise ArithmeticError()
 
         show_steps and self.__append_to_steps(('1.01', basis))
 
@@ -395,7 +395,7 @@ class LinearProgram:
         Returns
         -------
         result : LinearProgrammingModel
-            The copy of the linear program or self in canonical form.
+            The linear program in canonical form.
 
         """
         Ab = self._A[:, basis]
@@ -943,11 +943,7 @@ class LinearProgram:
 
     def __append_to_steps(self, entity):
         """
-        Converts expression to standard equality form.
-
-        Returns
-        -------
-        result : LinearProgram
+        Appends the given step to the procedure array.
 
         """
         if isinstance(entity, list):
@@ -961,8 +957,8 @@ class LinearProgram:
                         raise ValueError()
 
                     self._steps.append({
-                        'key': key,
-                        'text': render_descriptor(key, list(step[1:]))
+                        "key": key,
+                        "text": render_descriptor(key, list(step[1:]))
                     })
         else:
             key = entity[0] if isinstance(entity, tuple) else None
@@ -974,8 +970,8 @@ class LinearProgram:
                     raise ValueError()
 
             self._steps.append({
-                'key': key,
-                'text': render_descriptor(key, list(entity[1:]))
+                "key": key,
+                "text": render_descriptor(key, list(entity[1:]))
             })
 
 

@@ -28,6 +28,15 @@ _steps = {
     "3.04": "Free Variables at Index x"
 }
 
+_cleanup_rules = [
+    ("[ ", "["),
+    (" ]", "]"),
+    ("[[", "["),
+    ("]] ", "]"),
+    (" [", "[")
+]
+
+# TODO minor format bug
 def render_descriptor(key, arguments):
     if not key in _steps:
         raise KeyError()
@@ -35,8 +44,11 @@ def render_descriptor(key, arguments):
     for i in range(len(arguments)):
         if isinstance(arguments[i], ndarray):
             text = " ".join(filter(None, str(arguments[i]).split(" ")))
-            text = text.replace("[ ", "[")
-            arguments[i] = text.replace(" ]", "]")
+
+            for rule in _cleanup_rules:
+                text = text.replace(rule[0], rule[1])
+            
+            arguments[i] = text
 
     return _steps[key].format(*arguments)
 
