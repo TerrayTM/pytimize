@@ -10,10 +10,6 @@ from objective import Objective
 
 class TestStr(TestCase):
     def test_str(self):
-        # Write test cases here
-        # Try to test as many cases as possible
-        # Here is a simple example test
-        # To run the test see README.md
         A = np.array([
             [1, 2, 3],
             [4, 5, 6],
