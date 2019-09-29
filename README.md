@@ -13,6 +13,7 @@ Currently Implemented Methods:
 * Convert to SEF
 * Simplex Iteration
 * Show Computation Steps
+* Graph Feasible Region
 
 Planned Features:
 * Bland's Rule
