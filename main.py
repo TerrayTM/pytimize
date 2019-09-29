@@ -228,7 +228,7 @@ class LinearProgram:
 
 
     
-    def is_basic_solution(self, x, basis):
+    def is_basic_solution(self, x, basis, show_steps=True):
         """
         Checks if the given vector is a basic solution for the specified basis.
 
@@ -249,14 +249,31 @@ class LinearProgram:
         if not self.is_basis(basis):
             raise ValueError()
 
+        show_steps and self.__append_to_steps(('4.01', basis))
+
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
+        result = True
 
         for i in range(self._c.shape[0]):
             if not i in basis and not isclose(x[i], 0):
-                return False
+                show_steps and self.__append_to_steps(("4.02", i + 1))
 
-        return np.allclose(self._A @ x, self._b)
+                result = False
+
+        if not np.allclose(self._A @ x, self._b):
+            show_steps and self.__append_to_steps("4.03")
+
+            result = False
+
+        show_steps and not result and self.__append_to_steps(("4.05", x, basis))
+        show_steps and result and self.__append_to_steps([
+            "4.06",
+            "4.07",
+            ("4.04", x, basis)
+        ])
+
+        return result
 
 
 

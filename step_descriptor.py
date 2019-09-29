@@ -25,7 +25,15 @@ _steps = {
     "3.01": "Convert to SEF",
     "3.02": "Take Negative of Coefficient Vector to Set Objective to Maximization",
     "3.03": "{} => {}",
-    "3.04": "Free Variables at Index x"
+    "3.04": "Free Variables at Index x",
+
+    "4.01": "Is {} A Basic Solution",
+    "4.02": "Column {} Is Not a Zero",
+    "4.03": "Ax ≠ b",
+    "4.04": "{} is A Basic Solution for Basis {}",
+    "4.05": "{} is Not A Basic Solution for Basis {}",
+    "4.06": "Ax = b",
+    "4.07": "Columns of Basis are Zero"
 }
 
 _cleanup_rules = [
