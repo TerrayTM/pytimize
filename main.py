@@ -243,7 +243,7 @@ class LinearProgram:
 
         x = self.__to_ndarray(x)
 
-        if not self.__is_vector_of_size(x, self._c):
+        if not self.__is_vector_of_size(x, self._c.shape[0]):
             raise ValueError()
 
         if not self.is_basis(basis):
@@ -253,7 +253,7 @@ class LinearProgram:
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
 
         for i in range(self._c.shape[0]):
-            if not i in basis and not isclose(self._c[i], 0):
+            if not i in basis and not isclose(x[i], 0):
                 return False
 
         return np.allclose(self._A @ x, self._b)
