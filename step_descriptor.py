@@ -2,9 +2,10 @@ from numpy import ndarray
 
 _steps = {
     "1.01": "Convert to Canonical Form for Base Indices of {}",
-    "1.02": "Basis (B):\n{}",
-    "1.03": "Corresponding Columns of c (C): {}",
+    "1.02": "Basis:\n{}",
+    "1.03": "Corresponding Coefficient Entries: {}",
     "1.04": "Basis Inverse:\n{}",
+    "1.05": "y Vector:\n{}",
 
     "2.01": "Is {} Feasible?",
     "2.02": "{} is Feasible:",

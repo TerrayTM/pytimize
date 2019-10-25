@@ -429,6 +429,8 @@ class LinearProgram:
 
         y_transpose = (Ab_inverse.T @ cb).T
 
+        show_steps and self.__append_to_steps(('1.05', y_transpose))
+
         A = Ab_inverse @ self._A
         b = Ab_inverse @ self._b
         c = self._c - y_transpose @ self._A
