@@ -448,7 +448,7 @@ class LinearProgram:
 
 
 
-    def simplex_solution(self, show_steps=True, in_place=False):
+    def two_phase_simplex(self, show_steps=True, in_place=False):
         """
         Computes the optimal solution for the linear program or returns a certificate of unboundedness
         using the simplex algorithm.
@@ -503,6 +503,43 @@ class LinearProgram:
 
 
 
+    def simplex_solution(self, basis, show_steps=True, in_place=False): 
+        """
+        Computes simplex iterations until termination. 
+
+        Parameters
+        ----------
+        basis : array-like of int
+            The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
+
+        show_steps : bool, optional (default=True)
+            Whether steps should be stored or not for this operation.
+
+        in_place : bool, optional (default=True)
+            Whether the operation should return a copy or be performed in place.
+
+        Returns
+        -------
+        result : Tuple (ndarray of float, ndarray of int, LinearProgram)
+
+        """
+        if not self._is_sef:
+            raise ArithmeticError()
+        
+        if not in_place:
+            copy = self.copy()
+
+            return copy.simplex_solution(basis, show_steps, True)
+        
+        solution = None
+
+        while not isinstance(solution, np.ndarray): # TODO break out of unbounded case 
+            solution, basis, _ = self.simplex_iteration(basis, show_steps, True)
+
+        return solution, basis
+
+
+
     def simplex_iteration(self, basis, show_steps=True, in_place=False):
         """
         Computes a single iteration of the simplex algorithm with Bland's rule.
@@ -520,8 +557,10 @@ class LinearProgram:
 
         Returns
         -------
-        result : Tuple (ndarray of float, LinearProgram)
-            The copy of the linear program or self in canonical form.
+        result : Tuple (ndarray of float, ndarray of int, LinearProgram)
+            The copy of the linear program or self in canonical form. The first parameter indicates the
+            solution vector, if any, and the second gives the current basis. If solution vector is infinity,
+            the given linear program is unbounded.
 
         """
         if not self._is_sef:
@@ -532,7 +571,7 @@ class LinearProgram:
 
             return copy.simplex_iteration(basis, show_steps, True)
 
-        if not self.is_basis(basis):
+        if not self.is_basis(basis): #basis might need to be sorted
             raise ValueError()
 
         basis = self.__array_like_to_list(basis)
@@ -545,7 +584,7 @@ class LinearProgram:
         N = [i for i in range(self._A.shape[1]) if not i in basis]
 
         if (self._c[N] <= 0).all():
-            return x, self
+            return x, np.array([i + 1 for i in basis]), self
 
         k = None
 
@@ -558,21 +597,21 @@ class LinearProgram:
         Ak = self._A[:, k]
 
         if (Ak <= 0).all():
-            return inf, self
+            return inf, np.array([i + 1 for i in basis]), self # optimize conversion back to math indexing
 
         t = np.amin([self._b[i] / Ak[i] for i in range(len(Ak)) if Ak[i] > 0])
         computed = self._b - t * Ak
 
         for i in range(len(computed)): 
             if isclose(computed[i], 0):
-                basis.remove(i)
+                basis.remove(basis[i])
                 
                 break
 
         basis.append(k)
         basis.sort()
 
-        return None, self
+        return None, np.array([i + 1 for i in basis]), self
 
 
 
