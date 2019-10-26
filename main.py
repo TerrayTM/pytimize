@@ -309,7 +309,7 @@ class LinearProgram:
         if not self._is_sef:
             raise ArithmeticError() # requires sef form
 
-        basis = self.__array_like_to_list(basis)
+        basis = self.__array_like_to_list(basis) #optimize as it is called twice from parent
         basis = self.__convert_indices(basis)
 
         if not self._A.shape[0] == len(basis):
@@ -387,6 +387,9 @@ class LinearProgram:
 
         show_steps and self.__append_to_steps(('1.01', basis))
 
+        if not self.is_basis(basis):
+            raise ValueError()
+
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
 
@@ -401,7 +404,7 @@ class LinearProgram:
         Parameters
         ----------
         basis : array-like of int
-            The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
+            The column indices of the coefficient matrix that forms a basis. Use zero indexing for format.
 
         show_steps : bool, optional (default=True)
             Whether steps should be stored or not for this operation.
