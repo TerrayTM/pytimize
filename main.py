@@ -502,7 +502,7 @@ class LinearProgram:
 
     def simplex_iteration(self, basis, show_steps=True, in_place=False):
         """
-        Computes a single iteration of the simplex algorithm.
+        Computes a single iteration of the simplex algorithm with Bland's rule.
 
         Parameters
         ----------
@@ -529,6 +529,9 @@ class LinearProgram:
 
             return copy.simplex_iteration(basis, show_steps, True)
 
+        if not self.is_basis(basis):
+            raise ValueError()
+
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
         
@@ -538,13 +541,13 @@ class LinearProgram:
 
         N = [i for i in range(self._A.shape[1]) if not i in basis]
 
-        if (self._c[:, N] <= 0).all():
+        if (self._c[N] <= 0).all():
             return x, self
 
         k = None
 
         for i in N:
-            if self._c[:, i] > 0:
+            if self._c[i] > 0:
                 k = i
 
                 break
@@ -554,11 +557,17 @@ class LinearProgram:
         if (Ak <= 0).all():
             return inf, self
 
-        t = self._b / Ak
-        t = np.amin(t[t > 0])
+        t = np.amin([self._b[i] / Ak[i] for i in range(len(Ak)) if Ak[i] > 0])
+        computed = self._b - t * Ak
+
+        for i in range(len(computed)): 
+            if isclose(computed[i], 0):
+                basis.remove(i)
+                
+                break
 
         basis.append(k)
-        basis.remove(t)
+        basis.sort()
 
         return None, self
 
