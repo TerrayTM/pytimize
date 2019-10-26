@@ -56,7 +56,7 @@ class TestToCanonicalForm(TestCase):
     def test_invalid_basis(self):
         p = LinearProgram([[1, 2, 3], [4, 5, 6]], [1, 2], [1, 2, 3], 0)
         
-        with self.assertRaises(IndexError, msg="Should throw error for invalid basis."):
+        with self.assertRaises(ValueError, msg="Should throw error for invalid basis."):
             p.to_canonical_form([0, 1, 3])
 
         with self.assertRaises(IndexError, msg="Should throw error for invalid basis."):
@@ -68,7 +68,7 @@ class TestToCanonicalForm(TestCase):
         with self.assertRaises(IndexError, msg="Should throw error for invalid basis."):
             p.to_canonical_form([1.5, 2])
 
-        with self.assertRaises(IndexError, msg="Should throw error for invalid basis."):
+        with self.assertRaises(ValueError, msg="Should throw error for invalid basis."):
             p.to_canonical_form([2, 2])
 
     def test_non_sef(self):
