@@ -14,9 +14,10 @@ Currently Implemented Methods:
 * Simplex Iteration
 * Show Computation Steps
 * Graph Feasible Region
+* Two Phase Simplex
+* Bland's Rule
 
 Planned Features:
-* Bland's Rule
 * Duality Theory
 * Shortest Path Solver
 * And More!
