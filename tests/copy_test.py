@@ -27,7 +27,7 @@ class TestCopy(TestCase):
 
         p = LinearProgram(A, b, c, z, Objective.min, ["=", ">=", "<=", "=", ">=", "<=", "=", "="], [2, 3])
         
-        p._steps.append('one two three')
+        p._steps.append("one two three")
 
         copy = p.copy()
 
@@ -49,7 +49,7 @@ class TestCopy(TestCase):
         copy._inequality_indices[0] = "<="
         copy._free_variables.append(0)
         copy._is_sef = True
-        copy._steps.append('test')
+        copy._steps.append("test")
 
         self.assertFalse(np.allclose(p.A, copy.A), "Should not copy by reference.")
         self.assertFalse(np.allclose(p.b, copy.b), "Should not copy by reference.")
