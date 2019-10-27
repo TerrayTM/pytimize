@@ -5,7 +5,7 @@ sys.path.append("./enums")
 
 from objective import Objective
 from step_descriptor import render_descriptor
-from math import isclose, inf
+from math import isclose, inf, isinf
 from functools import reduce
 
 # To do: for make independent rows, check for sef at end
@@ -532,10 +532,27 @@ class LinearProgram:
             return copy.simplex_solution(basis, show_steps, True)
         
         solution = None
+        counter = 0
 
-        while not isinstance(solution, np.ndarray): # TODO break out of unbounded case 
-            solution, basis, _ = self.simplex_iteration(basis, show_steps, True)
+        show_steps and self.__append_to_steps(("5.02", counter))
+        show_steps and self.__append_to_steps(("5.01", self))
 
+        while not isinstance(solution, np.ndarray) and not isinstance(solution, float):
+            solution, basis, current = self.simplex_iteration(basis, show_steps, True)
+
+            counter += 1
+
+            show_steps and self.__append_to_steps(("5.02", counter))
+            show_steps and self.__append_to_steps(("5.01", current))
+        
+        if isinstance(solution, float):
+            basis = None
+            
+            show_steps and self.__append_to_steps("5.05")
+        else:
+            show_steps and self.__append_to_steps(("5.03", solution))
+            show_steps and self.__append_to_steps(("5.04", basis))
+        
         return solution, basis
 
 
@@ -576,7 +593,11 @@ class LinearProgram:
 
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
-        
+        negative_indices = np.where(self._b < 0)
+
+        self._b[negative_indices] *= -1;
+        self._A[negative_indices] *= -1;
+
         self.__to_canonical_form(basis, show_steps)
 
         x = self.__compute_basic_solution(basis)

@@ -34,7 +34,13 @@ _steps = {
     "4.04": "{} is A Basic Solution for Basis {}",
     "4.05": "{} is Not A Basic Solution for Basis {}",
     "4.06": "Ax = b",
-    "4.07": "Columns of Basis are Zero"
+    "4.07": "Columns of Basis are Zero",
+
+    "5.01": "{}",
+    "5.02": "Iteration {} =================================",
+    "5.03": "Solution: {}",
+    "5.04": "Optimal Basis: {}",
+    "5.05": "The Program is Unbounded"
 }
 
 _cleanup_rules = [
