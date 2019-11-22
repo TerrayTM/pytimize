@@ -1,5 +1,5 @@
 # optimization
-Python optimization library for linear programming.
+Python optimization library for mathematical programming.
 
 *This library is a work in progress.*
 
@@ -20,6 +20,9 @@ Currently Implemented Methods:
 Planned Features:
 * Duality Theory
 * Shortest Path Solver
+* Integer Programming
+* Branch and Bound Solver
+* Cutting Plane Solver
 * And More!
 
 ### Running Tests
