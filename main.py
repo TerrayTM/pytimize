@@ -419,19 +419,13 @@ class LinearProgram:
 
         """
         Ab = self._A[:, basis]
-        
-        show_steps and self.__append_to_steps(('1.02', Ab))
-
         cb = self._c[basis]
-            
-        show_steps and self.__append_to_steps(('1.03', cb))
-        
         Ab_inverse = np.linalg.inv(Ab)
-
-        show_steps and self.__append_to_steps(('1.04', Ab_inverse))
-
         y_transpose = (Ab_inverse.T @ cb).T
 
+        show_steps and self.__append_to_steps(('1.02', Ab))       
+        show_steps and self.__append_to_steps(('1.03', cb))
+        show_steps and self.__append_to_steps(('1.04', Ab_inverse))
         show_steps and self.__append_to_steps(('1.05', y_transpose))
 
         A = Ab_inverse @ self._A
@@ -445,6 +439,32 @@ class LinearProgram:
         self._z = z
 
         return self
+
+
+
+    def create_dual(self, show_steps=True):
+        """
+        Creates the associated duality program. 
+
+        Parameters
+        ----------
+        show_steps : bool, optional (default=True)
+            Whether steps should be stored or not for this operation.
+
+        Returns
+        -------
+        result : LinearProgram
+            The computed result of the method.
+
+        """
+        if self.is_sef:
+            p = LinearProgram(self._b)
+        else:
+            copy = self.copy()
+
+            copy.to_sef(in_place=True)
+            
+            return copy.create_dual()
 
 
 
@@ -532,7 +552,10 @@ class LinearProgram:
             return copy.simplex_solution(basis, show_steps, True)
         
         solution = None
+        optimality_certificate = None
         counter = 0
+        starting_A = self._A
+        starting_c = self._c
 
         show_steps and self.__append_to_steps(("5.02", counter))
         show_steps and self.__append_to_steps(("5.01", self))
@@ -550,10 +573,14 @@ class LinearProgram:
             
             show_steps and self.__append_to_steps("5.05")
         else:
+            converted_basis = [i - 1 for i in basis]
+            optimality_certificate = np.linalg.inv(starting_A[:, converted_basis].T) @ starting_c[converted_basis] #TODO optimize
+
             show_steps and self.__append_to_steps(("5.03", solution))
             show_steps and self.__append_to_steps(("5.04", basis))
+            show_steps and self.__append_to_steps(("5.06", optimality_certificate))
         
-        return solution, basis
+        return solution, basis, optimality_certificate
 
 
 
@@ -695,16 +722,22 @@ class LinearProgram:
 
         Parameters
         ----------
-        certificate : array-like of int
-            The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
+        certificate : array-like of float
+            The certificate
 
         Returns
         -------
         result : bool
-            The copy of the linear program or self in canonical form.
+            Whether the given certificate certifies optimality or not.
 
         """
-        pass
+        # BUG: simplex with in_place=True overrides original program
+        certificate = self.__to_ndarray(certificate)
+
+        if not self._is_sef: # Requires SEF?
+            raise ArithmeticError()
+        
+        return (self._c - certificate @ self._A <= 0).all()
 
 
 
@@ -894,7 +927,7 @@ class LinearProgram:
 
             self._c = np.insert(self._c, index + 1, -self._c[index])
             self._A = np.insert(self._A, index + 1, -self._A[:, index], axis=1)
-        
+
         self._free_variables = []
 
         for i in range(self._b.shape[0]):
@@ -910,7 +943,7 @@ class LinearProgram:
 
         self._inequality_indices = {}
         self._is_sef = True
-
+        
         return self
 
 

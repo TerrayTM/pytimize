@@ -40,7 +40,8 @@ _steps = {
     "5.02": "Iteration {} =================================",
     "5.03": "Solution: {}",
     "5.04": "Optimal Basis: {}",
-    "5.05": "The Program is Unbounded"
+    "5.05": "The Program is Unbounded",
+    "5.06": "Optimality Certificate: {}",
 }
 
 _cleanup_rules = [
