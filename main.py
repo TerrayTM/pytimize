@@ -849,7 +849,7 @@ class LinearProgram:
         """
         x = self.__to_ndarray(x)
         
-        if not self.__is_vector_of_size(x, self._c[0]):
+        if not self.__is_vector_of_size(x, self._c.shape[0]):
             raise ValueError()
         
         return self._c @ x + self._z
