@@ -97,6 +97,7 @@ class LinearProgram:
 
 
     # TODO include free variables in string
+    # TODO If in SEF output x >= 0 else output correct inequalities
     def __str__(self):
         """
         Generates a nicely formatted string representation of the linear program.
