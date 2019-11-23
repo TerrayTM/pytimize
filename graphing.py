@@ -5,23 +5,26 @@ import matplotlib.pyplot as plt
 
 '''
 TODO LIST:
-- Fix for n > 3 inequalities - need to sort either points or inequalities so that they are in order (cw or ccw, doesn't matter)
 - Finish for n = 1 inequality - finish graph_single_line function
-- Finish n = 2 inequalities where one (or both) are horizontal or vertical - this will use the graph_single_line function
 
 Completed:
-- most n = 2 inequalities - as long as none are vertical or horizontal, graphing completely works
-- n = 3 inequalities - graphing works for all cases tested so far
+- n > 2 inequalities - graphing works for all cases tested so far
+
+
+Credit to drawing polygon method:
+https://stackoverflow.com/questions/43971259/how-to-draw-polygons-with-python
+Credit to sorting points method:
+https://stackoverflow.com/questions/41855695/sorting-list-of-two-dimensional-coordinates-by-clockwise-angle-using-python
 '''
 
 
 # If Ax =/>=/<= b where A has 2 columns, graph the system of inequalities
 # if A[0] == 0, then line is horizontal; if A[1] == 0, then line is vertical
-_A = np.array([[1, 3], [1, 1], [0, 4]])
-_b = np.array([[5], [3], [6]])
+_A = np.array([[1, 3], [0, 4], [1, 1]])
+_b = np.array([[5], [6], [3]])
 
 # temporary, set later to main.py's format and input
-symbol = ">="
+inequality = ">="
 
 def graph_feasible_region(_A, _b, inequality):
     A = np.array([[0, 0], [0, 0]])
@@ -44,7 +47,7 @@ def graph_feasible_region(_A, _b, inequality):
         return
 
     # get intersect points of inequalities/lines
-    # TODO: sort points in clockwise motion
+    # points are sorted later, only if necessary
     for i in range(shape[0]):
         for j in range(shape[0]):
             if i < j:
@@ -74,21 +77,18 @@ def graph_feasible_region(_A, _b, inequality):
                 print("Starting point is", point)
 
 
-    # https://stackoverflow.com/questions/43971259/how-to-draw-polygons-with-python
-
+    # if fewer than 3 points exist, need to add boundaries on edges (can't draw infinitely)
     if len(points) <= 2:
+
+        # only occurs when all but one line is parallel
+        # results from inconsistent system, should be caught above
         if len(points) == 2:
-            # only occurs when all but one line is parallel
-            # results from inconsistent system, should be caught above
             print("Error, two points found but system was not inconsistent??? This code is garbo.")
             exit()
 
+        # occurs when only 2 lines are present
+        # inconsistent system can cause this, but should be caught above
         elif len(points) == 1:
-            # occurs when only 2 lines are present
-            if not shape[0] == 2:
-                print("Error:", shape[0], "lines are present - logic went wrong... who wrote this code?!")
-                exit()
-
             """ 
             METHOD:
             # polygon will be 3- to 5-sided, depending on slope of lines provided
@@ -98,9 +98,15 @@ def graph_feasible_region(_A, _b, inequality):
             exit out of if statement at this point, regular code will handle rest
             x-max, y-max is to set a bound on the projection
             """
-            # inconsistent system can cause this, but should be caught above
-            
-            #TODO: insert if statement to throw error if symbol is = instead of >=/<=
+
+            if not shape[0] == 2:
+                print("Error:", shape[0], "lines are present - logic went wrong... who wrote this code?!")
+                exit()
+
+            # cannot draw region if inequalities given are equations
+            if inequality == "=":
+                print("Error: ")
+                exit()
 
             point = points[0]
 
@@ -130,7 +136,7 @@ def graph_feasible_region(_A, _b, inequality):
 
             
             # calculate intercepts of both lines with all edges
-            # then add intercepts and corners in order (either clockwise or counterclockwise)
+            # then add intercepts and corners in order, clockwise
             # both lines cannot be both horizontal or both vertical, otherwise point would not be found
             # NOTE: if any line is horizontal or vertical, call graph_single line with the horizontal/vertical line as an edge instead
 
@@ -139,10 +145,12 @@ def graph_feasible_region(_A, _b, inequality):
             if line1[0] == 0:
                 graph_single_line(line2, _b[1], inequality, True, _b[0], True)
                 return
+
             # line1 is vertical
             elif line1[1] == 0:
                 graph_single_line(line2, _b[1], inequality, True, _b[0], False)
                 return
+
             else:
                 # find intercept with right edge
                 A[0, :] = np.array([line1[0], line1[1]])
@@ -150,7 +158,6 @@ def graph_feasible_region(_A, _b, inequality):
                 b[0] = _b[0, :]
                 b[1] = np.array([x_max])
                 r_point = np.linalg.solve(A, b)
-                #print("intercept point found with x =", x_max, "is", r_point)
 
                 # find intercept with bottom edge
                 A[0, :] = np.array([line1[0], line1[1]])
@@ -185,10 +192,12 @@ def graph_feasible_region(_A, _b, inequality):
             if line2[0] == 0:
                 graph_single_line(line1, _b[0], inequality, True, _b[1], True)
                 return
+
             # line2 is vertical
             elif line2[1] == 0:
                 graph_single_line(line1, _b[0], inequality, True, _b[1], False)
                 return
+
             else:
                 # find intercept with right edge
                 A[0, :] = np.array([line2[0], line2[1]])
@@ -226,21 +235,19 @@ def graph_feasible_region(_A, _b, inequality):
                 print("l2points are", l2points)
 
 
-            # TODO: send all cases of vertical or horizontal lines to len(points) == 0 case, with line acting as new x/y max/min
-            # replace later with actual format of inequalities
             if inequality == "<=":
+                '''
+                Method: find the points that intersect x_max on each line and choose the lowest one
+                If this point is below y_min, choose the point on that line that intersects with y_min instead and append to points
+
+                All cases with vertical and horizontal lines have already been filtered out above and set to graph_single_line
+                '''
+
                 # find right point(s)
                 l1_right_point = ((x_min, y_max))  # set to other extreme
                 l2_right_point = ((x_min, y_max))
                 l1_rightmost = False  # tracks if line1 or line2 is the rightmost
 
-                '''
-                Method: find the points that intersect x_max on each line and choose the lowest one
-                If this point is below y_min, choose the point on that line that intersects with y_min instead and append to points
-
-                If either line is vertical (does not intersect x_max and right_point is still [x_min, y_max]), then pick the point that
-                intersects y_min on that line and append to points
-                '''
                 # find the point on each line that intersects with the right edge
                 for point1 in l1points:
                     if math.isclose(point1[0], x_max):
@@ -294,7 +301,6 @@ def graph_feasible_region(_A, _b, inequality):
                     print("Added bottom right corner at", (x_max, y_min))
 
 
-                # ------------------------------------
                 # find left point(s)
                 left_point = ((x_max, y_max))  # set to other extreme
                 if l1_rightmost:
@@ -342,7 +348,6 @@ def graph_feasible_region(_A, _b, inequality):
                 print("Added point", left_point, "on left")
 
 
-            # replace symbol later
             elif inequality == ">=":
                 '''
                 Same method as above, only swap "lowest" and "highest"
@@ -404,7 +409,6 @@ def graph_feasible_region(_A, _b, inequality):
                     print("Added top right corner at", (x_max, y_max))
 
                 
-                # ------------------------------------
                 # find left point(s)
                 left_point = ((x_max, y_min))  # set to other extreme
                 if l1_rightmost:
@@ -453,13 +457,55 @@ def graph_feasible_region(_A, _b, inequality):
                 print("Added point", left_point, "on left")
                 
 
-        else:
-            # no intersect points - occurs when only 1 line is present
-            # this clause should never be executed, since the 1 line case should not be solvable with np.linalg.solve
-            # inconsistent system can cause this, but should be caught above
+            # code should not get to this point, since the filter was added before any calculations above
+            else:
+                print("Error: inequality is = symbol, even though it should have been filtered out already.")
+                exit()
 
+        
+        # no intersect points - occurs when only 1 line is present
+        # this clause should never be executed, since the 1 line case should not be solvable with np.linalg.solve
+        # inconsistent system can cause this, but should be caught above
+        else:
             print("Error: somehow no points were found. The person who wrote this reallllly messed up.")
             exit()
+
+
+    # 3 or more points exist - don't need to add boundaries or other points, but need to sort points so they
+    # are in a clockwise order for drawing properly
+    # need to sort these points due to how pyplot takes input to draw polygons
+    else:
+        """
+        Method: https://stackoverflow.com/questions/41855695/sorting-list-of-two-dimensional-coordinates-by-clockwise-angle-using-python
+        """
+        origin = points[0]  # set origin to the first point in the list
+        refvec = [0, 1]  # reference vector for calculations
+
+        def find_cw_angle_and_distance(point):
+            # get vector between point and the origin
+            v = [point[0] - origin[0], point[1] - origin[1]]
+            # get length of vector
+            v_len = math.hypot(v[0], v[1])
+
+            # if the length is zero, there is no angle nor distance - return
+            if v_len == 0:
+                return -math.pi, 0
+
+            # normalize the vector in order to find the directional angle
+            norm = [v[0] / v_len, v[1]/v_len]
+            dot_product = norm[0] * refvec[0] + norm[1] * refvec[1]
+            diff_product = refvec[1] * norm[0] - refvec[0] * norm[1]
+
+            angle = math.atan2(diff_product, dot_product)
+
+            # convert negative angles to positive angles
+            if angle < 0:
+                return 2 * math.pi + angle, v_len
+            return angle, v_len
+
+
+        # use new function with sorted function to sort points list
+        points = sorted(points, key = find_cw_angle_and_distance)
 
 
     points.append(points[0])  # add the first point again to create a closed loop
