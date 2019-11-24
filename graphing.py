@@ -16,7 +16,7 @@ https://stackoverflow.com/questions/41855695/sorting-list-of-two-dimensional-coo
 #_A = np.array([[1, 3], [0, 4], [1, 1]])
 Array = np.array([[1, 9], [2, 0], [-1, 0], [0, -1]])
 #_b = np.array([[5], [6], [3]])
-bee = np.array([[10], [19], [0], [0]])
+bee = np.array([10, 19, 0, 0])
 
 # temporary, set later to main.py's format and input
 sign = "<="
@@ -265,8 +265,8 @@ def graph_feasible_region(_A, _b, inequality):
                 A[0, :] = _A[i, :]
                 A[1, :] = _A[j, :]
 
-                b[0] = _b[i, :]
-                b[1] = _b[j, :]
+                b[0] = _b[i]
+                b[1] = _b[j]
 
                 line1 = (_A[i, 0], _A[i, 1])
                 line2 = (_A[j, 0], _A[j, 1])
