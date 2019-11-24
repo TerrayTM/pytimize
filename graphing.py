@@ -4,13 +4,6 @@ import matplotlib.pyplot as plt
 
 
 '''
-TODO LIST:
-- Finish for n = 1 inequality - finish graph_single_line function
-
-Completed:
-- n > 2 inequalities - graphing works for all cases tested so far
-
-
 Credit to drawing polygon method:
 https://stackoverflow.com/questions/43971259/how-to-draw-polygons-with-python
 Credit to sorting points method:
@@ -20,11 +13,13 @@ https://stackoverflow.com/questions/41855695/sorting-list-of-two-dimensional-coo
 
 # If Ax =/>=/<= b where A has 2 columns, graph the system of inequalities
 # if A[0] == 0, then line is horizontal; if A[1] == 0, then line is vertical
-_A = np.array([[1, 3], [0, 4], [1, 1]])
-_b = np.array([[5], [6], [3]])
+#_A = np.array([[1, 3], [0, 4], [1, 1]])
+Array = np.array([[2, 3]])
+#_b = np.array([[5], [6], [3]])
+bee = np.array([[5]])
 
 # temporary, set later to main.py's format and input
-inequality = ">="
+sign = ">="
 
 def graph_feasible_region(_A, _b, inequality):
     A = np.array([[0, 0], [0, 0]])
@@ -36,15 +31,231 @@ def graph_feasible_region(_A, _b, inequality):
 
     # for tracking if an inconsistent system of equations has been given
     equations = {}
-
+    
     if shape[0] == 0:
         # how did this even happen
         print("The given array was empty. Or the programmer messed up.")
         exit()
-    elif shape[0] == 1:
+
+
+    # graph_single_line is called when only one line is provided, or two lines are provided but
+    # one is horizontal/vertical
+    def graph_single_line(newA, newb, ineq, custom_edge = False, value = 0, horizontal = False):
+        """
+        Given A, b, and an inequality, graphs the region above/below the given line according to the
+        given inequality. If custom_edge is true, one of the edges can be specified at the given
+        value and whether it's horizontal or vertical.
+
+        This method directly graphs the line. Return after calling this method.
+
+        Invariant: A is a tuple and b is an int. newA and newb are used in order to avoid naming conflicts.
+
+        Method: find x- and y- intercepts, then set outer bounds based on intercepts
+        if custom_edge is true, then the value given is set as one of the outer bounds
+            - if horizontal is true, given value is a y-value; otherwise it's an x-value
+        """
+
+        if ineq == "=":
+            print("Error: given inequality in graph_single_line is '='. Blame the programmer.")
+            exit()
+
+        points = []  # clear points in case some were added previously
+
+        # check if the given line will ever intercept x or y axes
+        has_x_inter = newA[0] != 0
+        has_y_inter = newA[1] != 0
+        x_intercept = 0
+        y_intercept = 0
+
+        # calculate intercepts
+        if has_x_inter:
+            x_intercept = newb / newA[0]  # since Ax = b <=> a_0x + a_1y = b; x = b/a_0 - a_1 * 0
+        if has_y_inter:
+            y_intercept = newb / newA[1]
+
+        # if custom edge is given, modify intercepts accordingly
+        # TODO: fix calculation of intercepts
+        if custom_edge:
+            if has_x_inter and horizontal:
+                x_intercept = value / newA[0]
+            if has_y_inter and not horizontal:
+                y_intercept = value / newA[1]
+
+
+        # horizontal line given, draw a rectangle
+        if not has_x_inter:
+            # set boundaries
+            y_top = y_intercept
+            y_bottom = -y_intercept
+            x_left = -y_intercept
+            x_right = y_intercept
+
+            if ineq == "<=":
+                if y_intercept < 0:
+                    y_bottom = y_intercept * 2
+                    x_left = y_bottom
+                elif y_intercept == 0:
+                    y_bottom = -10
+                    x_left = -10
+
+                if custom_edge and not horizontal:
+                    x_right = value
+                    x_left = -value
+
+                    if value < 0:
+                        x_left = value * 2
+                    elif value == 0:
+                        x_left = -10
+
+            else:  # inequality is >=
+                y_top = y_intercept * 2
+                y_bottom = y_intercept
+                x_left = y_intercept
+                x_right = y_intercept * 2
+
+                if y_intercept < 0:
+                    y_top = -y_intercept
+                    x_right = y_top
+                if y_intercept == 0:
+                    y_bottom = 10
+                    x_left = 10
+
+                if custom_edge and not horizontal:
+                    x_right = value * 2
+                    x_left = value
+
+                    if value < 0:
+                        x_right = -value
+                    elif value == 0:
+                        x_right = 10
+                
+
+            # add points sequentially
+            points.append([x_right, y_top])
+            points.append([x_right, y_bottom])
+            points.append([x_left, y_bottom])
+            points.append([x_left, y_top])
+
+
+        # vertical line given, draw a rectangle
+        elif not has_y_inter:
+            # set boundaries
+            y_top = x_intercept
+            y_bottom = -x_intercept
+            x_left = -x_intercept
+            x_right = x_intercept
+
+            if ineq == "<=":
+                if x_intercept < 0:
+                    y_bottom = x_intercept * 2
+                    x_left = y_bottom
+                elif x_intercept == 0:
+                    y_bottom = -10
+                    x_left = -10
+
+                if custom_edge and horizontal:
+                    y_top = value
+                    y_bottom = -value
+
+                    if value < 0:
+                        y_bottom = value * 2
+                    elif value == 0:
+                        y_bottom = -10
+
+            else:  # inequality is >=
+                y_top = x_intercept * 2
+                y_bottom = x_intercept
+                x_left = x_intercept
+                x_right = x_intercept * 2
+
+                if x_intercept < 0:
+                    y_top = -x_intercept
+                    x_right = y_top
+                if x_intercept == 0:
+                    y_bottom = 10
+                    x_left = 10
+
+                if custom_edge and horizontal:
+                    y_top = value * 2
+                    y_bottom = value
+
+                    if value < 0:
+                        y_top = -value
+                    elif value == 0:
+                        y_top = 10
+                
+
+            # add points sequentially
+            points.append([x_right, y_top])
+            points.append([x_right, y_bottom])
+            points.append([x_left, y_bottom])
+            points.append([x_left, y_top])
+
+
+        # neither horizontal nor vertical, draw a triangle
+        elif ineq == "<=":
+            point1 = [x_intercept, 0]
+            point2 = [0, y_intercept]
+            point3 = [0, 0]  # changed later, if necessary
+
+            if custom_edge:
+                if horizontal:
+                    point1 = [x_intercept, value]
+                else:
+                    point2 = [value, y_intercept]
+                
+                point3 = [x_intercept, y_intercept]
+            else:
+                if x_intercept < 0:
+                    point3[0] = x_intercept
+                if y_intercept < 0:
+                    point3[1] = y_intercept
+
+            points.append(point1)
+            points.append(point2)
+            points.append(point3)
+            
+
+        else:  # inequality is >=
+            point1 = [x_intercept, 0]
+            point2 = [0, y_intercept]
+            point3 = [x_intercept, y_intercept]  # changed later, if necessary
+
+            if custom_edge:
+                if horizontal:
+                    point1 = [x_intercept, value]
+                    point3 = [0, value]
+                else:
+                    point2 = [value, y_intercept]
+                    point3 = [value, 0]
+            else:
+                if x_intercept < 0:
+                    point3[0] = 0
+                if y_intercept < 0:
+                    point3[1] = 0
+
+            points.append(point1)
+            points.append(point2)
+            points.append(point3)
+
+
+        points.append(points[0])  # add the first point again to create a closed loop
+
+        xs, ys = zip(*points)
+
+        plt.figure()
+        plt.plot(xs, ys)
+        plt.grid()
+        plt.fill(xs, ys)
+        plt.show()
+
+
+
+    if shape[0] == 1:
         # only one line was given, call graph_single_line
-        graph_single_line(_A, _b, inequality)
+        graph_single_line(_A[0], _b, inequality)
         return
+
 
     # get intersect points of inequalities/lines
     # points are sorted later, only if necessary
@@ -519,38 +730,5 @@ def graph_feasible_region(_A, _b, inequality):
     plt.show()
 
 
-def graph_single_line(A, b, inequality, custom_edge = False, value = 0, horizontal = False):
-    # find x- and y- intercepts, then set outer bounds based on intercepts
-    # if custom_edge is true, then the value given is set as one of the outer bounds
-    #   - if horizontal is true, given value is a y-value; otherwise, x-value
-    # A is a tuple, b is an int
 
-    x_intercept = b / A[0]  # since Ax = b <=> a_0x + a_1y = b; x = b/a_0 - a_1 * 0
-    y_intercept = b / A[1]
-
-    # if custom edge is not given, base graph around y-intercept
-    if inequality == "<=":
-        # TODO: add custom edge check first, then do regular calculations after
-
-
-        x = (b - A[1] * y_intercept) / A[0]
-        x_max = x
-        x_min = -x
-
-        if x < 0:
-            x_min = x
-            x_max = -x
-
-        
-
-    # line is horizontal
-    if A[0] == 0:
-        pass
-    # line is vertical
-    elif A[1] == 0:
-        pass
-
-    pass
-
-
-graph_feasible_region(_A, _b, "<=")
+graph_feasible_region(Array, bee, ">=")
