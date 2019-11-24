@@ -14,12 +14,12 @@ https://stackoverflow.com/questions/41855695/sorting-list-of-two-dimensional-coo
 # If Ax =/>=/<= b where A has 2 columns, graph the system of inequalities
 # if A[0] == 0, then line is horizontal; if A[1] == 0, then line is vertical
 #_A = np.array([[1, 3], [0, 4], [1, 1]])
-Array = np.array([[2, 3]])
+Array = np.array([[1, 9], [2, 0], [-1, 0], [0, -1]])
 #_b = np.array([[5], [6], [3]])
-bee = np.array([[5]])
+bee = np.array([[10], [19], [0], [0]])
 
 # temporary, set later to main.py's format and input
-sign = ">="
+sign = "<="
 
 def graph_feasible_region(_A, _b, inequality):
     A = np.array([[0, 0], [0, 0]])
@@ -282,10 +282,14 @@ def graph_feasible_region(_A, _b, inequality):
                 equations[line1] = b[0]
                 equations[line2] = b[1]
 
+                # if both lines are horizontal/vertical, skip point
+                if A[0][0] == 0 and A[1][0] == 0:
+                    continue
+                elif A[0][1] == 0 and A[1][1] == 0:
+                    continue
+
                 point = np.linalg.solve(A, b)
                 points.append(point)
-
-                print("Starting point is", point)
 
 
     # if fewer than 3 points exist, need to add boundaries on edges (can't draw infinitely)
@@ -731,4 +735,4 @@ def graph_feasible_region(_A, _b, inequality):
 
 
 
-graph_feasible_region(Array, bee, ">=")
+graph_feasible_region(Array, bee, sign)
