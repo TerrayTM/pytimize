@@ -1,9 +1,6 @@
-import sys
 import numpy as np
 
-sys.path.append("../optimization")
-
-from main import LinearProgram
+from ... import LinearProgram
 from unittest import TestCase, main
 
 class TestSimplexSolution(TestCase):
@@ -19,7 +16,7 @@ class TestSimplexSolution(TestCase):
 
         p = LinearProgram(A, b, c, z)
 
-        solution, basis = p.simplex_solution([6, 7, 8])
+        solution, basis, certificate = p.simplex_solution([6, 7, 8]) #TODO need work
 
         self.assertTrue(np.allclose(solution, [4, 1, 2, 0, 0, 0, 0, 0]), "Should compute correct solution.")
         self.assertTrue(np.allclose(basis, [1, 2, 3]), "Should compute correct optimal basis.")

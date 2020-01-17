@@ -16,10 +16,10 @@ Currently Implemented Methods:
 * Graph Feasible Region
 * Two Phase Simplex
 * Bland's Rule
+* Shortest Path Solver
+* Duality Theory
 
 Planned Features:
-* Duality Theory
-* Shortest Path Solver
 * Integer Programming
 * Branch and Bound Solver
 * Cutting Plane Solver
@@ -29,8 +29,10 @@ Planned Features:
 
 Run All Tests
 
-`python -m unittest discover -s .\tests -p '*_test.py'`
+`python -m unittest discover`
 
 Run Specific Test
 
-`python .\tests\[file name].py`
+`python -m unittest <module path>`
+
+For example: `python -m unittest optimizathon.programs.tests.linear_program.test_copy`

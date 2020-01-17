@@ -1,22 +1,17 @@
-import sys
 import numpy as np
 
-sys.path.append("../optimization")
-sys.path.append("../optimization/enums")
-
-from main import LinearProgram
 from unittest import TestCase, main
-from math import isclose
+from ... import LinearProgram
 
 class TestComputeBasicSolution(TestCase):
     def test_compute_basic_solution(self):
-        A = [
+        A = np.array([
             [2, 1, 2, -1, 0, 0],
             [1, 0, -1, 2, 1, 0],
             [3, 0, 3, 1, 0, 1]
-        ]
-        b = [2, 1, 1]
-        c = [1, 2, 3, 4, 5, 6]
+        ])
+        b = np.array([2, 1, 1])
+        c = np.array([1, 2, 3, 4, 5, 6])
         z = 5
 
         p = LinearProgram(A, b, c, z)

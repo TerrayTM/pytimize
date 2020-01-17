@@ -1,13 +1,9 @@
-import sys
 import numpy as np
+import math
 
-sys.path.append("../optimization")
-sys.path.append("../optimization/enums")
-
-from main import LinearProgram
+from ... import LinearProgram
+from ....enums.objective import Objective
 from unittest import TestCase, main
-from objective import Objective
-from math import isclose
 
 class TestInit(TestCase):
     def setUp(self):
@@ -28,7 +24,7 @@ class TestInit(TestCase):
         self.assertTrue(np.allclose(p.A, self.A), "Should construct coefficient matrix.")
         self.assertTrue(np.allclose(p.b, self.b), "Should construct constraint values.")
         self.assertTrue(np.allclose(p.c, self.c), "Should construct coefficient vector.")
-        self.assertTrue(isclose(p.z, self.z), "Should construct constant.")
+        self.assertTrue(math.isclose(p.z, self.z), "Should construct constant.")
         self.assertEqual(p.objective, Objective.min, "Should construct objective.")
         self.assertEqual(p.inequalities, ["=", "=", "="], "Should construct inequalities.")
         self.assertFalse(p.is_sef, "Should detect non-SEF.")
@@ -45,7 +41,7 @@ class TestInit(TestCase):
         self.assertTrue(np.allclose(p.A, self.A), "Should construct coefficient matrix.")
         self.assertTrue(np.allclose(p.b, self.b), "Should construct constraint values.")
         self.assertTrue(np.allclose(p.c, self.c), "Should construct coefficient vector.")
-        self.assertTrue(isclose(p.z, self.z), "Should construct constant.")
+        self.assertTrue(math.isclose(p.z, self.z), "Should construct constant.")
         self.assertTrue(p.is_sef, "Should detect SEF.")
         
         self.assertTrue(np.issubdtype(p.A.dtype, np.floating), "Should be of type float.")

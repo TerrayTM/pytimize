@@ -1,7 +1,7 @@
 import re
 import numpy as np
 
-class Parser:
+class LinearConstraint:
   def parse(self, expression: str, size: int = None) -> np.ndarray:
     if self.__validate_expression(expression):
       term = re.compile(r"(\+|-)?(\d+(?:\.\d+)?)x_(\d+)")

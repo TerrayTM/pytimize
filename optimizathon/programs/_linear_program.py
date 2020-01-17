@@ -1,14 +1,9 @@
-import sys
 import math
+import functools
 import numpy as np
 
-sys.path.append("./enums")
-
-from objective import Objective
-from step_descriptor import render_descriptor
-#TODO: remove isclose inf and isinf (use math.isclose instead)
-from math import isclose, inf, isinf
-from functools import reduce
+from ..enums.objective import Objective
+from ..step_descriptor import render_descriptor
 from matplotlib import pyplot as plt
 
 # TODO: for make independent rows, check for sef at end
@@ -135,7 +130,7 @@ class LinearProgram:
         
         output += "]x"
 
-        if not isclose(self._z, 0):
+        if not math.isclose(self._z, 0):
             output += " + " + str(self._z)
 
         output += "\nSubject To:\n\n"
@@ -260,7 +255,7 @@ class LinearProgram:
         result = True
 
         for i in range(self._c.shape[0]):
-            if not i in basis and not isclose(x[i], 0):
+            if not i in basis and not math.isclose(x[i], 0):
                 show_steps and self.__append_to_steps(("4.02", i + 1))
 
                 result = False
@@ -319,7 +314,7 @@ class LinearProgram:
         if not self._A.shape[0] == len(basis):
             raise ValueError()
 
-        return not isclose(np.linalg.det(self._A[:, basis]), 0)
+        return not math.isclose(np.linalg.det(self._A[:, basis]), 0)
 
 
 
@@ -666,7 +661,7 @@ class LinearProgram:
         computed = self._b - t * Ak
 
         for i in range(len(computed)): 
-            if isclose(computed[i], 0):
+            if math.isclose(computed[i], 0):
                 basis.remove(basis[i])
                 
                 break
@@ -828,7 +823,7 @@ class LinearProgram:
 
                     if not show_steps:
                         return False
-            elif not isclose(value, self._b[i]):
+            elif not math.isclose(value, self._b[i]):
                 step = "2.13"
 
                 if not show_steps:
@@ -1862,7 +1857,7 @@ class LinearProgram:
         result : LinearProgram
 
         """
-        return reduce((lambda previous, current: f"{previous}\n{current['text']}"), self.steps, "").strip()
+        return functools.reduce((lambda previous, current: f"{previous}\n{current['text']}"), self.steps, "").strip()
 
 
 
@@ -1944,7 +1939,7 @@ class LinearProgram:
         for row in range(shape[0]):
             row_has_leading_one = False
             for col in range(shape[1]):
-                if isclose(arr[row, col], 0):
+                if math.isclose(arr[row, col], 0):
                     # have not found a non-zero entry yet, search rest of row
                     continue
 
@@ -1952,11 +1947,11 @@ class LinearProgram:
                     # row has non-zero entries but there is a zero row above it
                     return False
 
-                elif isclose(arr[row, col], 1):
+                elif math.isclose(arr[row, col], 1):
                     # found a leading one, check rest of column for zeros
                     row_has_leading_one = True
                     for r in range(shape[0]):
-                        if not r == row and not isclose(arr[r, col], 0):
+                        if not r == row and not math.isclose(arr[r, col], 0):
                             return False
                     break
 
@@ -1987,24 +1982,24 @@ class LinearProgram:
         col = 0
         for row in range(shape[0]):
             # Get a 1 in the row,col entry
-            if not isclose(arr[row, col], 1):
+            if not math.isclose(arr[row, col], 1):
                 i = 0
-                while isclose(arr[row, col], 0):
+                while math.isclose(arr[row, col], 0):
                     # If number in row,col is 0, find a lower row with a non-zero entry
                     # If all lower rows have a 0 in the column, move on to the next column
-                    if isclose(i + row, shape[0]):
+                    if math.isclose(i + row, shape[0]):
                         i = 0
                         col += 1
-                        if isclose(col, shape[1]):
+                        if math.isclose(col, shape[1]):
                             break
                         continue
-                    if not isclose(arr[row + i, col], 0):
+                    if not math.isclose(arr[row + i, col], 0):
                         # Found a lower row with non-zero entry, swap rows
                         arr[[row, row + i]] = arr[[row + i, row]]
                         break
                     i += 1
                 
-                if isclose(col, shape[1]):
+                if math.isclose(col, shape[1]):
                     # Everything left is 0
                     break
 
@@ -2019,7 +2014,7 @@ class LinearProgram:
                     arr[i, :] -= arr[row, :] * multiple
                         
             col += 1
-            if isclose(col, shape[1]):
+            if math.isclose(col, shape[1]):
                 break
 
         return arr
@@ -2045,21 +2040,21 @@ class LinearProgram:
                 multiple = 0
                 duplicate = True
                 for col in range(shape[1]):
-                    if isclose(arr[i, col], 0):
-                        if isclose(arr[j, col], 0):
+                    if math.isclose(arr[i, col], 0):
+                        if math.isclose(arr[j, col], 0):
                             # both zero entries, move on to next column
                             continue
                         # one row has a zero while other doesn't, move on to next row
                         duplicate = False
                         break
-                    elif isclose(arr[j, col], 0):
+                    elif math.isclose(arr[j, col], 0):
                         # one row has a zero while other doesn't
                         duplicate = False
                         break
                     
                     if col == 0:
                         multiple = arr[i, col] / arr[j, col]
-                    elif not isclose(arr[i, col] / arr[j, col], multiple):
+                    elif not math.isclose(arr[i, col] / arr[j, col], multiple):
                         duplicate = False
                         break
 
