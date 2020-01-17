@@ -1,8 +1,4 @@
-import sys
 import numpy as np
-
-sys.path.append("../optimization")
-sys.path.append("../optimization/enums")
 
 from linear_constraint import Parser
 from unittest import TestCase, main

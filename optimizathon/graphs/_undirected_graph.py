@@ -1,27 +1,73 @@
-from math import inf
-  
-class UndirectedGraph:
-  def __init__(self, edges: list=None):
+import math
+
+from typing import List, Tuple
+
+class UndirectedGraph: #TODO validation 
+  def __init__(self, edges: List[Tuple(str, str, float)]=None):
     self.graph = {}
 
-  def add_edge(self, source, target, weight): #not called source and targe since unordered check if edge exists then throw err
-    self.graph.setdefault(source, set()).add((target, weight))
-    self.graph.setdefault(target, set()).add((source, weight))
+    if edges is not None:
+      if not isinstance(edges, float):
+        raise TypeError("Edges must be a list.")
 
-  def get_vertices(self):
-    print(self.graph)
-    pass
+      for edge in edges:
+        if not isinstance(edge, tuple):
+          raise TypeError("Each entry of edges must be a tuple.")
 
-  def get_edges(self):
-    pass
+        if not len(edge) == 3:
+          raise TypeError("Each tuple must have 3 items.")
 
-  def shortest_path(self, start, end):
+        if not isinstance(edge[0], str) or not isinstance(edge[1], str):
+          raise TypeError("First two entries of tuple must be strings.")
+
+        self.add_edge((edge[0], edge[1]), edge[2])
+
+
+
+  def add_edge(self, edge: Tuple(str, str), weight: float=0):
+    if edge[0] in self.graph.keys() and edge[1] in self.graph[edge[0]]:
+      raise ValueError("The given edge is already in graph.")
+
+    if weight < 0:
+      raise ValueError("Weight cannot be negative.")
+
+    self.graph.setdefault(edge[0], set()).add((edge[1], weight))
+    self.graph.setdefault(edge[1], set()).add((edge[0], weight))
+
+
+
+  def remove_edge(self, edge: Tuple(str, str)): #TODO change ALL not ... in to ... not in
+    if edge[0] not in self.graph.keys() or edge[1] not in self.graph[edge[0]]:
+      raise ValueError("The given edge is not in graph.")
+
+    self.graph[edge[0]].remove(edge[1])
+    self.graph[edge[1]].remove(edge[0])
+
+
+
+  def has_edge(self, edge: Tuple(str, str)):
+    return edge[0] in self.graph.keys() and edge[1] in self.graph[edge[0]]
+
+
+
+  def has_vertex(self, vertex: str):
+    return vertex in self.graph.keys()
+
+
+
+  def shortest_path(self, start: str, end: str):
+    if start not in self.graph.keys():
+      raise ValueError("Starting vertex is not in graph.")
+
+    if end not in self.graph.keys():
+      raise ValueError("Ending vertex is not in graph.")
+
     potential = {}
-    visited = {start}
+    visited = { start }
     directed_graph = {}
 
     while end not in visited:
-      best_slack = inf
+      best_slack = math.inf
       best_edge = None
       edges = set()
 
@@ -29,7 +75,9 @@ class UndirectedGraph:
         for edge in self.graph[vertex]:
           if edge[0] not in visited:
             edge_hash = [edge[0], vertex]
+
             edge_hash.sort()
+            
             edge_hash = "".join(edge_hash)
             slack = edge[1] - (potential[edge_hash] if edge_hash in potential.keys() else 0)
 
@@ -40,7 +88,9 @@ class UndirectedGraph:
             if slack < best_slack:
               best_slack = slack
               best_edge = (vertex, edge[0], edge_hash)
-      print(visited, best_slack)
+      
+            print(visited, best_slack)
+
       for edge_hash in edges:
         previous = potential.setdefault(edge_hash, 0)
         potential[edge_hash] = previous + best_slack
@@ -54,10 +104,51 @@ class UndirectedGraph:
     while not current == start:
       previous = current
       current = directed_graph[current][0]
+
       path.insert(0, current + previous)
 
     return path
 
 
+
   def to_linear_program(self):
     pass
+
+
+
+  def __get_edges(self):
+    result = set()
+
+    for vertex, connections in self.graph:
+      for connection in connections:
+        result.add((vertex, connection))
+    
+    return list(result)
+
+
+
+  @property
+  def edges(self):
+      """
+      Gets the edges of the graph.
+
+      Returns
+      -------
+      result : list of tuples (str, str)
+
+      """
+      return self.__get_edges()
+
+
+
+  @property
+  def vertices(self):
+      """
+      Gets the vertices of the graph.
+
+      Returns
+      -------
+      result : list of str
+
+      """
+      return list(self.graph.keys())

@@ -493,7 +493,7 @@ class LinearProgram:
 
         Returns
         -------
-        result : Tuple (ndarray of float, LinearProgram)
+        result : tuple (ndarray of float, LinearProgram)
             The copy of the linear program or self in canonical form.
 
         """
@@ -550,7 +550,7 @@ class LinearProgram:
 
         Returns
         -------
-        result : Tuple (ndarray of float, ndarray of int, LinearProgram)
+        result : tuple (ndarray of float, ndarray of int, LinearProgram)
 
         """
         if not self._is_sef:
@@ -611,7 +611,7 @@ class LinearProgram:
 
         Returns
         -------
-        result : Tuple (ndarray of float, ndarray of int, LinearProgram)
+        result : tuple (ndarray of float, ndarray of int, LinearProgram)
             The copy of the linear program or self in canonical form. The first parameter indicates the
             solution vector, if any, and the second gives the current basis. If solution vector is infinity,
             the given linear program is unbounded.
