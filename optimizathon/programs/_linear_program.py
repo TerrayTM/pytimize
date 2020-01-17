@@ -632,8 +632,8 @@ class LinearProgram:
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
         negative_indices = np.where(self._b < 0)
 
-        self._b[negative_indices] *= -1;
-        self._A[negative_indices] *= -1;
+        self._b[negative_indices] *= -1
+        self._A[negative_indices] *= -1
 
         self.__to_canonical_form(basis, show_steps)
 
@@ -1091,7 +1091,7 @@ class LinearProgram:
 
         if shape[0] == 1:
             # only one line was given, call graph_single_line
-            graph_single_line(_A[0], self._b, inequality)
+            graph_single_line(self._A[0], self._b, inequality)
             return
 
 
@@ -1180,8 +1180,8 @@ class LinearProgram:
                 print("y_min is", y_min)
 
                 # get equations for the two lines
-                line1 = (_A[0, 0], self._A[0, 1])
-                line2 = (_A[1, 0], self._A[1, 1])
+                line1 = (self._A[0, 0], self._A[0, 1])
+                line2 = (self._A[1, 0], self._A[1, 1])
 
                 # list for each line's intercepts with edge of screen (x/y max and min)
                 l1points = []
