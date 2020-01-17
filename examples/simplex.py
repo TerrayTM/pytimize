@@ -3,7 +3,7 @@ import numpy as np
 
 sys.path.append("../optimization")
 
-from main import LinearProgram
+from optimizathon import LinearProgram
 
 A = np.array([
     [1, 0, 2, 7, -1], 

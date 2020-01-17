@@ -1,10 +1,6 @@
-import sys
 import numpy as np
 
-sys.path.append("../optimization")
-sys.path.append("../optimization/enums")
-
-from main import LinearProgram
+from ..linear_program import LinearProgram
 from unittest import TestCase, main
 from objective import Objective
 from math import isclose
