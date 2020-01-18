@@ -1,9 +1,10 @@
 import re
 import numpy as np
 
-class LinearConstraint:
-  def parse(self, expression: str, size: int = None) -> np.ndarray:
-    if self.__validate_expression(expression):
+class LinearParser:
+  @staticmethod
+  def parse(expression: str, size: int=None) -> np.ndarray:
+    if LinearParser.validate_expression(expression):
       term = re.compile(r"(\+|-)?(\d+(?:\.\d+)?)x_(\d+)")
       data = {}
       length = 0
@@ -29,17 +30,17 @@ class LinearConstraint:
       raise Exception()
 
 
-
-  def parse_multiple(self, expressions: list, size: int = None):
+  @staticmethod
+  def parse_multiple(expressions: list, size: int=None):
     for expression in expressions:
-      if self.__validate_expression(expression):
-        self.compile(expression, size)
+      if LinearParser.__validate_expression(expression):
+        LinearParser.parse(expression, size)
       else:
         raise Exception()
 
 
-
-  def __validate_expression(self, candidate):
+  @staticmethod
+  def validate_expression(candidate):
     validation = re.compile(r"^-?\d+(?:\.\d+)?x_\d+(?:[+|-]\d+(?:\.\d+)?x_\d+)*$")
 
     return validation.match(candidate) is not None

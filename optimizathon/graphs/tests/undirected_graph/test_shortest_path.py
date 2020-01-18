@@ -5,8 +5,8 @@ class TestShortestPath(TestCase):
     def test_shortest_path(self):
         graph = UndirectedGraph()
 
-        graph.add_edge("s", "a", 6)
-        graph.add_edge("a", "t", 4)
+        graph.add_edge(("s", "a"), 6)
+        graph.add_edge(("a", "t"), 4)
         graph.add_edge("t", "b", 5)
         graph.add_edge("s", "b", 2)
         graph.add_edge("c", "s", 4)

@@ -3,7 +3,7 @@ import math
 from typing import List, Tuple
 
 class UndirectedGraph: #TODO validation 
-  def __init__(self, edges: List[Tuple(str, str, float)]=None):
+  def __init__(self, edges: List[Tuple[str, str, float]]=None) -> None:
     self.graph = {}
 
     if edges is not None:
@@ -24,19 +24,22 @@ class UndirectedGraph: #TODO validation
 
 
 
-  def add_edge(self, edge: Tuple(str, str), weight: float=0):
+  def add_edge(self, edge: Tuple[str, str], weight: float=0) -> None:
     if edge[0] in self.graph.keys() and edge[1] in self.graph[edge[0]]:
       raise ValueError("The given edge is already in graph.")
 
     if weight < 0:
       raise ValueError("Weight cannot be negative.")
 
+    if edge[0] == edge[1]:
+      raise ValueError("Cannot form an edge with the same vertex.")
+
     self.graph.setdefault(edge[0], set()).add((edge[1], weight))
     self.graph.setdefault(edge[1], set()).add((edge[0], weight))
 
 
 
-  def remove_edge(self, edge: Tuple(str, str)): #TODO change ALL not ... in to ... not in
+  def remove_edge(self, edge: Tuple[str, str]) -> None: #TODO change ALL not ... in to ... not in
     if edge[0] not in self.graph.keys() or edge[1] not in self.graph[edge[0]]:
       raise ValueError("The given edge is not in graph.")
 
@@ -45,17 +48,17 @@ class UndirectedGraph: #TODO validation
 
 
 
-  def has_edge(self, edge: Tuple(str, str)):
+  def has_edge(self, edge: Tuple[str, str]) -> bool:
     return edge[0] in self.graph.keys() and edge[1] in self.graph[edge[0]]
 
 
 
-  def has_vertex(self, vertex: str):
+  def has_vertex(self, vertex: str) -> bool:
     return vertex in self.graph.keys()
 
 
 
-  def shortest_path(self, start: str, end: str):
+  def shortest_path(self, start: str, end: str) -> List[Tuple[str, str]]:
     if start not in self.graph.keys():
       raise ValueError("Starting vertex is not in graph.")
 
@@ -105,7 +108,7 @@ class UndirectedGraph: #TODO validation
       previous = current
       current = directed_graph[current][0]
 
-      path.insert(0, current + previous)
+      path.insert(0, (current, previous))
 
     return path
 
@@ -116,7 +119,7 @@ class UndirectedGraph: #TODO validation
 
 
 
-  def __get_edges(self):
+  def __get_edges(self) -> List[Tuple[str, str]]:
     result = set()
 
     for vertex, connections in self.graph:
@@ -128,7 +131,7 @@ class UndirectedGraph: #TODO validation
 
 
   @property
-  def edges(self):
+  def edges(self) -> List[Tuple[str, str]]:
       """
       Gets the edges of the graph.
 
@@ -142,7 +145,7 @@ class UndirectedGraph: #TODO validation
 
 
   @property
-  def vertices(self):
+  def vertices(self) -> List[str]:
       """
       Gets the vertices of the graph.
 
