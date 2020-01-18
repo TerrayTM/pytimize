@@ -24,7 +24,7 @@ class GraphParser:
     
     return result
 
-
+#TODO ADD WEIGHT
   @staticmethod
   def get_expression_type(candidate: str) -> int:
     validation_one = re.compile(r"^(?:\w\w)(?:\s\w\w)*$")

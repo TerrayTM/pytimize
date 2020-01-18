@@ -7,6 +7,7 @@ from ..step_descriptor import render_descriptor
 from matplotlib import pyplot as plt
 
 # TODO: for make independent rows, check for sef at end
+# TODO: add <= to variables
 class LinearProgram:
     def __init__(self, A, b, c, z, objective=Objective.max, inequalities=None, free_variables=None):
         """
@@ -306,7 +307,7 @@ class LinearProgram:
 
         """
         if not self._is_sef:
-            raise ArithmeticError() # requires sef form
+            raise ArithmeticError() # requires sef form ? TODO REMOVE
 
         basis = self.__array_like_to_list(basis) #optimize as it is called twice from parent
         basis = self.__convert_indices(basis)
@@ -314,7 +315,13 @@ class LinearProgram:
         if not self._A.shape[0] == len(basis):
             raise ValueError()
 
-        return not math.isclose(np.linalg.det(self._A[:, basis]), 0)
+        test = np.linalg.det(self._A[:, basis])
+        tolerance = 0
+
+        if test < 1.0e-5:
+            tolerance = 1.0e-9
+        
+        return not math.isclose(np.linalg.det(self._A[:, basis]), 0, abs_tol=tolerance)
 
 
 
@@ -441,7 +448,7 @@ class LinearProgram:
 
 
 
-    def create_dual(self, show_steps=True):
+    def create_dual(self, show_steps: bool=True) -> "LinearProgram":
         """
         Creates the associated duality program. 
 
@@ -457,7 +464,6 @@ class LinearProgram:
 
         """
         
-
 #          max          |   min
 #--------------------|-------------
 #              <=   >= 0
@@ -467,14 +473,11 @@ class LinearProgram:
 #    variable  >=0  >=
 #              free =  
 #              <=0  <=  constraint
-        if self.is_sef:
-            p = LinearProgram(self._b)
-        else:
-            copy = self.copy()
 
-            copy.to_sef(in_place=True)
-            
-            return copy.create_dual()
+        if not self.z == 0:
+            raise ValueError()
+
+        LinearProgram(self._A.T, self._c, self._b, 0)
 
 
 

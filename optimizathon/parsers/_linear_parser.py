@@ -1,6 +1,6 @@
 import re
 import numpy as np
-
+#TODO ADD CONSTRAINT
 class LinearParser:
   @staticmethod
   def parse(expression: str, size: int=None) -> np.ndarray:
