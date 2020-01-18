@@ -10,6 +10,5 @@ class TestParse(TestCase):
 
         self.assertTrue(np.allclose(result, expected), "Should parse correctly.")
 
-
 if __name__ == "__main__":
     main()
