@@ -2,14 +2,13 @@ import math
 import functools
 import numpy as np
 
-from ..enums.objective import Objective
 from ..step_descriptor import render_descriptor
 from matplotlib import pyplot as plt
 
 # TODO: for make independent rows, check for sef at end
 # TODO: add <= to variables
 class LinearProgram:
-    def __init__(self, A, b, c, z, objective=Objective.max, inequalities=None, free_variables=None):
+    def __init__(self, A, b, c, z, objective="max", inequalities=None, free_variables=None):
         """
         Constructs a linear programming model of the form [objective]{cx + z : Ax [inequalities] b, variables >= 0},
         where objective denotes whether this is a maximization or minimization problem, inequalities is a list of 
@@ -29,8 +28,8 @@ class LinearProgram:
         z : int, float
             The constant of the objective function.
 
-        objective : Objective, optional (default=Objective.max)
-            The objective of the linear programming model.
+        objective : str, optional (default="max")
+            The objective of the linear programming model. Must be either "max" or "min".
 
         inequalities : array-like of str ["=", ">=", "<="], optional (default=None)
             The operator type between Ax and b. Each index of the array-like corresponds to the same index of the 
@@ -72,7 +71,7 @@ class LinearProgram:
         if not type(z) in [int, float]:
             raise ValueError()
 
-        if not isinstance(objective, Objective):
+        if not objective == "max" and not objective == "min":
             raise ValueError()
 
         if not free_variables is None:
@@ -91,7 +90,7 @@ class LinearProgram:
         self._steps = []
         self._objective = objective
         self._inequality_indices = inequality_indices
-        self._is_sef = sef_condition and len(free_variables) == 0 and objective == Objective.max
+        self._is_sef = sef_condition and len(free_variables) == 0 and objective == "max"
         self._free_variables = free_variables
 
 
@@ -111,7 +110,7 @@ class LinearProgram:
         shape = self._A.shape
 
         # set objective to be human readable
-        if self._objective == Objective.min:
+        if self._objective == "min":
             obj = "Min ["
         else:
             obj = "Max ["
@@ -1651,9 +1650,9 @@ class LinearProgram:
 
         show_steps and self.__append_to_steps("3.01")
 
-        if self._objective == Objective.min:
+        if self._objective == "min":
             self._c = -self._c
-            self._objective = Objective.max
+            self._objective = "max"
 
             show_steps and self.__append_to_steps([
                 "3.02",

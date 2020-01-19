@@ -2,7 +2,6 @@ import numpy as np
 import math
 
 from ... import LinearProgram
-from ....enums.objective import Objective
 from unittest import TestCase, main
 
 class TestInit(TestCase):
@@ -19,13 +18,13 @@ class TestInit(TestCase):
     def test_init(self):
         inequalities = np.array(["=", "=", "="])
 
-        p = LinearProgram(self.A, self.b, self.c, self.z, Objective.min, inequalities, [])
+        p = LinearProgram(self.A, self.b, self.c, self.z, "min", inequalities, [])
 
         self.assertTrue(np.allclose(p.A, self.A), "Should construct coefficient matrix.")
         self.assertTrue(np.allclose(p.b, self.b), "Should construct constraint values.")
         self.assertTrue(np.allclose(p.c, self.c), "Should construct coefficient vector.")
         self.assertTrue(math.isclose(p.z, self.z), "Should construct constant.")
-        self.assertEqual(p.objective, Objective.min, "Should construct objective.")
+        self.assertEqual(p.objective, "min", "Should construct objective.")
         self.assertEqual(p.inequalities, ["=", "=", "="], "Should construct inequalities.")
         self.assertFalse(p.is_sef, "Should detect non-SEF.")
         
@@ -33,7 +32,7 @@ class TestInit(TestCase):
         self.assertTrue(np.issubdtype(p.b.dtype, np.floating), "Should be of type float.")
         self.assertTrue(np.issubdtype(p.c.dtype, np.floating), "Should be of type float.")
         self.assertIn(type(p.z), [float, int], "Should be of type float or int.")
-        self.assertIsInstance(p.objective, Objective, "Should be enum type Objective.")
+        self.assertIsInstance(p.objective, str, "Should be of type string.")
         self.assertIsInstance(p.inequalities, list, "Should be of type list.")
 
         p = LinearProgram(self.A.tolist(), self.b.tolist(), self.c.tolist(), self.z)
@@ -134,7 +133,7 @@ class TestInit(TestCase):
         with self.assertRaises(ValueError, msg="Should throw exception if type of z is incorrect."):
             p = LinearProgram(self.A, self.b, self.c, z)
         
-        objective = "min"
+        objective = 8
 
         with self.assertRaises(ValueError, msg="Should throw exception if type of objective is incorrect."):
             p = LinearProgram(self.A, self.b, self.c, self.z, objective)
@@ -160,7 +159,7 @@ class TestInit(TestCase):
 
         self.assertTrue(p.is_sef, "Should detect SEF.")
 
-        p = LinearProgram(self.A, self.b, self.c, self.z, Objective.min)
+        p = LinearProgram(self.A, self.b, self.c, self.z, "min")
 
         self.assertFalse(p.is_sef, "Should detect non-SEF.")
 
@@ -172,7 +171,7 @@ class TestInit(TestCase):
 
         self.assertFalse(p.is_sef, "Should detect non-SEF.")
 
-        p = LinearProgram(self.A, self.b, self.c, self.z, Objective.min, None, [1])
+        p = LinearProgram(self.A, self.b, self.c, self.z, "min", None, [1])
 
         self.assertFalse(p.is_sef, "Should detect non-SEF.")
 

@@ -1,7 +1,6 @@
 import numpy as np
 
 from ... import LinearProgram
-from ....enums.objective import Objective
 from unittest import TestCase, main
 
 class TestStr(TestCase):
@@ -63,7 +62,7 @@ class TestStr(TestCase):
             "[7.   -8.   90.56 ]     ≤   [0.333]\n"
         )
         
-        p = LinearProgram(A, b, c, z, Objective.min, [">=", "<=", "<="])
+        p = LinearProgram(A, b, c, z, "min", [">=", "<=", "<="])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
 if __name__ == "__main__":

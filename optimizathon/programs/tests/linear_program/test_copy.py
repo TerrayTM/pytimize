@@ -2,7 +2,6 @@ import numpy as np
 import math
 
 from ... import LinearProgram
-from ....enums.objective import Objective
 from unittest import TestCase, main
 
 class TestCopy(TestCase):
@@ -21,7 +20,7 @@ class TestCopy(TestCase):
         c = np.array([100, 200, 300])
         z = 5
 
-        p = LinearProgram(A, b, c, z, Objective.min, ["=", ">=", "<=", "=", ">=", "<=", "=", "="], [2, 3])
+        p = LinearProgram(A, b, c, z, "min", ["=", ">=", "<=", "=", ">=", "<=", "=", "="], [2, 3])
         
         p._steps.append("one two three")
 
@@ -31,7 +30,7 @@ class TestCopy(TestCase):
         self.assertTrue(np.allclose(p.b, copy.b), "Should be the same constraint values.")
         self.assertTrue(np.allclose(p.c, copy.c), "Should be the same coefficient vector.")
         self.assertTrue(math.isclose(p.z, copy.z), "Should be the same constant.")
-        self.assertEqual(copy.objective, Objective.min, "Should be the same objective.")
+        self.assertEqual(copy.objective, "min", "Should be the same objective.")
         self.assertFalse(copy.is_sef, "Should be the same SEF state.")
         self.assertEqual(copy.inequalities, ["=", ">=", "<=", "=", ">=", "<=", "=", "="], "Should be the same inequalities.")
         self.assertEqual(copy.free_variables, [2, 3], "Should be the same free variables.")
@@ -41,7 +40,7 @@ class TestCopy(TestCase):
         copy._b[3] = -100
         copy._c[0] = -99
         copy._z = 123456
-        copy._objective = Objective.max
+        copy._objective = "max"
         copy._inequality_indices[0] = "<="
         copy._free_variables.append(0)
         copy._is_sef = True

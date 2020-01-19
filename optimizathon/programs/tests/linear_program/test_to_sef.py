@@ -2,7 +2,6 @@ import numpy as np
 import math
 
 from ... import LinearProgram
-from ....enums.objective import Objective
 from unittest import TestCase, main
 
 class TestToSEF(TestCase):
@@ -16,7 +15,7 @@ class TestToSEF(TestCase):
         c = np.array([1, -2, 4])
         z = 0
 
-        p = LinearProgram(A, b, c, z, Objective.min, [">=", "<=", "="], [3])
+        p = LinearProgram(A, b, c, z, "min", [">=", "<=", "="], [3])
         
         p.to_sef(in_place=True)
 
@@ -29,7 +28,7 @@ class TestToSEF(TestCase):
         self.assertTrue(np.allclose(p.c, np.array([-1, 2, -4, 4, 0, 0])), "Should compute correct coefficient vector in SEF.")
         self.assertTrue(math.isclose(p.z, 0), "Should compute correct constant in SEF.")
         self.assertEqual(p.inequalities, ["=" for i in range(len(b))], "Should compute correct inequalities in SEF.")
-        self.assertEqual(p.objective, Objective.max, "Should be maximizing objective function in SEF.")
+        self.assertEqual(p.objective, "max", "Should be maximizing objective function in SEF.")
         
         A = np.array([
             [1, 2, 0, 1],
@@ -40,7 +39,7 @@ class TestToSEF(TestCase):
         c = np.array([-2, 3, -4, 1])
         z = 0
 
-        p = LinearProgram(A, b, c, z, Objective.max, ["<=", "<=", "="], [2])
+        p = LinearProgram(A, b, c, z, "max", ["<=", "<=", "="], [2])
         
         p.to_sef(in_place=True)
 
@@ -53,7 +52,7 @@ class TestToSEF(TestCase):
         self.assertTrue(np.allclose(p.c, np.array([-2, 3, -3, -4, 1, 0, 0])), "Should compute correct coefficient vector in SEF.")
         self.assertTrue(math.isclose(p.z, 0), "Should compute correct constant in SEF.")
         self.assertEqual(p.inequalities, ["=" for i in range(len(b))], "Should compute correct inequalities in SEF.")
-        self.assertEqual(p.objective, Objective.max, "Should be maximizing objective function in SEF.")
+        self.assertEqual(p.objective, "max", "Should be maximizing objective function in SEF.")
 
 if __name__ == "__main__":
     main()
