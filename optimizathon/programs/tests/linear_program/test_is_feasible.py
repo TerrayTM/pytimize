@@ -1,12 +1,8 @@
-import sys
 import numpy as np
 
-sys.path.append("../optimization")
-sys.path.append("../optimization/enums")
-
-from main import LinearProgram
+from ... import LinearProgram
+from ....enums.objective import Objective
 from unittest import TestCase, main
-from objective import Objective
 
 # Add test for free variables and negative values
 

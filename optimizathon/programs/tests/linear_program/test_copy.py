@@ -1,13 +1,9 @@
-import sys
 import numpy as np
+import math
 
-sys.path.append("../optimization")
-sys.path.append("../optimization/enums")
-
-from main import LinearProgram
+from ... import LinearProgram
+from ....enums.objective import Objective
 from unittest import TestCase, main
-from objective import Objective
-from math import isclose
 
 class TestCopy(TestCase):
     def test_copy(self):
@@ -34,7 +30,7 @@ class TestCopy(TestCase):
         self.assertTrue(np.allclose(p.A, copy.A), "Should be the same coefficient matrix.")
         self.assertTrue(np.allclose(p.b, copy.b), "Should be the same constraint values.")
         self.assertTrue(np.allclose(p.c, copy.c), "Should be the same coefficient vector.")
-        self.assertTrue(isclose(p.z, copy.z), "Should be the same constant.")
+        self.assertTrue(math.isclose(p.z, copy.z), "Should be the same constant.")
         self.assertEqual(copy.objective, Objective.min, "Should be the same objective.")
         self.assertFalse(copy.is_sef, "Should be the same SEF state.")
         self.assertEqual(copy.inequalities, ["=", ">=", "<=", "=", ">=", "<=", "=", "="], "Should be the same inequalities.")
@@ -54,7 +50,7 @@ class TestCopy(TestCase):
         self.assertFalse(np.allclose(p.A, copy.A), "Should not copy by reference.")
         self.assertFalse(np.allclose(p.b, copy.b), "Should not copy by reference.")
         self.assertFalse(np.allclose(p.c, copy.c), "Should not copy by reference.")
-        self.assertFalse(isclose(p.z, copy.z), "Should not copy by reference.")
+        self.assertFalse(math.isclose(p.z, copy.z), "Should not copy by reference.")
         self.assertNotEqual(copy.objective, p.objective, "Should not copy by reference.")
         self.assertNotEqual(copy.inequalities, p.inequalities, "Should not copy by reference.")
         self.assertNotEqual(copy.free_variables, p.free_variables, "Should not copy by reference.")

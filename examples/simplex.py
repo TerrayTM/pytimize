@@ -1,9 +1,6 @@
-import sys
 import numpy as np
 
-sys.path.append("../optimization")
-
-from main import LinearProgram
+from optimizathon.programs import LinearProgram
 
 A = np.array([
     [1, 0, 2, 7, -1], 
@@ -19,4 +16,3 @@ optimal_solution, optimal_basis, optimality_certificate = p.simplex_solution([1,
 print("Optimal Solution: {}".format(optimal_solution))
 print("Optimal Basis: {}".format(optimal_basis))
 print("Optimality Certificate: {}".format(optimality_certificate))
-

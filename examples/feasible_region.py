@@ -1,9 +1,6 @@
-import sys
 import numpy as np
 
-sys.path.append("../optimization")
-
-from main import LinearProgram
+from optimizathon.programs import LinearProgram
 
 A = np.array([
     [5, -1], 
@@ -17,4 +14,3 @@ z = 0
 
 p = LinearProgram(A, b, c, z, inequalities=["<=", "<=", "<=", "<="])
 p.graph_feasible_region()
-

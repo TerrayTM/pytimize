@@ -1,11 +1,8 @@
-import sys
 import numpy as np
+import math
 
-sys.path.append("../optimization")
-
-from main import LinearProgram
+from ... import LinearProgram
 from unittest import TestCase, main
-from math import isclose
 
 class TestToCanonicalForm(TestCase):
     def setUp(self):
@@ -35,7 +32,7 @@ class TestToCanonicalForm(TestCase):
         self.assertTrue(np.allclose(result_one.A, expected_A), "Should compute correct coefficient matrix.")
         self.assertTrue(np.allclose(result_one.b, expected_b), "Should compute correct constraint values.")
         self.assertTrue(np.allclose(result_one.c, expected_c), "Should compute correct coefficient vector.")
-        self.assertTrue(isclose(result_one.z, expected_z), "Should compute correct constant.")
+        self.assertTrue(math.isclose(result_one.z, expected_z), "Should compute correct constant.")
 
         expected_A = np.array([
             [1, 0.5, 0, 0.5, 0],
@@ -51,7 +48,7 @@ class TestToCanonicalForm(TestCase):
         self.assertTrue(np.allclose(result_two.A, expected_A), "Should compute correct coefficient matrix.")
         self.assertTrue(np.allclose(result_two.b, expected_b), "Should compute correct constraint values.")
         self.assertTrue(np.allclose(result_two.c, expected_c), "Should compute correct coefficient vector.")
-        self.assertTrue(isclose(result_two.z, expected_z), "Should compute correct constant.")
+        self.assertTrue(math.isclose(result_two.z, expected_z), "Should compute correct constant.")
 
     def test_invalid_basis(self):
         p = LinearProgram([[1, 2, 3], [4, 5, 6]], [1, 2], [1, 2, 3], 0)
