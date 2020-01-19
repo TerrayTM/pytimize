@@ -20,23 +20,34 @@ class GraphParser:
       term = re.compile(r"(\w)(\w)")
     elif parse_type == 1:
       term = re.compile(r"(\w+)-(\w+)")
+    elif parse_type == 2:
+      term = re.compile(r"(\w)(\w):(\d+(?:\.\d+)?)")
+    elif parse_type == 3:
+      term = re.compile(r"(\w+)-(\w+):(\d+(?:\.\d+)?)")
     
-    for a, b in term.findall(expression):
-      result.append((a, b))
+    for info in term.findall(expression):
+      result.append((info[0], info[1], float(info[2]) if parse_type > 1 else 0))
     
     return result
 
-#TODO ADD WEIGHT
+
+
   @staticmethod
   def get_expression_type(candidate: str) -> int:
     validation_one = re.compile(r"^(?:\w\w)(?:\s\w\w)*$")
     validation_two = re.compile(r"^(?:\w+-\w+)(?:\s\w+-\w+)*$")
+    validation_three = re.compile(r"^(?:\w\w:\d+(?:\.\d+)?)(?:\s\w\w:\d+(?:\.\d+)?)*$")
+    validation_four = re.compile(r"^(?:\w+-\w+:\d+(?:\.\d+)?)(?:\s\w+-\w+:\d+(?:\.\d+)?)*$")
     result = -1
 
     if validation_one.match(candidate) is not None:
       result = 0
     elif validation_two.match(candidate) is not None:
       result = 1
+    elif validation_three.match(candidate) is not None:
+      result = 2
+    elif validation_four.match(candidate) is not None:
+      result = 3
 
     return result
 

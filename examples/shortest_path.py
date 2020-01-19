@@ -1,14 +1,8 @@
 from optimizathon.graphs import UndirectedGraph
+from optimizathon.parsers import GraphParser
 
-g = UndirectedGraph()
+edges = GraphParser.parse("sa:3 ab:4 bt:1 td:2 dc:2 dc:2 cb:2 ac:1 sc:4")
 
-g.add_edge("s", "a", 3)
-g.add_edge("a", "b", 4)
-g.add_edge("b", "t", 1)
-g.add_edge("t", "d", 2)
-g.add_edge("d", "c", 2)
-g.add_edge("c", "b", 2)
-g.add_edge("a", "c", 1)
-g.add_edge("s", "c", 4)
+g = UndirectedGraph(edges)
 
-print("Shortest Path: {}".format(graph.shortest_path("s", "t")))
+print("Shortest Path: {}".format(g.shortest_path("s", "t")))

@@ -7,7 +7,7 @@ class UndirectedGraph: #TODO validation
     self.graph = {}
 
     if edges is not None:
-      if not isinstance(edges, float):
+      if not isinstance(edges, list):
         raise TypeError("Edges must be a list.")
 
       for edge in edges:
@@ -84,7 +84,7 @@ class UndirectedGraph: #TODO validation
             edge_hash = "".join(edge_hash)
             slack = edge[1] - (potential[edge_hash] if edge_hash in potential.keys() else 0)
 
-            print(edge_hash, slack)
+            #print(edge_hash, slack)
 
             edges.add(edge_hash)
 
@@ -92,7 +92,7 @@ class UndirectedGraph: #TODO validation
               best_slack = slack
               best_edge = (vertex, edge[0], edge_hash)
       
-            print(visited, best_slack)
+            #print(visited, best_slack)
 
       for edge_hash in edges:
         previous = potential.setdefault(edge_hash, 0)
