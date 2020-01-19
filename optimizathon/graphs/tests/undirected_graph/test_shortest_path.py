@@ -1,57 +1,22 @@
 from ... import UndirectedGraph
+from ....parsers import GraphParser
 from unittest import TestCase, main
 
 class TestShortestPath(TestCase):
-    def test_shortest_path(self):
-        graph = UndirectedGraph()
+    def test_shortest_path(self) -> None:
+        g = UndirectedGraph(GraphParser.parse("sa:6 at:4 tb:5 sb:2 cs:4 bc:1 ac:1 ct:2"))
+        
+        self.assertEqual(g.shortest_path("s", "t"), [("s", "b"), ("b", "c"), ("c", "t")], "Should compute correct shortest path.")
 
-        graph.add_edge(("s", "a"), 6)
-        graph.add_edge(("a", "t"), 4)
-        graph.add_edge("t", "b", 5)
-        graph.add_edge("s", "b", 2)
-        graph.add_edge("c", "s", 4)
-        graph.add_edge("b", "c", 1)
-        graph.add_edge("a", "c", 1)
-        graph.add_edge("c", "t", 2)
+        g = UndirectedGraph(GraphParser.parse("sa:3 ab:4 bt:1 td:2 dc:2 dc:2 cb:2 ac:1 sc:4"))
+        
+        self.assertEqual(g.shortest_path("s", "t"), [("s", "c"), ("c", "b"), ("b", "t")], "Should compute correct shortest path.")
 
-        graph.shortest_path("s", "t")
+        g = UndirectedGraph(GraphParser.parse("ac:6 ab:4 bc:2 cg:5 bg:3 cd:1 dg:2 de:5 ef:6 fd:1 fg:4 gh:5 hi:3 ig:2 ji:9 jk:6 kg:4 kl:1 lb:5"))
+        
+        self.assertEqual(g.shortest_path("j", "c"), [("j", "k"), ("k", "g"), ("g", "d"), ("d", "c")], "Should compute correct shortest path.")
+        self.assertEqual(g.shortest_path("g", "e"), [("g", "d"), ("d", "e")], "Should compute correct shortest path.")
+        self.assertEqual(g.shortest_path("a", "c"), [("a", "b"), ("b", "c")], "Should compute correct shortest path.")
 
-        graph = UndirectedGraph()
-
-        graph.add_edge("s", "a", 3)
-        graph.add_edge("a", "b", 4)
-        graph.add_edge("b", "t", 1)
-        graph.add_edge("t", "d", 2)
-        graph.add_edge("d", "c", 2)
-        graph.add_edge("c", "b", 2)
-        graph.add_edge("a", "c", 1)
-        graph.add_edge("s", "c", 4)
-
-        print(graph.shortest_path("s", "t"))
-
-        graph = UndirectedGraph()
-
-        graph.add_edge("a","c",6)
-        graph.add_edge("a","b",4)
-        graph.add_edge("b","c",2)
-        graph.add_edge("c","g",5)
-        graph.add_edge("b","g",3)
-        graph.add_edge("c","d",1)
-        graph.add_edge("d","g",2)
-        graph.add_edge("d","e",5)
-        graph.add_edge("e","f",6)
-        graph.add_edge("f","d",1)
-        graph.add_edge("f","g",4)
-        graph.add_edge("g","h",5)
-        graph.add_edge("h","i",3)
-        graph.add_edge("i","g",2)
-        graph.add_edge("j","i",9)
-        graph.add_edge("j","k",6)
-        graph.add_edge("k","g",4)
-        graph.add_edge("k","l",1)
-        graph.add_edge("l","b",5)
-
-        print(graph.shortest_path("j", "c")) #["jk", "kg", "gd", "dc"]
-
-        print(graph.shortest_path("g", "e")) #["gd", "de"]
-        print(graph.shortest_path("a", "c")) #["gd", "de"]
+if __name__ == "__main__":
+    main()
