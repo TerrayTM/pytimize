@@ -1,7 +1,7 @@
 import math
 
 from typing import List, Tuple
-
+#TODO underscore graph
 class UndirectedGraph: #TODO validation 
   def __init__(self, edges: List[Tuple[str, str, float]]=None) -> None:
     self.graph = {}
@@ -40,7 +40,7 @@ class UndirectedGraph: #TODO validation
 
 
   def remove_edge(self, edge: Tuple[str, str]) -> None: #TODO change ALL not ... in to ... not in
-    if edge[0] not in self.graph.keys() or edge[1] not in self.graph[edge[0]]:
+    if not self.has_edge(edge):
       raise ValueError("The given edge is not in graph.")
 
     self.graph[edge[0]].remove(edge[1])
@@ -141,6 +141,11 @@ class UndirectedGraph: #TODO validation
 
       """
       return self.__get_edges()
+
+
+
+  def graph(self) -> List[Tuple[str, str, float]]:
+    return self.graph
 
 
 

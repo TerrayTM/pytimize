@@ -4,9 +4,11 @@ from typing import List, Tuple
 
 class GraphParser:
   # Format: ab cd de
+  # Format: ab:5 sd:12.12 sjf:45
+  # Format: a-b:465 b-c:485
   # Format: a-b c-d s-s
   @staticmethod
-  def parse(expression: str) -> List[Tuple[str, str]]:
+  def parse(expression: str) -> List[Tuple[str, str, float]]:
     parse_type = GraphParser.get_expression_type(expression)
     result = []
     term = None
@@ -37,3 +39,9 @@ class GraphParser:
       result = 1
 
     return result
+
+
+
+  @staticmethod
+  def format_graph(graph: List[Tuple[str, str, float]]) -> str:
+    pass
