@@ -33,7 +33,7 @@ class LinearParser:
   @staticmethod
   def parse_multiple(expressions: list, size: int=None):
     for expression in expressions:
-      if LinearParser.__validate_expression(expression):
+      if LinearParser.validate_expression(expression):
         LinearParser.parse(expression, size)
       else:
         raise Exception()

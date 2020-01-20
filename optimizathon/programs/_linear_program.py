@@ -3,7 +3,7 @@ import functools
 import numpy as np
 import copy
 
-from ..step_descriptor import render_descriptor
+from ..parsers._description_parser import render_descriptor
 from matplotlib import pyplot as plt
 
 # TODO: for make independent rows, check for sef at end
@@ -658,7 +658,7 @@ class LinearProgram:
         Ak = self._A[:, k]
 
         if (Ak <= 0).all():
-            return inf, np.array([i + 1 for i in basis]), self # optimize conversion back to math indexing
+            return math.inf, np.array([i + 1 for i in basis]), self # optimize conversion back to math indexing
 
         t = np.amin([self._b[i] / Ak[i] for i in range(len(Ak)) if Ak[i] > 0])
         computed = self._b - t * Ak
