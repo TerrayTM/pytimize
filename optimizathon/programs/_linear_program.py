@@ -1,6 +1,7 @@
 import math
 import functools
 import numpy as np
+import copy
 
 from ..step_descriptor import render_descriptor
 from matplotlib import pyplot as plt
@@ -1130,6 +1131,30 @@ class LinearProgram:
 
                     point = np.linalg.solve(A, b)
                     points.append(point)
+
+
+        # check if each point satisfies every inequality
+        new_points = []
+        for point in points:
+            valid_point = True
+
+            for i in range(len(self._A)):
+                value = point[0] * self._A[i, 0] + point[1] * self._A[i, 1]
+
+                if self.inequalities[i] == "<=":
+                    if value > self._b[i] and not math.isclose(value, self._b[i]):
+                        valid_point = False
+                elif self.inequalities[i] == ">=":
+                    if value < self._b[i] and not math.isclose(value, self._b[i]):
+                        valid_point = False
+                else:
+                    if not math.isclose(value, self._b[i]):
+                        valid_point = False
+
+            if valid_point:
+                new_points.append(point)
+
+        points = copy.deepcopy(new_points)
 
 
         # if fewer than 3 points exist, need to add boundaries on edges (can't draw infinitely)
