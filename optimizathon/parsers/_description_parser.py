@@ -54,7 +54,7 @@ _cleanup_rules = [
 
 # TODO minor format bug
 def render_descriptor(key, arguments):
-    if not key in _steps:
+    if key not in _steps:
         raise KeyError()
 
     for i in range(len(arguments)):

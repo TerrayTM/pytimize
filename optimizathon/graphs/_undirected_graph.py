@@ -42,7 +42,7 @@ class UndirectedGraph: #TODO validation
 
 
 
-  def remove_edge(self, edge: Tuple[str, str]) -> None: #TODO change ALL not ... in to ... not in
+  def remove_edge(self, edge: Tuple[str, str]) -> None:
     if not self.has_edge(edge):
       raise ValueError("The given edge is not in graph.")
 

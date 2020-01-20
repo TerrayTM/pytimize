@@ -53,7 +53,7 @@ class LinearProgram:
         inequality_indices = {}
         sef_condition = True
 
-        if not inequalities is None:
+        if inequalities is not None:
             inequalities = self.__array_like_to_list(inequalities)
 
             if not len(inequalities) == b.shape[0]:
@@ -69,13 +69,13 @@ class LinearProgram:
                 elif not inequality == "=":
                     raise ValueError()
             
-        if not type(z) in [int, float]:
+        if type(z) not in [int, float]:
             raise ValueError()
 
         if not objective == "max" and not objective == "min":
             raise ValueError()
 
-        if not free_variables is None:
+        if free_variables is not None:
             free_variables = self.__array_like_to_list(free_variables)
 
             if len(free_variables) > c.shape[0]:
@@ -256,7 +256,7 @@ class LinearProgram:
         result = True
 
         for i in range(self._c.shape[0]):
-            if not i in basis and not math.isclose(x[i], 0):
+            if i not in basis and not math.isclose(x[i], 0):
                 show_steps and self.__append_to_steps(("4.02", i + 1))
 
                 result = False
@@ -642,7 +642,7 @@ class LinearProgram:
 
         x = self.__compute_basic_solution(basis)
 
-        N = [i for i in range(self._A.shape[1]) if not i in basis]
+        N = [i for i in range(self._A.shape[1]) if i not in basis]
 
         if (self._c[N] <= 0).all():
             return x, np.array([i + 1 for i in basis]), self
@@ -801,7 +801,7 @@ class LinearProgram:
             value = row @ x
             step = None
 
-            if not i in self._free_variables and x[i] < 0:
+            if i not in self._free_variables and x[i] < 0:
                 show_steps and self.__append_to_steps([
                     ("2.06", x) if is_feasible else None,
                     ("2.09", i + 1),
@@ -1770,9 +1770,9 @@ class LinearProgram:
                     for column in row:
                         if isinstance(column, list):
                             raise ValueError()
-                        elif not type(column) in [int, float]:
+                        elif type(column) not in [int, float]:
                             raise ValueError()
-                elif not type(row) in [int, float]:
+                elif type(row) not in [int, float]:
                     raise ValueError()
 
             return np.array(source, dtype=float)
