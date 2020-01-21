@@ -1,5 +1,7 @@
 import math
+import numpy as np 
 
+from ..programs._linear_program import LinearProgram
 from typing import List, Tuple, Dict, Set
 
 class UndirectedGraph: #TODO validation 
@@ -88,11 +90,7 @@ class UndirectedGraph: #TODO validation
       for vertex in visited:
         for edge in self._graph[vertex]:
           if edge[0] not in visited:
-            edge_hash = [edge[0], vertex]
-
-            edge_hash.sort()
-            
-            edge_hash = "".join(edge_hash)
+            edge_hash = self.__hash_edge((edge[0], vertex))
             slack = edge[1] - (potential[edge_hash] if edge_hash in potential.keys() else 0)
 
             #print(edge_hash, slack)
@@ -137,9 +135,9 @@ class UndirectedGraph: #TODO validation
     vertices.remove(start)
     vertices.remove(end)
 
-    power_set = set()
+    power_set = []
 
-    for i in 2 ** range(len(vertices)):
+    for i in range(2 ** len(vertices)):
       current_set = set()
 
       for j in range(len(vertices)):
@@ -147,24 +145,53 @@ class UndirectedGraph: #TODO validation
           current_set.add(vertices[j])
 
       current_set.add(start)
-      power_set.add(current_set)
-    
-    for group in power_set:
+      power_set.append(current_set)
+
+    graph_edges = self.__get_edges()
+    A = { self.__hash_edge((edge[0], edge[1])): np.zeros(len(power_set)) for edge in graph_edges }
+
+    for i, group in enumerate(power_set):
       edges = set()
 
-      for edge in group:
-        edges = edges.union(self._graph[edge])
+      for vertex in group:
+        edges = edges.union(map(lambda x: self.__hash_edge((vertex, x[0])), self._graph[vertex]))
 
-      edges = filter(lambda x: x[0] not in group, edges) # [(a,0)]
+      for edge in filter(lambda x: x[0] not in group or x[1] not in group, edges):
+        A[edge][i] = 1
 
-    pass
+    ordered_A = []
+    ordered_edges = [] #ordered edges must point back to actual edges not hash TODO
+
+    for edge, coefficients in A.items():
+      ordered_A.append(coefficients)
+      ordered_edges.append(edge)
+
+    result_A = np.vstack(ordered_A).T
+    edge_positions = { edge: i for i, edge in enumerate(ordered_edges) }
+    result_c = np.zeros(len(ordered_edges))
+    constraints = result_A.shape[0]
+
+    for edge in graph_edges:
+      result_c[edge_positions[self.__hash_edge((edge[0], edge[1]))]] = edge[2]
+    print(ordered_edges)
+
+    return LinearProgram(result_A, np.ones(constraints), result_c, 0, "min", [">=" for i in range(constraints)])
 
 
 
-  def __get_edges(self) -> List[Tuple[str, str]]:
+  def __hash_edge(self, edge: Tuple[str, str]) -> str:
+    edge_hash = [edge[0], edge[1]]
+
+    edge_hash.sort()
+    
+    return "".join(edge_hash)
+
+
+
+  def __get_edges(self) -> List[Tuple[str, str, float]]:
     result = set()
 
-    for vertex, connections in self._graph:
+    for vertex, connections in self._graph.items():
       for connection in connections:
         result.add((vertex, connection[0], connection[1]))
     

@@ -557,7 +557,7 @@ class LinearProgram:
 
         """
         if not self._is_sef:
-            raise ArithmeticError()
+            raise ArithmeticError() #TODO remove
         
         if not in_place:
             copy = self.copy()
