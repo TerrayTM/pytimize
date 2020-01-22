@@ -1,4 +1,4 @@
-# optimization
+# optimization (zenith)
 Python optimization library for mathematical programming.
 
 *This library is a work in progress.*
@@ -18,10 +18,23 @@ Currently Implemented Methods:
 * Bland's Rule
 * Shortest Path Solver
 * Duality Theory
+* Shortest Path Linear Program
+* Graph Parser
+* Linear Constraint Parser
+* Undirected Graph
 
 Planned Features:
 * Integer Programming
+* Nonlinear Programming
 * Branch and Bound Solver
+* Network Flow Theory
+* Min Cut Max Flow Theorem
+* Cycle Detection
+* Directed Graph
+* Minimum Spanning Tree
+* Transshipment Solver
+* Min Cost Perfect Matching
+* KKT Conditions
 * Cutting Plane Solver
 * And More!
 
