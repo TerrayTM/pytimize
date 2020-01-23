@@ -851,7 +851,7 @@ class LinearProgram:
 
 
 
-    def graph_feasible_region(self):
+    def graph_polyhedron(self):
         """
         Graphs the feasible region of the linear program. Only supports 2 dimensional visualization.
         Constraints for the program must be in the form Ax <= b or Ax >= b.
