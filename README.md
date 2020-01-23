@@ -1,17 +1,13 @@
-<<<<<<< HEAD
 <p align="center">
   <a href="">
-    <img alt="pytimize" src="https://terrytm.com/files/images/8/image_5e29b7102548e269600364rXiWsmSY4.png" width="546">
+    <img alt="pytimize" src="https://terrytm.com/files/images/8/image_5e29b7102548e269600364rXiWsmSY4.png" width="300">
   </a>
 </p>
 
 <p align="center">
   Python optimization library for mathematical programming.
 </p>
-=======
-# optimization (zenith)
-Python optimization library for mathematical programming.
->>>>>>> 34b62ecb4ff9d8b5955827d9cfd5e18c54091b25
+
 
 *This library is a work in progress.*
 
