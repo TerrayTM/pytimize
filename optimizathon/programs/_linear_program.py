@@ -855,7 +855,7 @@ class LinearProgram:
         """
         Graphs the feasible region of the linear program. Only supports 2 dimensional visualization.
         Constraints for the program must be in the form Ax <= b or Ax >= b.
-        Graphs between -1000 and 1000 in both x and y.
+        Graphs the region between -1000 and 1000 in both x and y coordinates.
 
         """
         if not self._A.shape[1] == 2:
@@ -888,9 +888,6 @@ class LinearProgram:
 
         points = []
 
-        # for tracking if an inconsistent system of equations has been given
-        equations = {}
-
         # get intersect points of inequalities/lines
         # points are sorted later, only if necessary
         for i in range(shape[0]):
@@ -905,19 +902,6 @@ class LinearProgram:
                     line1 = (self._A[i, 0], self._A[i, 1])
                     line2 = (self._A[j, 0], self._A[j, 1])
 
-                    # inconsistent system checking currently doesn't account for different inequalities
-                    # temporarily commented out
-                    """# check if equation already exists and gives different answer
-                    if equations.__contains__(line1) and not math.isclose(equations[line1], b[0]):
-                        print("Error: inconsistent system of equations")  # make more specific later
-                        exit()
-                    elif equations.__contains__(line2) and not math.isclose(equations[line2], b[1]):
-                        print("Error: inconsistent system of equations")  # make more specific later
-                        exit()"""
-
-                    equations[line1] = b[0]
-                    equations[line2] = b[1]
-
                     # if both lines are horizontal/vertical, skip point
                     if A[0][0] == 0 and A[1][0] == 0:
                         continue
@@ -928,7 +912,8 @@ class LinearProgram:
                     points.append(point)
 
 
-        # check if each point satisfies every inequality
+        # check if each point satisfies every inequality:
+        # new_points is a list of all points that do so, and is copied to points afterward
         new_points = []
         for point in points:
             valid_point = True
@@ -948,39 +933,25 @@ class LinearProgram:
 
         points = copy.deepcopy(new_points)
 
-        # need to sort points so they are in a clockwise order for drawing properly, due to how pyplot takes input to draw polygons
-        # replace with better method - this one is erroneous for extreme cases
-        """
-        Method: https://stackoverflow.com/questions/41855695/sorting-list-of-two-dimensional-coordinates-by-clockwise-angle-using-python
-        """
-        origin = points[0]  # set origin to the first point in the list
-        refvec = [0, 1]  # reference vector for calculations
+        
+        # if no points remaining, then none of the points found satisfy all inequalities;
+        # thus the system is inconsistent.
+        if len(points) == 0:
+            print("Error: inconsistent system of equations")
+            exit()
 
-        def find_cw_angle_and_distance(point):
-            # get vector between point and the origin
-            v = [point[0] - origin[0], point[1] - origin[1]]
-            # get length of vector
-            v_len = math.hypot(v[0], v[1])
+        
+        # sort points so the polygon is drawn properly
+        # method from https://stackoverflow.com/questions/10846431/ordering-shuffled-points-that-can-be-joined-to-form-a-polygon-in-python/10852917
+        # compute centroid
+        cent = (sum([p[0] for p in points]) / len(points), sum([p[1] for p in points]) / len(points))
+        # sort by polar angle
+        points.sort(key = lambda p: math.atan2(p[1] - cent[1], p[0] - cent[0]))
 
-            # if the length is zero, there is no angle nor distance - return
-            if v_len == 0:
-                return -math.pi, 0
+        print("After sorting:")
+        for point in points:
+            print(point)
 
-            # normalize the vector in order to find the directional angle
-            norm = [v[0] / v_len, v[1]/v_len]
-            dot_product = norm[0] * refvec[0] + norm[1] * refvec[1]
-            diff_product = refvec[1] * norm[0] - refvec[0] * norm[1]
-
-            angle = math.atan2(diff_product, dot_product)
-
-            # convert negative angles to positive angles
-            if angle < 0:
-                return 2 * math.pi + angle, v_len
-            return angle, v_len
-
-
-        # use new function with sorted function to sort points list
-        points = sorted(points, key = find_cw_angle_and_distance)
 
         points.append(points[0])  # add the first point again to create a closed loop
 
