@@ -95,8 +95,15 @@ class LinearProgram:
         self._free_variables = free_variables
 
 
-    # TODO include free variables in string
     # TODO If in SEF output x >= 0 else output correct inequalities
+    # EXAMPLE
+    #====================================
+    # Max [0. 0. 4. -11. -1.]x + 17
+    # Subject To:
+
+    # [1. 0. 2.  7.  -1.]     =   [2.]
+    # [0. 1. -4. -5. 3. ]x    =   [1.]
+    # x ≥ 0
     def __str__(self):
         """
         Generates a nicely formatted string representation of the linear program.
