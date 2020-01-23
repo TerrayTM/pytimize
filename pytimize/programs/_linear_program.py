@@ -535,7 +535,7 @@ class LinearProgram:
         pass
 
 
-
+    #TODO basis [3 5] should be formatted with decimal [3. 5.]
     def simplex_solution(self, basis, show_steps=True, in_place=False): 
         """
         Computes simplex iterations until termination. 
