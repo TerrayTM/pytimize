@@ -1,6 +1,6 @@
 import numpy as np
 
-from optimizathon.programs import LinearProgram
+from pytimize.programs import LinearProgram
 
 A = np.array([
     [5, -1], 

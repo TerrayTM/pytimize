@@ -56,4 +56,4 @@ Run Specific Test
 
 `python -m unittest <module path>`
 
-For example: `python -m unittest optimizathon.programs.tests.linear_program.test_copy`
+For example: `python -m unittest pytimize.programs.tests.linear_program.test_copy`
