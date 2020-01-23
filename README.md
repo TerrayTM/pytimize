@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <p align="center">
   <a href="">
     <img alt="pytimize" src="https://terrytm.com/files/images/8/image_5e29b7102548e269600364rXiWsmSY4.png" width="546">
@@ -7,6 +8,10 @@
 <p align="center">
   Python optimization library for mathematical programming.
 </p>
+=======
+# optimization (zenith)
+Python optimization library for mathematical programming.
+>>>>>>> 34b62ecb4ff9d8b5955827d9cfd5e18c54091b25
 
 *This library is a work in progress.*
 
@@ -25,10 +30,23 @@ Currently Implemented Methods:
 * Bland's Rule
 * Shortest Path Solver
 * Duality Theory
+* Shortest Path Linear Program
+* Graph Parser
+* Linear Constraint Parser
+* Undirected Graph
 
 Planned Features:
 * Integer Programming
+* Nonlinear Programming
 * Branch and Bound Solver
+* Network Flow Theory
+* Min Cut Max Flow Theorem
+* Cycle Detection
+* Directed Graph
+* Minimum Spanning Tree
+* Transshipment Solver
+* Min Cost Perfect Matching
+* KKT Conditions
 * Cutting Plane Solver
 * And More!
 
