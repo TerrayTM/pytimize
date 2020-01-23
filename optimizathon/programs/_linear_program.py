@@ -855,9 +855,10 @@ class LinearProgram:
         """
         Graphs the feasible region of the linear program. Only supports 2 dimensional visualization.
         Constraints for the program must be in the form Ax <= b or Ax >= b.
-        Graphs the region between -1000 and 1000 in both x and y coordinates.
+        Graph is limited to the region between -1000 and 1000 in both x and y coordinates.
 
         """
+        # run preliminary checks on data validity
         if not self._A.shape[1] == 2:
             raise ArithmeticError()
 
@@ -868,7 +869,8 @@ class LinearProgram:
             if not all(i == ">=" for i in list(self._inequality_indices.values())):
                 raise ArithmeticError()
         
-        # add boundary inequalities at x,y = +/-1000
+
+        # add boundary inequalities at x, y = +/-1000
         copy_A = copy.deepcopy(self._A)
         copy_b = copy.deepcopy(self._b)
 
@@ -879,17 +881,16 @@ class LinearProgram:
         self.inequalities.append("<=")
         self.inequalities.append(">=")
 
+
+        # get intersect points of inequalities/lines; these are sorted later
         inequality = self.inequalities[0]
 
         A = np.array([[0, 0], [0, 0]])
         b = np.array([0, 0])
 
         shape = self._A.shape
-
         points = []
 
-        # get intersect points of inequalities/lines
-        # points are sorted later, only if necessary
         for i in range(shape[0]):
             for j in range(shape[0]):
                 if i < j:
@@ -899,10 +900,8 @@ class LinearProgram:
                     b[0] = self._b[i]
                     b[1] = self._b[j]
 
-                    line1 = (self._A[i, 0], self._A[i, 1])
-                    line2 = (self._A[j, 0], self._A[j, 1])
-
                     # if both lines are horizontal/vertical, skip point
+                    # (these lines will never intersect and thus solving will cause an error)
                     if A[0][0] == 0 and A[1][0] == 0:
                         continue
                     elif A[0][1] == 0 and A[1][1] == 0:
@@ -934,8 +933,8 @@ class LinearProgram:
         points = copy.deepcopy(new_points)
 
         
-        # if no points remaining, then none of the points found satisfy all inequalities;
-        # thus the system is inconsistent.
+        # if no points remain, then none of the points found satisfy all inequalities;
+        # thus the system is inconsistent
         if len(points) == 0:
             print("Error: inconsistent system of equations")
             exit()
@@ -948,20 +947,18 @@ class LinearProgram:
         # sort by polar angle
         points.sort(key = lambda p: math.atan2(p[1] - cent[1], p[0] - cent[0]))
 
-        print("After sorting:")
-        for point in points:
-            print(point)
+        # add the first point again to create a closed loop
+        points.append(points[0])
 
-
-        points.append(points[0])  # add the first point again to create a closed loop
-
+        # prepare the points for plotting
         xs, ys = zip(*points)
 
-        # remove added boundary inequalities
+        # remove added boundary inequalities so data isn't mutated
         self._A = copy.deepcopy(copy_A)
         self._b = copy.deepcopy(copy_b)
         del self.inequalities[-4:-1]
 
+        # plot and display the feasible region
         plt.figure()
         plt.plot(xs, ys)
         plt.grid()
