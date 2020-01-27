@@ -5,11 +5,12 @@ import copy
 
 from ..parsers._description_parser import render_descriptor
 from matplotlib import pyplot as plt
+from typing import List
 
 # TODO: for make independent rows, check for sef at end
 # TODO: add <= to variables
 class LinearProgram:
-    def __init__(self, A, b, c, z, objective="max", inequalities=None, free_variables=None):
+    def __init__(self, A, b, c, z, objective: str="max", inequalities: List[str]=None, free_variables: List[int]=None):
         """
         Constructs a linear programming model of the form [objective]{cx + z : Ax [inequalities] b, variables >= 0},
         where objective denotes whether this is a maximization or minimization problem, inequalities is a list of 
@@ -214,9 +215,14 @@ class LinearProgram:
 
 
 
-    def is_canonical_form_for(self, basis):
+    def is_canonical_form_for(self, basis: List[int]):
         """
         Checks if the linear program is in canonical form for the specified basis.
+        
+        Parameters
+        ----------
+        basis : array-like of int
+            The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
 
         Returns
         -------
@@ -235,9 +241,17 @@ class LinearProgram:
 
 
     
-    def is_basic_solution(self, x, basis, show_steps=True):
+    def is_basic_solution(self, x, basis: List[int], show_steps: bool=True):
         """
         Checks if the given vector is a basic solution for the specified basis.
+
+        Parameters
+        ----------
+        basis : array of int
+            The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
+
+        show_steps : bool, optional (default=True)
+            Whether steps should be stored or not for this operation.
 
         Returns
         -------
@@ -284,9 +298,14 @@ class LinearProgram:
 
 
 
-    def is_feasible_basic_solution(self, x, basis):
+    def is_feasible_basic_solution(self, x, basis: List[int]):
         """
         Checks if the given vector is a feasible basic solution for the specified basis.
+
+        Parameters
+        ----------
+        basis : array of int
+            The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
 
         Returns
         -------
@@ -303,9 +322,14 @@ class LinearProgram:
 
 
 
-    def is_basis(self, basis):
+    def is_basis(self, basis: List[int]):
         """
         Checks if the given base indices form a valid basis for the current model.
+
+        Parameters
+        ----------
+        basis : array of int
+            The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
 
         Returns
         -------
@@ -332,9 +356,14 @@ class LinearProgram:
 
 
 
-    def is_feasible_basis(self, basis):
+    def is_basis_feasible(self, basis: List[int]):
         """
         Tests if the given basis is feasible.
+
+        Parameters
+        ----------
+        basis : array of int
+            The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
 
         Returns
         -------
@@ -346,11 +375,13 @@ class LinearProgram:
 
 
 
-    def compute_basic_solution(self, basis):
+    def compute_basic_solution(self, basis: List[int]) -> np.ndarray:
         """
         Computes the basic solution corresponding to the specified basis.
 
-        basis : array-like of int
+        Parameters
+        ----------
+        basis : array of int
             The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
 
         Returns
@@ -368,14 +399,14 @@ class LinearProgram:
         return self.__compute_basic_solution(basis)
 
 
-
-    def to_canonical_form(self, basis, show_steps=True, in_place=False):
+#TODO change array to array-like for basis
+    def to_canonical_form(self, basis: List[int], show_steps: bool=True, in_place: bool=False):
         """
         Converts the linear program into canonical form for the given basis.
 
         Parameters
         ----------
-        basis : array-like of int
+        basis : array of int
             The column indices of the coefficient matrix that forms a basis. Use math indexing for format.
 
         show_steps : bool, optional (default=True)
@@ -410,7 +441,7 @@ class LinearProgram:
 
 
 
-    def __to_canonical_form(self, basis, show_steps):
+    def __to_canonical_form(self, basis: List[int], show_steps: bool):
         """
         Helper function for converting the linear program into canonical form for the given basis.
 
@@ -488,7 +519,7 @@ class LinearProgram:
 
 
 
-    def two_phase_simplex(self, show_steps=True, in_place=False):
+    def two_phase_simplex(self, show_steps: bool=True, in_place: bool=False):
         """
         Computes the optimal solution for the linear program or returns a certificate of unboundedness
         using the simplex algorithm.
@@ -543,7 +574,7 @@ class LinearProgram:
 
 
     #TODO basis [3 5] should be formatted with decimal [3. 5.]
-    def simplex_solution(self, basis, show_steps=True, in_place=False): 
+    def simplex_solution(self, basis: List[int], show_steps: bool=True, in_place: bool=False): 
         """
         Computes simplex iterations until termination. 
 
@@ -604,7 +635,7 @@ class LinearProgram:
 
 
 
-    def simplex_iteration(self, basis, show_steps=True, in_place=False):
+    def simplex_iteration(self, basis: List[int], show_steps: bool=True, in_place: bool=False):
         """
         Computes a single iteration of the simplex algorithm with Bland's rule.
 
@@ -761,7 +792,7 @@ class LinearProgram:
 
 
 
-    def is_feasible(self, x, show_steps=True):
+    def is_feasible(self, x, show_steps: bool=True):
         """
         Checks if the given vector is a feasible solution.
 
