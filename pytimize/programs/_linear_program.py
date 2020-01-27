@@ -458,7 +458,7 @@ class LinearProgram:
 
         Returns
         -------
-        result : LinearProgrammingModel
+        result : LinearProgram
             The linear program in canonical form.
 
         """
@@ -544,36 +544,33 @@ class LinearProgram:
         if not in_place:
             copy = self.copy()
 
-            return copy.simplex_solution(show_steps, True)
+            return copy.two_phase_simplex(show_steps, True)
         
         indices = np.where(self._b < 0)
+
         self._A[indices] *= -1
         self._b[indices] *= -1
 
         rows, columns = self._A.shape
-        auxiliary_columns = rows + columns
+        aux_A = np.c_[self._A, np.eye(rows)]
+        aux_b = np.copy(self._b)
+        aux_c = np.zeros(columns + rows)
+        basis = [i for i in range(columns + 1, rows + columns + 1)]
 
-        auxiliary_A = np.c_[self._A, np.eye(rows)]
-        auxiliary_b = np._b.copy()
+        aux_c[columns:] = 1
 
-        auxiliary_c = np.zeros(self._A.shape[0])
-
-        auxiliary_c[columns:] = 1
-
-        auxiliary_program = LinearProgram()
+        p_aux = LinearProgram(aux_A, aux_b, aux_c, self._z, "min")
         
-        solution = (None, None)
+        p_aux.to_sef(in_place=True)
+        solution, basis, _ = p_aux.simplex_solution(basis, in_place=True)
 
-        while solution[0]:
-            solution = auxiliary_program.simplex_iteration(basis, in_place=True)
-        # Find starting basis using auxilliary linear program
-        # Loop over simplex iteration helper
-        # TODO: make helper for simplex_iteration
-        
-        pass
+        if np.allclose(solution[columns:], 0):
+            return self.simplex_solution(basis, show_steps, in_place)
+        else:
+            return False
 
 
-    #TODO basis [3 5] should be formatted with decimal [3. 5.]
+
     def simplex_solution(self, basis: List[int], show_steps: bool=True, in_place: bool=False): 
         """
         Computes simplex iterations until termination. 

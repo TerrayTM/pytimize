@@ -1,7 +1,4 @@
 
 class NonlinearProgram:
-  def __init__():
-    pass
-
-  def gradient_descent_solver(self):
+  def __init__(self):
     pass
