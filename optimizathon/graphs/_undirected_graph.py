@@ -1,7 +1,7 @@
 import math
 import numpy as np 
 
-from ..programs._linear_program import LinearProgram
+from ..programs import LinearProgram, IntegerProgram
 from typing import List, Tuple, Dict, Set
 
 class UndirectedGraph: #TODO validation 
@@ -123,7 +123,7 @@ class UndirectedGraph: #TODO validation
 
 
 
-  def create_shortest_path_program(self, start: str, end: str) -> "LinearProgram":
+  def formulate_shortest_path(self, start: str, end: str) -> "LinearProgram":
     if start not in self._graph.keys():
       raise ValueError("Starting vertex is not in graph.")
 
@@ -176,6 +176,27 @@ class UndirectedGraph: #TODO validation
     print(ordered_edges)
 
     return LinearProgram(result_A, np.ones(constraints), result_c, 0, "min", [">=" for i in range(constraints)])
+
+
+
+  def formulate_max_stable_set(self):
+    A_mapping = { vertex: i for i, vertex in enumerate(self.vertices) }
+    length = len(A_mapping)
+    A_stack = []
+
+    for a, b in self.__get_edges:
+      row = np.zeros(length)
+
+      row[A_mapping[a]] = 1
+      row[A_mapping[b]] = 1
+
+      A_stack.append(row)
+
+    result_A = np.vstack(A_stack).T
+    column_count = result_A.shape[0]
+    result_c = np.ones(column_count) #TODO implemented node weights
+
+    return IntegerProgram(result_A, np.ones(column_count), result_c, 0, inequalities=["<=" for i in range(column_count)])
 
 
 
