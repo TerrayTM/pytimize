@@ -1,11 +1,14 @@
 from . import LinearProgram
+from typing import List
 
 class IntegerProgram(LinearProgram):
-    def __init__(self): #Constructor should take same parameters as Linear Program's 
-        pass  # Also add new parameter called integer list, which is the indices of
-    # the variables that has to be an integer
-    # for example integers=[1,2,3] refers to x1 x2 x3 needs to be integers
-    # anything else not in list can be noninteger
+    def __init__(self, A, b, c, z, objective: str="max", inequalities: List[str]=None, free_variables: List[int]=None, integral_variables: List[int]=None):
+        super().__init__(A, b, c, z, objective, inequalities, free_variables)
+        
+        self._integral_variables = integral_variables
+
+    def __str__(self): #TODO add integral constraint
+        return super().__str__()
 
     #TODO implement constructor
     #TODO branch and bound method

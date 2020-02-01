@@ -1,7 +1,7 @@
-import math
 import functools
-import numpy as np
+import math
 import copy
+import numpy as np
 
 from ..parsers._description_parser import render_descriptor
 from matplotlib import pyplot as plt
