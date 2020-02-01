@@ -184,28 +184,30 @@ class UndirectedGraph: #TODO validation
     length = len(A_mapping)
     A_stack = []
 
-    for a, b in self.__get_edges:
+    for edge in self.__get_edges():
       row = np.zeros(length)
 
-      row[A_mapping[a]] = 1
-      row[A_mapping[b]] = 1
+      row[A_mapping[edge[0]]] = 1
+      row[A_mapping[edge[1]]] = 1
 
       A_stack.append(row)
 
-    result_A = np.vstack(A_stack).T
-    column_count = result_A.shape[0]
-    result_c = np.ones(column_count) #TODO implemented node weights
+    result_A = np.vstack(A_stack)
+    rows, columns = result_A.shape
+    result_b = np.ones(rows)
+    result_c = np.ones(columns) #TODO implemented node weights
 
-    return IntegerProgram(result_A, np.ones(column_count), result_c, 0, inequalities=["<=" for i in range(column_count)])
+    return IntegerProgram(result_A, result_b, result_c, 0, inequalities=["<=" for i in range(rows)])
 
 
 
   def __hash_edge(self, edge: Tuple[str, str]) -> str:
-    edge_hash = [edge[0], edge[1]]
-
-    edge_hash.sort()
+    a, b = edge[0], edge[1]
     
-    return "".join(edge_hash)
+    if a < b:
+      a, b = b, a
+    
+    return f"{a}{b}"
 
 
 
@@ -214,12 +216,18 @@ class UndirectedGraph: #TODO validation
 
     for vertex, connections in self._graph.items():
       for connection in connections:
-        result.add((vertex, connection[0], connection[1]))
+        a = vertex
+        b = connection[0]
+
+        if a < b:
+          a, b = b, a
+        
+        result.add((a, b, connection[1]))
     
     return list(result)
 
 
-
+#TODO use f string instead of .format on string
   @property
   def edges(self) -> List[Tuple[str, str, float]]:
     """
