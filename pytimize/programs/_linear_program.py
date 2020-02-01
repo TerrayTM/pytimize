@@ -885,7 +885,10 @@ class LinearProgram:
         return is_feasible
 
 
-
+    
+    #TODO: simply copying stuff around
+    #TODO: add boundary to function parameters
+    #TODO: use inequalities_indices and not getters
     def graph_polyhedron(self):
         """
         Graphs the feasible region of the linear program. Only supports 2 dimensional visualization.
