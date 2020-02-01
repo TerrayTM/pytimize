@@ -1,5 +1,13 @@
-# optimization (zenith)
-Python optimization library for mathematical programming.
+<p align="center">
+  <a href="">
+    <img alt="pytimize" src="https://terrytm.com/files/images/8/image_5e29b7102548e269600364rXiWsmSY4.png" width="300">
+  </a>
+</p>
+
+<p align="center">
+  Python optimization library for mathematical programming.
+</p>
+
 
 *This library is a work in progress.*
 
@@ -48,4 +56,4 @@ Run Specific Test
 
 `python -m unittest <module path>`
 
-For example: `python -m unittest optimizathon.programs.tests.linear_program.test_copy`
+For example: `python -m unittest pytimize.programs.tests.linear_program.test_copy`

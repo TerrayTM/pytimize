@@ -1,6 +1,6 @@
 import numpy as np
 
-from optimizathon.programs import LinearProgram
+from pytimize.programs import LinearProgram
 
 A = np.array([
     [5, -1], 
@@ -13,4 +13,4 @@ c = np.array([1, 1])
 z = 0
 
 p = LinearProgram(A, b, c, z, inequalities=["<=", "<=", "<=", "<="])
-p.graph_feasible_region()
+p.graph_polyhedron()
