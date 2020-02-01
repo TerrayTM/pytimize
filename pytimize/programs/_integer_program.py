@@ -10,9 +10,14 @@ class IntegerProgram(LinearProgram):
     def __str__(self): #TODO add integral constraint
         return super().__str__()
 
-    #TODO implement constructor
-    #TODO branch and bound method
+    def branch_and_bound(self): #TODO branch and bound method
+        pass
+
+    def cutting_plane(self):
+        pass
+
+    def linear_program_relaxation(self):
+        pass
+
     #TODO LP relaxation method (returns LP without integer constraint)
-    #TODO cutting plane method
     #TODO override evaluate of base to take consideration of integers
-    #TODO add integer constraint to __str__
