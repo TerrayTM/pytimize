@@ -916,10 +916,6 @@ class LinearProgram:
         self.inequalities.append("<=")
         self.inequalities.append(">=")
 
-
-        # get intersect points of inequalities/lines; these are sorted later
-        inequality = self.inequalities[0]
-
         A = np.array([[0, 0], [0, 0]])
         b = np.array([0, 0])
 
