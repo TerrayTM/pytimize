@@ -176,7 +176,6 @@ class UndirectedGraph: #TODO validation
 
     for edge in graph_edges:
       result_c[edge_positions[self.__hash_edge((edge[0], edge[1]))]] = edge[2]
-    print(ordered_edges)
 
     return LinearProgram(result_A, np.ones(constraints), result_c, 0, "min", [">=" for i in range(constraints)])
 
@@ -230,7 +229,7 @@ class UndirectedGraph: #TODO validation
     return result
 
 
-#TODO use f string instead of .format on string
+
   @property
   def edges(self) -> Set[Tuple[str, str, float]]:
     """
