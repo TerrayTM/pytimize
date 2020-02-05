@@ -337,14 +337,11 @@ class LinearProgram:
             Whether or not the base indices form a valid basis.
 
         """
-        if not self._is_sef:
-            raise ArithmeticError() # requires sef form ? TODO REMOVE
-
         basis = self.__array_like_to_list(basis) #optimize as it is called twice from parent
         basis = self.__convert_indices(basis)
 
         if not self._A.shape[0] == len(basis):
-            raise ValueError()
+            return False
 
         test = np.linalg.det(self._A[:, basis])
         tolerance = 0
