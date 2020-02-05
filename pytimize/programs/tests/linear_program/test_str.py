@@ -65,5 +65,25 @@ class TestStr(TestCase):
         p = LinearProgram(A, b, c, z, "min", [">=", "<=", "<="])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
+        A = np.array([
+            [1, 1, 0],
+            [5, 7, -3],
+            [-7, -8, 2]
+        ])
+        b = np.array([1, 15, 1])
+        c = np.array([5, 5, 35])
+        z = -123
+        expected = (
+            "Min [5. 5. 35.]x - 123\n"
+            "Subject To:\n"
+            "\n"
+            "[1.  1.  0. ]     ≥   [1. ]\n"
+            "[5.  7.  -3.]x    =   [15.]\n"
+            "[-7. -8. 2. ]     =   [1. ]\n"
+        )
+        
+        p = LinearProgram(A, b, c, z, "min", [">=", "=", "="])
+        self.assertEqual(str(p), expected, "Should output in correct string format.")
+
 if __name__ == "__main__":
     main()
