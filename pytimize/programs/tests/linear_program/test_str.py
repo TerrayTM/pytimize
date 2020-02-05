@@ -20,6 +20,7 @@ class TestStr(TestCase):
             "[1. 2. 3.]     =   [6. ]\n"
             "[4. 5. 6.]x    =   [15.]\n"
             "[7. 8. 9.]     =   [24.]\n"
+            "x ≥ 0\n"
         )
         
         p = LinearProgram(A, b, c, z)
@@ -40,6 +41,7 @@ class TestStr(TestCase):
             "[1.   2.9589 3. ]     ≤   [-6.11]\n"
             "[4.   0.     -6.]x    ≤   [15.  ]\n"
             "[7.22 -8.    9. ]     ≤   [0.   ]\n"
+            "x ≥ 0\n"
         )
         
         p = LinearProgram(A, b, c, z, inequalities=["<=", "<=", "<="])
@@ -60,6 +62,7 @@ class TestStr(TestCase):
             "[100. 9589. -0.693]     ≥   [-600.]\n"
             "[400. 10.2  -6.056]x    ≤   [15.  ]\n"
             "[7.   -8.   90.56 ]     ≤   [0.333]\n"
+            "x ≥ 0\n"
         )
         
         p = LinearProgram(A, b, c, z, "min", [">=", "<=", "<="])
@@ -80,6 +83,7 @@ class TestStr(TestCase):
             "[1.  1.  0. ]     ≥   [1. ]\n"
             "[5.  7.  -3.]x    =   [15.]\n"
             "[-7. -8. 2. ]     =   [1. ]\n"
+            "x ≥ 0\n"
         )
         
         p = LinearProgram(A, b, c, z, "min", [">=", "=", "="])
