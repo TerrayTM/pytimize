@@ -8,7 +8,7 @@ class TestShortestPath(TestCase):
         
         self.assertEqual(g.shortest_path("s", "t"), [("s", "b"), ("b", "c"), ("c", "t")], "Should compute correct shortest path.")
 
-        g = UndirectedGraph(GraphParser.parse("sa:3 ab:4 bt:1 td:2 dc:2 dc:2 cb:2 ac:1 sc:5"))
+        g = UndirectedGraph(GraphParser.parse("sa:3 ab:4 bt:1 td:2 dc:2 cb:2 ac:1 sc:5"))
         
         self.assertEqual(g.shortest_path("s", "t"), [("s", "a"), ("a", "c"), ("c", "b"), ("b", "t")], "Should compute correct shortest path.")
 

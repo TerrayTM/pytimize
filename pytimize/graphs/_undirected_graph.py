@@ -27,7 +27,7 @@ class UndirectedGraph: #TODO validation
 
 
   def add_edge(self, edge: Tuple[str, str], weight: float=0) -> None:
-    if edge[0] in self._graph.keys() and edge[1] in self._graph[edge[0]]:
+    if edge[0] in self._graph.keys() and any(node[0] == edge[1] for node in self._graph[edge[0]]):
       raise ValueError("The given edge is already in graph.")
 
     if weight < 0:
@@ -37,7 +37,10 @@ class UndirectedGraph: #TODO validation
       raise ValueError("Cannot form an edge with the same vertex.")
 
     if not edge[0] or not edge[1]:
-      raise ValueError("Edge name cannot be empty string.") 
+      raise ValueError("Vertices cannot be empty string.")
+
+    if not isinstance(edge[0], str) or not isinstance(edge[1], str):
+      raise ValueError("Vertices must be of type string.")
 
     self._graph.setdefault(edge[0], set()).add((edge[1], weight))
     self._graph.setdefault(edge[1], set()).add((edge[0], weight))
@@ -224,12 +227,12 @@ class UndirectedGraph: #TODO validation
         
         result.add((a, b, connection[1]))
     
-    return list(result)
+    return result
 
 
 #TODO use f string instead of .format on string
   @property
-  def edges(self) -> List[Tuple[str, str, float]]:
+  def edges(self) -> Set[Tuple[str, str, float]]:
     """
     Gets the edges of the graph.
 
