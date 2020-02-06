@@ -886,7 +886,9 @@ class LinearProgram:
     def graph_polyhedron(self, graph_limit = 1000):
         """
         Graphs the feasible region of the linear program. Only supports 2 dimensional visualization.
+
         Constraints for the program must be in the form Ax <= b or Ax >= b.
+        
         Graph is limited to the region between -1000 and 1000 in both x and y coordinates.
 
         """
