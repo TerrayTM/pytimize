@@ -1,6 +1,6 @@
 <p align="center">
   <a href="">
-    <img alt="pytimize" src="https://terrytm.com/files/images/8/image_5e29b7102548e269600364rXiWsmSY4.png" width="300">
+    <img alt="pytimize" src="https://terrytm.com/files/images/8/image_5e3c923399d43995034234oSRYIMPF9.jpeg" width="300">
   </a>
 </p>
 
