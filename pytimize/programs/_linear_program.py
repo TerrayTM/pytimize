@@ -883,10 +883,7 @@ class LinearProgram:
 
 
     
-    #TODO: simply copying stuff around
-    #TODO: add boundary to function parameters
-    #TODO: use inequalities_indices and not getters
-    def graph_polyhedron(self):
+    def graph_polyhedron(self, graph_limit = 1000):
         """
         Graphs the feasible region of the linear program. Only supports 2 dimensional visualization.
         Constraints for the program must be in the form Ax <= b or Ax >= b.
@@ -903,33 +900,38 @@ class LinearProgram:
         if not all(i == "<=" for i in list(self._inequality_indices.values())):
             if not all(i == ">=" for i in list(self._inequality_indices.values())):
                 raise ArithmeticError()
-        
 
-        # add boundary inequalities at x, y = +/-1000
-        copy_A = copy.deepcopy(self._A)
-        copy_b = copy.deepcopy(self._b)
+        graph_limit = abs(graph_limit)
 
-        self._A = np.append(self._A, [[1, 0], [1, 0], [0, 1], [0, 1]], axis=0)
-        self._b = np.append(self._b, [1000, -1000, 1000, -1000])
-        self.inequalities.append("<=")
-        self.inequalities.append(">=")
-        self.inequalities.append("<=")
-        self.inequalities.append(">=")
+        # add boundary inequalities at x, y = +/-graph_limit
+        copy_A = self._A.copy()
+        copy_b = self._b.copy()
+
+        copy_A = np.append(copy_A, [[1, 0], [1, 0], [0, 1], [0, 1]], axis=0)
+        copy_b = np.append(copy_b, [graph_limit, -graph_limit, graph_limit, -graph_limit])
+
+        num_inequalities = len(self._inequality_indices)
+        self._inequality_indices[num_inequalities] = "<="
+        self._inequality_indices[num_inequalities + 1] = ">="
+        self._inequality_indices[num_inequalities + 2] = "<="
+        self._inequality_indices[num_inequalities + 3] = ">="
 
         A = np.array([[0, 0], [0, 0]])
         b = np.array([0, 0])
 
-        shape = self._A.shape
+        shape = copy_A.shape
         points = []
 
+        # get intersect points of inequalities/lines
+        # points are sorted later, only if necessary
         for i in range(shape[0]):
             for j in range(shape[0]):
                 if i < j:
-                    A[0, :] = self._A[i, :]
-                    A[1, :] = self._A[j, :]
+                    A[0, :] = copy_A[i, :]
+                    A[1, :] = copy_A[j, :]
 
-                    b[0] = self._b[i]
-                    b[1] = self._b[j]
+                    b[0] = copy_b[i]
+                    b[1] = copy_b[j]
 
                     # if both lines are horizontal/vertical, skip point
                     # (these lines will never intersect and thus solving will cause an error)
@@ -948,14 +950,14 @@ class LinearProgram:
         for point in points:
             valid_point = True
 
-            for i in range(len(self._A)):
-                value = point[0] * self._A[i, 0] + point[1] * self._A[i, 1]
+            for i in range(len(copy_A)):
+                value = point[0] * copy_A[i, 0] + point[1] * copy_A[i, 1]
 
-                if self.inequalities[i] == "<=":
-                    if value > self._b[i] and not math.isclose(value, self._b[i]):
+                if self._inequality_indices[i] == "<=":
+                    if value > copy_b[i] and not math.isclose(value, copy_b[i]):
                         valid_point = False
-                elif self.inequalities[i] == ">=":
-                    if value < self._b[i] and not math.isclose(value, self._b[i]):
+                elif self._inequality_indices[i] == ">=":
+                    if value < copy_b[i] and not math.isclose(value, copy_b[i]):
                         valid_point = False
 
             if valid_point:
@@ -985,9 +987,10 @@ class LinearProgram:
         xs, ys = zip(*points)
 
         # remove added boundary inequalities so data isn't mutated
-        self._A = copy.deepcopy(copy_A)
-        self._b = copy.deepcopy(copy_b)
-        del self.inequalities[-4:-1]
+        del self._inequality_indices[num_inequalities + 3]
+        del self._inequality_indices[num_inequalities + 2]
+        del self._inequality_indices[num_inequalities + 1]
+        del self._inequality_indices[num_inequalities]
 
         # plot and display the feasible region
         plt.figure()
