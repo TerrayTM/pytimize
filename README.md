@@ -8,11 +8,15 @@
   Python optimization library for mathematical programming.
 </p>
 
-Supports:
+Introduction
+---
+pytimize is a python library for
 - Formulating and solving complex linear, integer, and nonlinear programs. 
-- Combinatorical optimization
+- Optimizing combinatorics with directed/undirected graphs and flows.
+- Visualizing polyhedrons and displaying computation process.
 
 Maintained By Terry Zheng and Jonathan Wang
+
 Logo by Kayla Estacio
 
 Currently Implemented Methods:
@@ -47,3 +51,8 @@ Planned Features:
 * KKT Conditions
 * Cutting Plane Solver
 * And More!
+
+Contributors Welcome!
+---
+pytimize is a project that is work in progress. Contributions are welcome on a pull request basis.
+
