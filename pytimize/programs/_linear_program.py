@@ -344,12 +344,8 @@ class LinearProgram:
             return False
 
         test = np.linalg.det(self._A[:, basis])
-        tolerance = 0
-
-        if test < 1.0e-5:
-            tolerance = 1.0e-9
         
-        return not math.isclose(np.linalg.det(self._A[:, basis]), 0, abs_tol=tolerance)
+        return test > 1.0e-5 or not math.isclose(test, 0)
 
 
 
