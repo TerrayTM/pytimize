@@ -15,11 +15,8 @@ pytimize is a python library for
 - Optimizing combinatorics with directed/undirected graphs and flows.
 - Visualizing polyhedrons and displaying computation process.
 
-Maintained By Terry Zheng and Jonathan Wang
-
-Logo by Kayla Estacio
-
-Currently Implemented Methods:
+Current Features
+---
 * Convert to Canonical Form
 * Verify Infeasibility
 * Verify Unboundedness
@@ -39,7 +36,8 @@ Currently Implemented Methods:
 * Integer Programming
 * Branch and Bound Solver
 
-Planned Features:
+Upcoming Features
+---
 * Nonlinear Programming
 * Network Flow Theory
 * Min Cut Max Flow Theorem
@@ -55,4 +53,9 @@ Planned Features:
 Contributors Welcome!
 ---
 pytimize is a project that is work in progress. Contributions are welcome on a pull request basis.
+
+Credits
+---
+Created and maintained by Terry Zheng and Jonathan Wang. Logo designed by Kayla Estacio.
+
 
