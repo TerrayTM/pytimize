@@ -1,17 +1,19 @@
 <p align="center">
-  <a href="">
-    <img alt="pytimize" src="https://terrytm.com/files/pytimize.png">
+  <a href="https://pytimize.terrytm.com">
+    <img alt="pytimize" src="https://terrytm.com/files/pytimize.png" width="700">
   </a>
 </p>
-
+<hr>
 <p align="center">
   Python optimization library for mathematical programming.
 </p>
 
+Supports:
+- Formulating and solving complex linear, integer, and nonlinear programs. 
+- Combinatorical optimization
 
-*This library is a work in progress.*
-
-Created By Terry Zheng and Jonathan Wang
+Maintained By Terry Zheng and Jonathan Wang
+Logo by Kayla Estacio
 
 Currently Implemented Methods:
 * Convert to Canonical Form
@@ -30,11 +32,11 @@ Currently Implemented Methods:
 * Graph Parser
 * Linear Constraint Parser
 * Undirected Graph
+* Integer Programming
+* Branch and Bound Solver
 
 Planned Features:
-* Integer Programming
 * Nonlinear Programming
-* Branch and Bound Solver
 * Network Flow Theory
 * Min Cut Max Flow Theorem
 * Cycle Detection
@@ -45,15 +47,3 @@ Planned Features:
 * KKT Conditions
 * Cutting Plane Solver
 * And More!
-
-### Running Tests
-
-Run All Tests
-
-`python -m unittest discover`
-
-Run Specific Test
-
-`python -m unittest <module path>`
-
-For example: `python -m unittest pytimize.programs.tests.linear_program.test_copy`
