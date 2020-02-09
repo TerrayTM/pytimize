@@ -1,5 +1,6 @@
 from . import LinearProgram
 from typing import List
+import numpy as np
 
 class IntegerProgram(LinearProgram):
     def __init__(self, A, b, c, z, objective: str="max", inequalities: List[str]=None, free_variables: List[int]=None, integral_variables: List[int]=None):
@@ -18,7 +19,7 @@ class IntegerProgram(LinearProgram):
 
         Returns
         -------
-        result : ndarray of int #TODO change later to accomodate infeasible result
+        result : ndarray of int OR bool
 
         """
 
@@ -45,11 +46,62 @@ class IntegerProgram(LinearProgram):
 
             Returns
             -------
-            result : ndarray of int #TODO change later to accomodate infeasible result
+            result : tuple (ndarray of int OR bool, int)  #TODO change later to accomodate infeasible result
 
             """
-            solution = lp.simplex_solution()  #TODO need basis of lp
-            pass
+            solution, basis, certificate = lp.two_phase_simplex()
+            
+            # solution is False if program is infeasible
+            if not solution:
+                return False
+
+            # check if solution is entirely integer
+            # if any aren't integer, branch on that entry in the x vector and return the best result
+            position = 0
+            for value in solution:
+                if not value.is_integer():
+                    copy_A = self._A.copy()
+                    copy_b = self._b.copy()
+                    copy_c = self._c.copy()
+                    new_inequalities = self.inequalities.copy()
+
+                    # lower branch:
+                    # create the new row in A as the bounding constraint
+                    new_row = np.zeros(len(self._A[0]))
+                    new_row[position] = 1
+                    new_A = copy_A.concatenate(new_row)
+                    new_b = copy_b.concatenate(np.floor(value))
+                    new_c = copy_c.concatenate(0)  # new entry should not affect objective value
+                    new_inequalities.append("<=")
+                    lp_lower = LinearProgram(new_A, new_b, new_c, self._z, self._objective, new_inequalities)
+
+                    lower_sln, lower_opt_value = branch(lp_lower)
+
+                    # higher branch:
+                    new_b[len(self._b)] = np.ceil(value)
+                    new_inequalities[len(new_inequalities) - 1] = ">="
+                    lp_higher = LinearProgram(new_A, new_b, new_c, self._z, self._objective, new_inequalities)
+
+                    higher_sln, higher_opt_value = branch(lp_higher)
+
+                    if not lower_sln and not higher_sln:
+                        return False
+                    elif not lower_sln:
+                        return higher_sln
+                    elif not higher_sln:
+                        return lower_sln
+                    # both branches were feasible, return the solution with the best optimal value
+                    elif self._objective == "max":
+                        if higher_opt_value > lower_opt_value:
+                            return higher_sln
+                        return lower_sln
+                    elif higher_opt_value > lower_opt_value:
+                        return higher_sln
+                    return lower_sln
+
+                position += 1
+
+            return solution  # solution is entirely integer
         
         relaxation = self.linear_program_relaxation()
         return branch(relaxation)

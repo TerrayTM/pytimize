@@ -527,7 +527,7 @@ class LinearProgram:
 
         Returns
         -------
-        result : tuple (ndarray of float, LinearProgram)
+        result : tuple (ndarray of float, LinearProgram) # TODO update to match return format
             The copy of the linear program or self in canonical form.
 
         """
@@ -560,7 +560,7 @@ class LinearProgram:
         if np.allclose(solution[columns:], 0):
             return self.simplex_solution(basis, show_steps, in_place)
         else:
-            return False
+            return False, basis, np.array([0, 0])  # TODO temporary, fill certificate with infeasibility cert
 
 
 
