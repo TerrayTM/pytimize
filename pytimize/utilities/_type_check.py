@@ -4,6 +4,23 @@ from functools import wraps
 from collections import deque
 
 def _validate_type(input_value: Any, required_type: Any) -> bool:
+    """
+    Checks if the given value is of given type.
+
+    Parameters
+    ----------
+    input_value : Any
+        The input value that needs to be checked.
+
+    required_type : Any
+        The expected type of the input value.
+
+    Returns
+    -------
+    result : bool
+        Whether or not the value is of the expected type.
+
+    """
     queue = deque([(input_value, required_type)])
 
     while len(queue) > 0:
@@ -41,6 +58,21 @@ def _validate_type(input_value: Any, required_type: Any) -> bool:
 
 
 def typecheck(method: Any) -> Any:
+    """
+    Decorator for type checking function parameters. Throws an error if
+    any input parameters does not match its type annotation.
+
+    Parameters
+    ----------
+    method : Any
+        The method that the decorator wraps on.
+
+    Returns
+    -------
+    result : Any
+        A decorated function. 
+
+    """
     @wraps(method)
     def wrapped_method(*args, **kwargs) -> Any:
         parameter_info = signature(method).parameters
