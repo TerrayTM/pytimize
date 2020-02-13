@@ -49,7 +49,7 @@ def _validate_type(input_value: Any, required_type: Any) -> bool:
 
                     queue.extend((value, allowed_type, base_copy.copy()) for allowed_type in get_args(expected_type))
                     
-                    union_id +=1
+                    union_id += 1
                     
                     continue
                 else:
