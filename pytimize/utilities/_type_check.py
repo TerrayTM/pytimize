@@ -3,7 +3,7 @@ from inspect import signature, _empty
 from functools import wraps
 from collections import deque
 
-def validate_type(input_value: Any, required_type: Any) -> bool:
+def _validate_type(input_value: Any, required_type: Any) -> bool:
     queue = deque([(input_value, required_type)])
 
     while len(queue) > 0:
@@ -40,7 +40,7 @@ def validate_type(input_value: Any, required_type: Any) -> bool:
 
 
 
-def type_check(method: Any) -> Any:
+def typecheck(method: Any) -> Any:
     @wraps(method)
     def wrapped_method(*args, **kwargs) -> Any:
         parameter_info = signature(method).parameters
@@ -50,7 +50,7 @@ def type_check(method: Any) -> Any:
         for variable, value in kwargs.items():
             expected_type = parameter_info[variable].annotation
 
-            if not validate_type(value, expected_type):
+            if not _validate_type(value, expected_type):
                 raise TypeError(f"Parameter `{variable}` expects to have type `{expected_type}`.")
         
         return method(**kwargs)
