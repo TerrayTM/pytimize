@@ -34,7 +34,8 @@ def _validate_type(input_value: Any, required_type: Any) -> bool:
         if expected_type in [int, str, float, bool]:
             if not isinstance(value, expected_type):
                 if ids is None:
-                    return expected_type == float and isinstance(value, int)
+                    if not expected_type == float or not isinstance(value, int):
+                        return False
             elif ids is not None:
                 union_types.update(ids)
         else:
@@ -116,6 +117,9 @@ def typecheck(method: Any) -> Any:
         kwargs.update(dict(zip(parameter_info.keys(), args)))
 
         for variable, value in kwargs.items():
+            if variable == "self":
+                continue
+
             expected_type = parameter_info[variable].annotation
 
             if not _validate_type(value, expected_type):
