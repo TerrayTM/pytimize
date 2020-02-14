@@ -19,7 +19,7 @@ class TestSimplexSolution(TestCase):
         solution, basis, certificate = p.simplex_solution([6, 7, 8]) #TODO need work
 
         self.assertTrue(np.allclose(solution, [4, 1, 2, 0, 0, 0, 0, 0]), "Should compute correct solution.")
-        self.assertEqual(np.allclose(basis, [1, 2, 3]), "Should compute correct optimal basis.")
+        self.assertTrue(np.allclose(basis, [1, 2, 3]), "Should compute correct optimal basis.")
 
         A = np.array([
             [2, 1, 1, 1, 0, 0],
@@ -35,7 +35,7 @@ class TestSimplexSolution(TestCase):
         solution, basis, certificate = p.simplex_solution([4, 5, 6])
 
         self.assertTrue(np.allclose(solution, [5, 4, 0, 0, 0, 0]), "Should compute correct solution.")
-        self.assertTrue(np.allclose(basis, [1, 2, 4]), "Should compute correct optimal basis.")
+        self.assertTrue(np.allclose(basis, [1, 2, 5]), "Should compute correct optimal basis.")
 
 if __name__ == "__main__":
     main()
