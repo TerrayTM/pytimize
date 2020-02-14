@@ -42,6 +42,7 @@ class IntegerProgram(LinearProgram):
         TODO make sure branch and bound solves integer for only those variables mentioned in integral_variable
         any variables x_i with i not in that list means it can be anything (rational number)
         If integral_variables is None then by default all x_i is integer
+        TODO printing is for debugging purposes
         """
         def branch(lp):
             """
@@ -56,21 +57,59 @@ class IntegerProgram(LinearProgram):
             result : tuple (ndarray of int OR bool, int)
 
             """
+            # save old LP info, since reverting will be necessary after converting to SEF
+            old_A = lp.A
+            old_c = lp.c
+            old_z = lp.z
+            old_obj = lp.objective
+            old_inequalities = lp.inequalities
+
             if not lp.is_sef:
+                print("lp was not in SEF, converted")
                 lp = lp.to_sef(show_steps=False)
             solution, basis, certificate = lp.two_phase_simplex()
+
+            print("Result of simplex:", solution)
             
             # solution is False if program is infeasible
             if isinstance(solution, bool):
-                return False
+                print("Fathom branch: result was infeasible")
+                print("------")
+                return False, 0
 
             opt_value = lp.evaluate(solution)
+
+            # convert solution to pre-SEF form
+            remove_indices = []
+            # iterate through columns of SEF A and check if they are in old_A
+            for i in range(lp.A.shape[1]):
+                new_col = lp.A[:,i]
+                remove = True
+                for j in range(i, old_A.shape[1]):
+                    # check if columns match
+                    if (new_col == old_A[:,j]).all():
+                        remove = False
+                        break
+
+                if remove:
+                    remove_indices.append(i)
+            # remove slack variables from solution
+            solution = np.delete(solution, remove_indices)
+
+            # reset LP to pre-SEF (keep b)
+            lp = LinearProgram(old_A, lp.b, old_c, old_z, old_obj, old_inequalities)
 
             # check if solution is entirely integer
             # if any aren't integer, branch on that entry in the x vector and return the best result
             position = 0
-            print(solution)
-            for value in solution:
+
+            print("After converting back from SEF:")
+            print(lp)
+
+            for i in range(len(solution)):
+                value = solution[i]
+                # if value is not integer, make sure it is has the integral constraint before branching - not working atm
+                #if not value.is_integer() and not self._integral_variables == None and i not in self._integral_variables:
                 if not value.is_integer():
                     copy_A = lp.A.copy()
                     copy_b = lp.b.copy()
@@ -85,12 +124,16 @@ class IntegerProgram(LinearProgram):
                     new_inequalities.append("<=")
                     lp_lower = LinearProgram(new_A, new_b, lp.c, lp.z, lp.objective, new_inequalities)
 
+                    print("Branching on", position, "with <=", np.floor(value))
+
                     lower_sln, lower_opt_value = branch(lp_lower)
 
                     # higher branch:
                     new_b[len(lp.b)] = np.ceil(value)
                     new_inequalities[len(new_inequalities) - 1] = ">="
                     lp_higher = LinearProgram(new_A, new_b, lp.c, lp.z, lp.objective, new_inequalities)
+
+                    print("Branching on", position, "with >=", np.ceil(value))
 
                     higher_sln, higher_opt_value = branch(lp_higher)
 
@@ -111,10 +154,13 @@ class IntegerProgram(LinearProgram):
 
                 position += 1
 
-            return solution, opt_value  # solution is entirely integer
+            print("Fathom branch: Solution passes constraints, with value of", opt_value)
+            print("Optimal sln is", solution)
+            print("------")
+            return solution, opt_value  # solution passes constraints
         
         relaxation = self.linear_program_relaxation()
-        return branch(relaxation)
+        return branch(relaxation)[0]
 
 
     def cutting_plane(self):

@@ -22,7 +22,7 @@ class TestBranchAndBound(TestCase):
         #self.assertEqual(copy.objective, "min", "Should be the same objective.")
         #self.assertFalse(copy.is_sef, "Should be the same SEF state.")
         #self.assertNotEqual(copy.objective, p.objective, "Should not copy by reference.")
-        self.assertEqual(p.branch_and_bound(), [4, 0], "Should be the same solution.")
+        self.assertEqual(np.allclose(p.branch_and_bound(), [4, 0]), "Should be the same solution.")
 
 if __name__ == "__main__":
     main()
