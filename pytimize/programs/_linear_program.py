@@ -343,7 +343,7 @@ class LinearProgram:
         if not self._A.shape[0] == len(basis):
             return False
         
-        return math.abs(np.linalg.det(self._A[:, basis])) > 1.0e-10
+        return abs(np.linalg.det(self._A[:, basis])) > 1.0e-10
 
 
 
