@@ -688,15 +688,18 @@ class LinearProgram:
         if (Ak <= 0).all():
             return math.inf, np.array([i + 1 for i in basis]), self # optimize conversion back to math indexing
 
-        t = np.amin([self._b[i] / Ak[i] for i in range(len(Ak)) if Ak[i] > 0])
-        computed = self._b - t * Ak
+        leave = None
+        t = math.inf
+        for i in range(len(Ak)):
+            if Ak[i] > 0:
+                ratio = self._b[i] / Ak[i]
 
-        for i in range(len(computed)): 
-            if math.isclose(computed[i], 0):
-                basis.remove(basis[i])
-                
-                break
-
+                if ratio < t:
+                    t = ratio
+                    leave = i 
+        
+        #TODO basis will need to be sorted
+        basis.remove(basis[leave])
         basis.append(k)
         basis.sort()
 
