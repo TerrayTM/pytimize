@@ -350,8 +350,8 @@ class LinearProgram:
         basis = self.__convert_indices(basis)
 
         # testing - this method is currently causing an error in branch and bound
-        print(self._A)
-        print(basis)
+        #print(self._A)
+        #print(basis)
 
         if not self._A.shape[0] == len(basis):
             return False
@@ -516,10 +516,10 @@ class LinearProgram:
 #              free =  
 #              <=0  <=  constraint
 
-        if not self.z == 0:
+        if not self.z == 0: # TODO remove; constants are ignored in dual
             raise ValueError()
 
-        LinearProgram(self._A.T, self._c, self._b, 0)
+        #LinearProgram(self._A.T, self._c, self._b, 0)
 
 
 
@@ -666,7 +666,7 @@ class LinearProgram:
             copy = self.copy()
 
             return copy.simplex_iteration(basis, show_steps, True)
-
+        
         if not self.is_basis(basis): #basis might need to be sorted
             raise ValueError()
 
