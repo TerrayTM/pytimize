@@ -56,14 +56,11 @@ class TestToCanonicalForm(TestCase):
         with self.assertRaises(ValueError, msg="Should throw error for invalid basis."):
             p.to_canonical_form([0, 1, 3])
 
-        with self.assertRaises(IndexError, msg="Should throw error for invalid basis."):
+        with self.assertRaises(ValueError, msg="Should throw error for invalid basis."):
             p.to_canonical_form([1, 5])
         
-        with self.assertRaises(IndexError, msg="Should throw error for invalid basis."):
+        with self.assertRaises(ValueError, msg="Should throw error for invalid basis."):
             p.to_canonical_form([0, 1])
-
-        with self.assertRaises(IndexError, msg="Should throw error for invalid basis."):
-            p.to_canonical_form([1.5, 2])
 
         with self.assertRaises(ValueError, msg="Should throw error for invalid basis."):
             p.to_canonical_form([2, 2])

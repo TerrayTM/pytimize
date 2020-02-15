@@ -23,6 +23,9 @@ class TestIsBasis(TestCase):
         self.assertFalse(p.is_basis([1, 3, 5]), "Should not form a basis.")
         self.assertFalse(p.is_basis([1, 6]), "Should not form a basis.")
         self.assertFalse(p.is_basis([1]), "Should not form a basis.")
+        self.assertFalse(p.is_basis([2, 5, -1]), "Should not form a basis.")
+        self.assertFalse(p.is_basis([2, 5, 100]), "Should not form a basis.")
+        self.assertFalse(p.is_basis([2, 6, 6]), "Should not form a basis.")
 
 if __name__ == "__main__":
     main()
