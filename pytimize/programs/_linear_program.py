@@ -4,6 +4,7 @@ import copy
 import numpy as np
 
 from ..parsers._description_parser import render_descriptor
+from ..utilities._typecheck import typecheck
 from matplotlib import pyplot as plt
 from typing import List
 
@@ -286,7 +287,7 @@ class LinearProgram:
         result = True
 
         for i in range(self._c.shape[0]):
-            if i not in basis and not math.isclose(x[i], 0):
+            if i not in basis and not self.__is_close_to_zero(x[i]):
                 show_steps and self.__append_to_steps(("4.02", i + 1))
 
                 result = False
@@ -349,17 +350,16 @@ class LinearProgram:
         basis = self.__array_like_to_list(basis) #optimize as it is called twice from parent
         basis = self.__convert_indices(basis)
 
-        # testing - this method is currently causing an error in branch and bound
-        #print(self._A)
-        #print(basis)
-
         if not self._A.shape[0] == len(basis):
             return False
+
+        if max(basis) >= self._A.shape[1] or min(basis) < 0:
+            return False
         
-        return abs(np.linalg.det(self._A[:, basis])) > 1.0e-10
+        return not self.__is_close_to_zero(np.linalg.det(self._A[:, basis]))
 
 
-
+    @typecheck
     def is_basis_feasible(self, basis: List[int]):
         """
         Tests if the given basis is feasible.
@@ -403,8 +403,9 @@ class LinearProgram:
         return self.__compute_basic_solution(basis)
 
 
-#TODO change array to array-like for basis
-    def to_canonical_form(self, basis: List[int], show_steps: bool=True, in_place: bool=False):
+
+    @typecheck
+    def to_canonical_form(self, basis: List[int], show_steps: bool=True, in_place: bool=False) -> "LinearProgram":
         """
         Converts the linear program into canonical form for the given basis.
 
@@ -556,20 +557,44 @@ class LinearProgram:
         self._b[indices] *= -1
 
         rows, columns = self._A.shape
-        aux_A = np.c_[self._A, np.eye(rows)]
-        aux_b = np.copy(self._b)
-        aux_c = np.zeros(columns + rows)
+        A_aux = np.c_[self._A, np.eye(rows)]
+        b_aux = np.copy(self._b)
+        c_aux = np.zeros(columns + rows)
         basis = [i for i in range(columns + 1, rows + columns + 1)]
+        
+        c_aux[columns:] = 1
 
-        aux_c[columns:] = 1
-
-        p_aux = LinearProgram(aux_A, aux_b, aux_c, self._z, "min")
+        p_aux = LinearProgram(A_aux, b_aux, c_aux, self._z, "min")
         
         p_aux.to_sef(in_place=True)
         solution, basis, _ = p_aux.simplex(basis, in_place=True)
 
-        if np.allclose(solution[columns:], 0):
-            return self.simplex(basis, show_steps, in_place)
+        if self.__is_close_to_zero(p_aux.value_of(solution)):
+            p_basis = basis
+
+            if not self.is_basis(basis):
+                p_basis = []
+                zero_set = []
+
+                for i, value in enumerate(solution[:columns], 1):
+                    if not self.__is_close_to_zero(value):
+                        p_basis.append(i)
+                    else:
+                        zero_set.append(i)
+
+                # ================== Need to find subset of size k ============
+                # TODO Bandaid is not good enough fix
+                for i in zero_set:
+                    p_basis.append(i)
+                    p_basis.sort()
+
+                    if self.is_basis(p_basis):
+                        break
+
+                    p_basis.remove(i)
+                # End band aid
+
+            return self.simplex(p_basis, show_steps, in_place)
         else:
             return False, basis, np.array([0, 0])  # TODO temporary, fill certificate with infeasibility cert
 
@@ -666,7 +691,7 @@ class LinearProgram:
             copy = self.copy()
 
             return copy.simplex_iteration(basis, show_steps, True)
-        
+
         if not self.is_basis(basis): #basis might need to be sorted
             raise ValueError()
 
@@ -1048,7 +1073,7 @@ class LinearProgram:
         return self.evaluate(x)
 
 
-
+    @typecheck
     def copy(self):
         """
         Creates a copy of the current model.
@@ -1067,9 +1092,10 @@ class LinearProgram:
 
         return p
 
+    
 
-
-    def to_sef(self, show_steps=True, in_place=False):
+    @typecheck
+    def to_sef(self, show_steps: bool=True, in_place: bool=False) -> "LinearProgram":
         """
         Converts expression to standard equality form.
 
@@ -1275,6 +1301,10 @@ class LinearProgram:
 
 
 
+    def __is_close_to_zero(self, value: float) -> bool:
+        return abs(value) < 1.0e-10
+
+
     def __get_free_variables(self):
         """
         Converts expression to standard equality form.
@@ -1314,8 +1344,7 @@ class LinearProgram:
         if len(indices) > 0:
             conditions = [
                 not min_value == None and min(indices) < min_value,
-                max_value and max(indices) >= max_value,
-                any(not type(i) == int for i in indices)
+                max_value and max(indices) >= max_value
             ]
 
             if any(conditions):
