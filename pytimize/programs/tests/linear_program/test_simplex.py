@@ -37,5 +37,21 @@ class TestSimplex(TestCase):
         self.assertTrue(np.allclose(solution, [5, 4, 0, 0, 0, 0]), "Should compute correct solution.")
         self.assertTrue(np.allclose(basis, [1, 2, 5]), "Should compute correct optimal basis.")
 
+        A = np.array([
+            [2, 1, 1, 0, 0],
+            [2, 3, 0, 1, 0],
+            [3, 1, 0, 0, 1]
+        ])
+        b = np.array([18, 42, 24])
+        c = np.array([3, 2, 0, 0, 0])
+        z = 0
+
+        p = LinearProgram(A, b, c, z)
+
+        solution, basis, certificate = p.simplex([3, 4, 5])
+
+        self.assertTrue(np.allclose(solution, [3, 12, 0, 0, 3]), "Should compute correct solution.")
+        self.assertTrue(np.allclose(basis, [1, 2, 5]), "Should compute correct optimal basis.")
+
 if __name__ == "__main__":
     main()
