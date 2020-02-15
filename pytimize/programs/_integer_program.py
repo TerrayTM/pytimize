@@ -58,16 +58,12 @@ class IntegerProgram(LinearProgram):
 
             """
             # save old LP info, since reverting will be necessary after converting to SEF
-            old_A = lp.A
-            old_c = lp.c
-            old_z = lp.z
-            old_obj = lp.objective
-            old_inequalities = lp.inequalities
+            copy_lp = lp.copy()
 
-            if not lp.is_sef:
+            if not copy_lp.is_sef:
                 print("lp was not in SEF, converted")
-                lp = lp.to_sef(show_steps=False)
-            solution, basis, certificate = lp.two_phase_simplex()
+                copy_lp = copy_lp.to_sef(show_steps=False)
+            solution, basis, certificate = copy_lp.two_phase_simplex()
 
             print("Result of simplex:", solution)
             
@@ -77,17 +73,17 @@ class IntegerProgram(LinearProgram):
                 print("------")
                 return False, 0
 
-            opt_value = lp.evaluate(solution)
+            opt_value = copy_lp.evaluate(solution)
 
             # convert solution to pre-SEF form
             remove_indices = []
-            # iterate through columns of SEF A and check if they are in old_A
-            for i in range(lp.A.shape[1]):
-                new_col = lp.A[:,i]
+            # iterate through columns of SEF A and check if they are in lp before SEF
+            for i in range(copy_lp.A.shape[1]):
+                new_col = copy_lp.A[:,i]
                 remove = True
-                for j in range(i, old_A.shape[1]):
+                for j in range(i, lp.A.shape[1]):
                     # check if columns match
-                    if (new_col == old_A[:,j]).all():
+                    if (new_col == lp.A[:,j]).all():
                         remove = False
                         break
 
@@ -95,9 +91,6 @@ class IntegerProgram(LinearProgram):
                     remove_indices.append(i)
             # remove slack variables from solution
             solution = np.delete(solution, remove_indices)
-
-            # reset LP to pre-SEF (keep b)
-            lp = LinearProgram(old_A, lp.b, old_c, old_z, old_obj, old_inequalities)
 
             # check if solution is entirely integer
             # if any aren't integer, branch on that entry in the x vector and return the best result

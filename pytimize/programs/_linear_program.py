@@ -340,6 +340,10 @@ class LinearProgram:
         basis = self.__array_like_to_list(basis) #optimize as it is called twice from parent
         basis = self.__convert_indices(basis)
 
+        # testing - this method is currently causing an error in branch and bound
+        print(self._A)
+        print(basis)
+
         if not self._A.shape[0] == len(basis):
             return False
         
