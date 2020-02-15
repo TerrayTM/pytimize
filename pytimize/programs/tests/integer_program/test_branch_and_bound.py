@@ -1,5 +1,4 @@
 import numpy as np
-import math
 
 from ... import IntegerProgram
 from unittest import TestCase, main

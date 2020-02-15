@@ -566,16 +566,16 @@ class LinearProgram:
         p_aux = LinearProgram(aux_A, aux_b, aux_c, self._z, "min")
         
         p_aux.to_sef(in_place=True)
-        solution, basis, _ = p_aux.simplex_solution(basis, in_place=True)
+        solution, basis, _ = p_aux.simplex(basis, in_place=True)
 
         if np.allclose(solution[columns:], 0):
-            return self.simplex_solution(basis, show_steps, in_place)
+            return self.simplex(basis, show_steps, in_place)
         else:
             return False, basis, np.array([0, 0])  # TODO temporary, fill certificate with infeasibility cert
 
 
 
-    def simplex_solution(self, basis: List[int], show_steps: bool=True, in_place: bool=False): 
+    def simplex(self, basis: List[int], show_steps: bool=True, in_place: bool=False): 
         """
         Computes simplex iterations until termination. 
 
@@ -601,7 +601,7 @@ class LinearProgram:
         if not in_place:
             copy = self.copy()
 
-            return copy.simplex_solution(basis, show_steps, True)
+            return copy.simplex(basis, show_steps, True)
         
         solution = None
         optimality_certificate = None

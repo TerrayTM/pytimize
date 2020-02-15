@@ -13,7 +13,7 @@ z = 17
 p = LinearProgram(A, b, c, z)
 
 # Simplex method with initial basis
-optimal_solution, optimal_basis, optimality_certificate = p.simplex_solution([1, 2])
+optimal_solution, optimal_basis, optimality_certificate = p.simplex([1, 2])
 
 print("\nSimplex ================================================")
 print(f"Optimal Solution: {optimal_solution}")

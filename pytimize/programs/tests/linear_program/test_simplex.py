@@ -3,8 +3,8 @@ import numpy as np
 from ... import LinearProgram
 from unittest import TestCase, main
 
-class TestSimplexSolution(TestCase):
-    def test_simplex_solution(self):
+class TestSimplex(TestCase):
+    def test_simplex(self):
         A = np.array([
             [-1, 2, 4, 2, -1, 1, 0, 0],
             [0, 1, 0, 1, 1, 0, 1, 0],
@@ -16,7 +16,7 @@ class TestSimplexSolution(TestCase):
 
         p = LinearProgram(A, b, c, z)
 
-        solution, basis, certificate = p.simplex_solution([6, 7, 8]) #TODO need work
+        solution, basis, certificate = p.simplex([6, 7, 8]) #TODO need work
 
         self.assertTrue(np.allclose(solution, [4, 1, 2, 0, 0, 0, 0, 0]), "Should compute correct solution.")
         self.assertTrue(np.allclose(basis, [1, 2, 3]), "Should compute correct optimal basis.")
@@ -32,7 +32,7 @@ class TestSimplexSolution(TestCase):
 
         p = LinearProgram(A, b, c, z)
 
-        solution, basis, certificate = p.simplex_solution([4, 5, 6])
+        solution, basis, certificate = p.simplex([4, 5, 6])
 
         self.assertTrue(np.allclose(solution, [5, 4, 0, 0, 0, 0]), "Should compute correct solution.")
         self.assertTrue(np.allclose(basis, [1, 2, 5]), "Should compute correct optimal basis.")
