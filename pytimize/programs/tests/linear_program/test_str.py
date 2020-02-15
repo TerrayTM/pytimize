@@ -89,5 +89,9 @@ class TestStr(TestCase):
         p = LinearProgram(A, b, c, z, "min", [">=", "=", "="])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
+    def test_rounding(self):
+        pass
+        #TODO rounding test coverage
+
 if __name__ == "__main__":
     main()

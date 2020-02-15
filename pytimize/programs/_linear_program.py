@@ -139,8 +139,15 @@ class LinearProgram:
         
         output += "]x"
 
-        if not math.isclose(self._z, 0):
-            output += " + " + str(self._z)
+        if abs(self._z) > 10e-10:
+            sign = "+"
+            number = self._z
+
+            if self.z < 0:
+                sign = "-"
+                number = str(self._z)[1:]
+            
+            output += f" {sign} {number}"
 
         output += "\nSubject To:\n\n"
 
@@ -210,6 +217,8 @@ class LinearProgram:
                 output += " " * (b_spaces - len(str(self._b[row])))
 
             output += "]\n"
+
+        output += "x ≥ 0\n" # TODO add variable constraints
 
         return output
 
