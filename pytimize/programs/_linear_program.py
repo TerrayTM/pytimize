@@ -6,6 +6,7 @@ import numpy as np
 from ..parsers._description_parser import render_descriptor
 from ..utilities._typecheck import typecheck
 from matplotlib import pyplot as plt
+from collections import deque
 from typing import List
 
 # TODO: for make independent rows, check for sef at end
@@ -572,7 +573,7 @@ class LinearProgram:
         if self.__is_close_to_zero(p_aux.value_of(solution)):
             p_basis = basis
 
-            if not self.is_basis(basis):
+            if not self.is_basis(p_basis):
                 p_basis = []
                 zero_set = []
 
@@ -581,18 +582,30 @@ class LinearProgram:
                         p_basis.append(i)
                     else:
                         zero_set.append(i)
+                
+                subset_size = self._A.shape[0] - len(p_basis)
+                queue = deque()
 
-                # ================== Need to find subset of size k ============
-                # TODO Bandaid is not good enough fix
-                for i in zero_set:
-                    p_basis.append(i)
-                    p_basis.sort()
+                for i in range(0, len(zero_set) - subset_size + 1):
+                    queue.append((i, [zero_set[i]]))
 
-                    if self.is_basis(p_basis):
-                        break
+                while len(queue) > 0:
+                    current = queue.pop()
 
-                    p_basis.remove(i)
-                # End band aid
+                    if len(current[1]) == subset_size:
+                        basis_candidate = p_basis + current[1]
+
+                        basis_candidate.sort()
+
+                        if self.is_basis(basis_candidate):
+                            p_basis = basis_candidate
+
+                            break
+                    else:
+                        for i in range(current[0] + 1, len(zero_set)):
+                            copy = current[1] + [zero_set[i]]
+
+                            queue.append((i, copy))
 
             return self.simplex(p_basis, show_steps, in_place)
         else:
