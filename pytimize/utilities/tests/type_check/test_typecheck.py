@@ -357,6 +357,24 @@ class TestTypeCheck(TestCase):
         with self.assertRaises(TypeError, msg="Should throw error if invalid type."):
             method_two([])
         
+        @typecheck
+        def method_three(a: Tuple[Union[str, Tuple[int, Union[str, float]]], Union[int, Tuple[Union[int, str], Union[List[int], Set[int]]]]]) -> bool:
+            return True
+
+        self.assertTrue(method_three(("a", 5)), "Should check union types.")
+        self.assertTrue(method_three(((5, 5), 5)), "Should check union types.")
+        self.assertTrue(method_three(((5, "a"), 5)), "Should check union types.")
+        self.assertTrue(method_three(("a", (5, []))), "Should check union types.")
+        self.assertTrue(method_three((("a", "w"), 5)), "Should check union types.")
+        self.assertTrue(method_three(("a", (5, [2, 5, 10]))), "Should check union types.")
+        self.assertTrue(method_three(("a", ("a", {2, 5, 10}))), "Should check union types.")
+        self.assertTrue(method_three((("a", 7), ("a", {2, 5, 10}))), "Should check union types.")
+        self.assertTrue(method_three((("a", "w"), ("a", {2, 5, 10}))), "Should check union types.")
+        self.assertTrue(method_three((("a", "w"), (5, set()))), "Should check union types.")
+
+        with self.assertRaises(TypeError, msg="Should throw error if invalid type."):
+            method_three((7, 7))
+
         #TODO FINISH TEST CASES
         # @typecheck
         # def method_three(a: Union[str, List[Union[str, Tuple[Union[str, int], int]]]]) -> bool:
