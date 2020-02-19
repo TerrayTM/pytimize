@@ -15,7 +15,7 @@ class TestTwoPhaseSimplex(TestCase):
 
         p = LinearProgram(A, b, c, z)
 
-        solution, basis, certificate = p.two_phase_simplex()
+        solution, basis, certificate, lp = p.two_phase_simplex()
 
         self.assertTrue(np.allclose(solution, [0, 4, 7]), "Should compute correct solution.")
         self.assertTrue(np.allclose(basis, [2, 3]), "Should compute correct optimal basis.")
