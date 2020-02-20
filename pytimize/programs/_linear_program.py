@@ -107,6 +107,15 @@ class LinearProgram:
     # [1. 0. 2.  7.  -1.]     =   [2.]
     # [0. 1. -4. -5. 3. ]x    =   [1.]
     # x ≥ 0
+
+    # BUG formatted incorrectly (b does not line up)
+    # Max [0. 0. 0. 0. 0. 0. -1. -1. -1.]x
+    # Subject To:
+
+    # [2.  -1. -2. 1.  0.  0.  1. 0. 0.]     =   [4.]
+    # [-2. 3.  1.  0. -1. 0. 0. 1. 0.]x    =   [5.]
+    # [1.  -1. -1. 0. 0. -1. 0. 0. 1.]     =   [1.]
+    # x ≥ 0
     def __str__(self):
         """
         Generates a nicely formatted string representation of the linear program.
@@ -429,9 +438,7 @@ class LinearProgram:
 
         """
         if not in_place:
-            copy = self.copy()
-            
-            return copy.to_canonical_form(basis, show_steps, True)
+            return self.copy().to_canonical_form(basis, show_steps, True)
 
         if not self._is_sef:
             raise ArithmeticError()
@@ -483,7 +490,6 @@ class LinearProgram:
         b = Ab_inverse @ self._b
         c = self._c - y_transpose @ self._A
         z = y_transpose @ self._b + self._z
-
         self._A = A
         self._b = b
         self._c = c
@@ -495,79 +501,103 @@ class LinearProgram:
 
     def create_dual(self, show_steps: bool=True) -> "LinearProgram":
         """
-        Creates the associated duality program. 
+        Creates the corresponding dual program.
 
         Parameters
         ----------
-        show_steps : bool, optional (default=True)
-            Whether steps should be stored or not for this operation.
-
-        Returns
-        -------
-        result : LinearProgram
-            The computed result of the method.
-
-        """
-        
-#          max          |   min
-#--------------------|-------------
-#              <=   >= 0
-#   constraint  =   free variable
-#              >=   <= 0
-#
-#    variable  >=0  >=
-#              free =  
-#              <=0  <=  constraint
-
-        if not self.z == 0: # TODO remove; constants are ignored in dual
-            raise ValueError()
-
-        #LinearProgram(self._A.T, self._c, self._b, 0)
-
-
-
-    def two_phase_simplex(self, show_steps: bool=True):
-        """
-        Computes simplex iterations until termination. Returns a solution if it has been found, 
-        the optimal basis if it exists, the certificate of unboundedness or optimality, and the 
-        updated linear program. This operation requires the program to be in SEF.
-
-        Parameters
-        ----------
-        basis : List[int]
-            The column indices of the coefficient matrix that forms an starting basis.
-            Use math indexing for format.
-
         show_steps : bool (default=True)
             Whether or not the steps should be displayed.
 
         Returns
         -------
-        result : Tuple[Optional[np.ndarray], Optional[List[int]], np.ndarray, "LinearProgram"]
-            The solution vector, the basis, the certificate, and the updated program. 
-            If the optimal basis is none, then the linear program is unbounded.
-        
+        result : LinearProgram
+            The corresponding dual program.
+
+        """
+        pass
+    
+        #          max          |   min
+        #--------------------|-------------
+        #              <=   >= 0
+        #   constraint  =   free variable
+        #              >=   <= 0
+        #
+        #    variable  >=0  >=
+        #              free =  
+        #              <=0  <=  constraint
+
+        #LinearProgram(self._A.T, self._c, self._b, 0)
+
+    
+    def create_auxiliary(self, show_steps: bool=True) -> "LinearProgram":
+        """
+        Creates the corresponding auxiliary program. This operation requires 
+        the program to be in SEF.
+
+        Parameters
+        ----------
+        show_steps : bool (default=True)
+            Whether or not the steps should be displayed.
+
+        Returns
+        -------
+        result : "LinearProgram"
+            The corresponding auxiliary program.
+
         """
         if not self._is_sef:
             raise ArithmeticError("Linear program must be in SEF.")
-        
+
         negative_indices = np.where(self._b < 0)
-
-        self._A[negative_indices] *= -1
-        self._b[negative_indices] *= -1
-
         rows, columns = self._A.shape
-        A_aux = np.c_[self._A, np.eye(rows)]
-        b_aux = np.copy(self._b)
+        A_aux = self._A.copy() 
+        b_aux = self._b.copy()
+        A_aux[negative_indices] *= -1
+        b_aux[negative_indices] *= -1
+        A_aux = np.c_[A_aux, np.eye(rows)]
         c_aux = np.zeros(columns + rows)
-        basis = [i for i in range(columns + 1, rows + columns + 1)]
-        
         c_aux[columns:] = 1
 
-        p_aux = LinearProgram(A_aux, b_aux, c_aux, self._z, "min")
-        
+        return LinearProgram(A_aux, b_aux, c_aux, self._z, "min")
+
+
+
+    def solve(self, show_steps: bool=True):
+        pass # TODO implement
+
+
+
+    def two_phase_simplex(self, show_steps: bool=True) -> Tuple[Optional[np.ndarray], Optional[List[int]], Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]]:
+        """
+        Creates an auxiliary program and solves it to determine a starting basis for the given linear program.
+        With the starting basis, computes simplex and returns a solution if it has one, the optimal basis 
+        if it exists, and a certificate. The certificate can certify either unboundedness, optimality, or infeasibility
+        depending on the outcome of the program. This operation requires the program to be in SEF.
+
+        Parameters
+        ----------
+        show_steps : bool (default=True)
+            Whether or not the steps should be displayed.
+
+        Returns
+        -------
+        result : Tuple[Optional[np.ndarray], Optional[List[int]], Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]]:
+            The solution vector, the basis, and the certificate. If the optimal basis is none,
+            then the linear program is either infeasible or unbounded. If unbounded, the certificate will be a tuple
+            of a feasible solution followed by a certifying vector.
+    
+        """
+        if not self._is_sef:
+            raise ArithmeticError("Linear program must be in SEF.")
+
+        p_aux = self.create_auxiliary(show_steps)
+        rows, columns = self._A.shape
+        basis = [i for i in range(columns + 1, rows + columns + 1)]
+        negative_indices = np.where(self._b < 0)
+
         p_aux.to_sef(in_place=True)
-        solution, basis, certificate = p_aux.simplex(basis, in_place=True)
+
+        solution, basis, certificate = p_aux.simplex(basis)
 
         if self.__is_close_to_zero(p_aux.value_of(solution)):
             p_basis = basis
@@ -606,9 +636,13 @@ class LinearProgram:
 
                             queue.append((i, copy))
 
-            return self.simplex(p_basis, show_steps, in_place)
-        else:
-            return False, basis, np.array([0, 0])  # TODO temporary, fill certificate with infeasibility cert
+            return self.simplex(p_basis, show_steps)
+
+        basis = self.__to_array_indexing(basis)
+        certificate = np.linalg.inv(p_aux.A[:, basis].T) @ p_aux.c[basis]
+        certificate[negative_indices] *= -1
+
+        return None, None, certificate
 
 
 
@@ -766,7 +800,7 @@ class LinearProgram:
 
 
 
-    def verify_infeasibility(self, y):
+    def verify_infeasibility(self, certificate):
         """
         Verifies the certificate of infeasibility.
 
@@ -783,12 +817,11 @@ class LinearProgram:
         if not self._is_sef: # Requires SEF?
             raise ArithmeticError()
 
-        y_transpose = y.T
+        certificate = self.__to_ndarray(certificate)
+        yA = certificate @ self._A
+        yb = certificate @ self._b
 
-        yTA = y_transpose @ self._A
-        yTb = y_transpose @ self._b
-
-        return (yTA >= 0).all() and (yTb < 0).all()
+        return self.__is_close_compare(yA, 0, ">") and not self.__is_close_compare(yb, 0, ">")
 
 
 
@@ -1127,17 +1160,16 @@ class LinearProgram:
     @typecheck
     def to_sef(self, show_steps: bool=True, in_place: bool=False) -> "LinearProgram":
         """
-        Converts expression to standard equality form.
+        Converts the linear program to standard equality form.
 
         Returns
         -------
-        result : LinearProgram
+        result : "LinearProgram"
+            The program in standard equality form.
 
         """
         if not in_place:
-            copy = self.copy()
-
-            return copy.to_sef(show_steps, True)
+            return self.copy().to_sef(show_steps, True)
 
         if self._is_sef:
             return self
@@ -1198,9 +1230,7 @@ class LinearProgram:
 
         """
         if not in_place:
-            copy = self.copy()
-
-            return copy.clear_steps()
+            return self.copy().clear_steps()
 
         self._steps = []
 
@@ -1266,7 +1296,7 @@ class LinearProgram:
         components = np.linalg.inv(self._A[:, basis]) @ self._b
         solution = np.zeros(self._c.shape[0])
         
-        basis.sort()
+        basis.sort() # TODO copy? To prevent reference
 
         for index, value in zip(basis, components):
             solution[index] = value
@@ -1466,7 +1496,7 @@ class LinearProgram:
         return array_like
 
 
-    
+    # TODO integration
     def __is_in_rref(self, arr):
         """
         Returns whether or not the given array is in RREF.
@@ -1513,7 +1543,7 @@ class LinearProgram:
         return True
 
 
-    
+    # TODO need tests and validation
     def to_rref(self, arr):
         """
         Returns an array that has been row reduced into row reduced echelon 
@@ -1567,7 +1597,7 @@ class LinearProgram:
         return arr
 
 
-
+    # TODO need integration
     def __remove_dependent_rows(self):
         """
         Removes dependent rows from the constraints and returns the new values for A and b. The linear program must be in almost SEF.
@@ -1771,4 +1801,4 @@ class LinearProgram:
         result : bool
 
         """
-        #return self.__is_in_rref()
+        return self.__is_in_rref()
