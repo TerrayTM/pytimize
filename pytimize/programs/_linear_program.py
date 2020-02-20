@@ -549,12 +549,7 @@ class LinearProgram:
         
         """
         if not self._is_sef:
-            raise ArithmeticError()
-        
-        if not in_place:
-            copy = self.copy()
-
-            return copy.two_phase_simplex(show_steps, True)
+            raise ArithmeticError("Linear program must be in SEF.")
         
         negative_indices = np.where(self._b < 0)
 
@@ -617,9 +612,9 @@ class LinearProgram:
 
 
 
-    def simplex(self, basis: List[int], show_steps: bool=True) -> Tuple[Optional[np.ndarray], Optional[List[int]], np.ndarray]: 
+    def simplex(self, basis: List[int], show_steps: bool=True) -> Tuple[Optional[np.ndarray], Optional[List[int]], Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]]: 
         """
-        Computes simplex iterations until termination. Returns a feasible or optimal solution, 
+        Computes simplex iterations until termination. Returns the optimal solution if it has one, 
         the optimal basis if it exists, and the certificate of unboundedness or optimality.
         This operation requires the program to be in SEF.
 
@@ -634,9 +629,10 @@ class LinearProgram:
 
         Returns
         -------
-        result : Tuple[Optional[np.ndarray], Optional[List[int]], np.ndarray]
+        result : Tuple[Optional[np.ndarray], Optional[List[int]], Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]]
             The solution vector, the basis, and the certificate. If the optimal basis is none,
-            then the linear program is unbounded with the solution being a feasible instance.
+            then the linear program is unbounded. In this case the certificate will be a tuple
+            of a feasible solution followed by a certifying vector.
         
         """
         if not self._is_sef:
@@ -646,39 +642,39 @@ class LinearProgram:
         certificate = None
         updated_lp = None
         counter = 0
+        negative_indices = np.where(self._b < 0)
 
-        # negative_indices = np.where(self._b < 0) #TODO MOVE THIS INTO SIMPLEX AS WELL
-
-        # self._b[negative_indices] *= -1
-        # self._A[negative_indices] *= -1
+        self._b[negative_indices] *= -1
+        self._A[negative_indices] *= -1
     
         show_steps and self.__append_to_steps(("5.02", counter))
         show_steps and self.__append_to_steps(("5.01", self))
 
         while solution is None and basis is not None:
             solution, basis, updated_lp = self.simplex_iteration(basis, show_steps)
-
             counter += 1
 
             show_steps and self.__append_to_steps(("5.02", counter))
             show_steps and self.__append_to_steps(("5.01", updated_lp))
         
         if basis is None:
-            certificate = np.zeros(self._c.shape[0])
-
+            certificate = (updated_lp._feasible_solution, np.zeros(self._c.shape[0]))
             k = np.argmax(updated_lp.c > 0)
-            certificate[basis] = -updated_lp.A[:, k]
-            certificate[k] = 1
-            print(certificate)
-            
+            certificate[1][updated_lp._feasible_basis] = -updated_lp.A[:, k]
+            certificate[1][k] = 1
+
             show_steps and self.__append_to_steps("5.05")
         else:
             converted_basis = self.__to_array_indexing(basis)
             certificate = np.linalg.inv(self._A[:, converted_basis].T) @ self._c[converted_basis]
+            certificate[negative_indices] *= -1
 
             show_steps and self.__append_to_steps(("5.03", solution))
             show_steps and self.__append_to_steps(("5.04", basis))
             show_steps and self.__append_to_steps(("5.06", certificate))
+
+        self._b[negative_indices] *= -1
+        self._A[negative_indices] *= -1
         
         return solution, basis, certificate
 
@@ -686,7 +682,7 @@ class LinearProgram:
 
     def simplex_iteration(self, basis: List[int], show_steps: bool=True, in_place: bool=False) -> Tuple[Optional[np.ndarray], Optional[List[int]], "LinearProgram"]:
         """
-        Computes a single iteration of the simplex algorithm with Bland's rule. Returns a solution
+        Computes a single iteration of the simplex algorithm with Bland's rule. Returns the optimal solution
         if it has been found, the next or optimal basis if it exists, and the updated linear program. 
         This operation requires the program to be in SEF.
 
@@ -705,7 +701,7 @@ class LinearProgram:
         -------
         result : Tuple[Optional[np.ndarray], Optional[List[int]], "LinearProgram"]
             The solution vector, the basis, and the updated program. If the basis is none,
-            then the linear program is unbounded with the solution being one feasible instance.
+            then the linear program is unbounded.
 
         """
         if not self._is_sef:
@@ -718,7 +714,6 @@ class LinearProgram:
             raise ValueError("The given basis is invalid.")
 
         basis = self.__to_array_indexing(basis)
-        status = "solving"
 
         basis.sort()
 
@@ -734,6 +729,9 @@ class LinearProgram:
         k = None
 
         if (self._c[N] <= 0).all():
+            if (x < 0).any():
+                raise ArithmeticError("The given linear program is infeasible.")
+
             return x, self.__to_math_indexing(basis), self
 
         for i in N:
@@ -747,7 +745,10 @@ class LinearProgram:
         t = math.inf
 
         if (Ak <= 0).all():
-            return x, self.__to_math_indexing(basis), status, self # TODO BASIS HAS BEEN PROVIDED
+            self._feasible_solution = x
+            self._feasible_basis = basis
+
+            return None, None, self
 
         for i in range(len(Ak)):
             if Ak[i] > 0:
@@ -761,7 +762,7 @@ class LinearProgram:
         basis.append(k)
         basis.sort()
 
-        return None, self.__to_math_indexing(basis), status, self
+        return None, self.__to_math_indexing(basis), self
 
 
 
