@@ -159,6 +159,8 @@ class TestSimplex(TestCase):
         c = np.array([1, 1, 1])
         z = 0
 
+        p = LinearProgram(A, b, c, z)
+
         with self.assertRaises(ArithmeticError, msg="Should throw exception if infeasible."):
             p.simplex([1, 2, 3])
 
@@ -170,6 +172,8 @@ class TestSimplex(TestCase):
         b = np.array([12, 8, 4])
         c = np.array([4, 3, 0, 0, 0])
         z = 0
+
+        p = LinearProgram(A, b, c, z)
 
         with self.assertRaises(ArithmeticError, msg="Should throw exception if infeasible."):
             p.simplex([3, 4, 5])
