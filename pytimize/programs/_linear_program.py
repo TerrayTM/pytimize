@@ -14,17 +14,17 @@ from typing import List, Tuple, Optional, Union
 class LinearProgram:
     def __init__(self, A, b, c, z, objective: str="max", inequalities: List[str]=None, free_variables: List[int]=None):
         """
-        Constructs a linear programming model of the form [objective]{cx + z : Ax [inequalities] b, variables >= 0},
+        Constructs a linear program of the form [objective]{cx + z : Ax [inequalities] b, variables >= 0},
         where objective denotes whether this is a maximization or minimization problem, inequalities is a list of 
         operators between Ax and b, and variables are entries of x that are not free.
 
         Parameters
         ----------
         A : 2D array-like of int, float
-            The coefficient matrix of the model. 
+            The coefficient matrix of the constraints. 
 
         b : array-like of int, float
-            The constraint values of the model.
+            The values of the constraints.
 
         c : array-like of int, float
             The coefficient vector of the objective function.
@@ -33,11 +33,11 @@ class LinearProgram:
             The constant of the objective function.
 
         objective : str, optional (default="max")
-            The objective of the linear programming model. Must be either "max" or "min".
+            The objective of the program. Must be either `max` or `min`.
 
         inequalities : array-like of str ["=", ">=", "<="], optional (default=None)
             The operator type between Ax and b. Each index of the array-like corresponds to the same index of the 
-            constraint row. If input is "None", the constraint becomes Ax = b.
+            constraint row. If input is none, the constraint becomes Ax = b.
 
         free_variables : array-like of int, optional (default=None)
             The variables that are not bounded to be nonnegative. Use math indexing to represent the free ones.
@@ -562,8 +562,40 @@ class LinearProgram:
 
 
 
-    def solve(self, show_steps: bool=True):
-        pass # TODO implement
+    def solve(self, show_steps: bool=True) -> Optional[np.ndarray]:
+        """
+        Solves the linear program and returns an optimal solution if one exists.
+
+        Parameters
+        ----------
+        show_steps : bool (default=True)
+            Whether or not the steps should be displayed.
+
+        Returns
+        -------
+        result : Optional[np.ndarray]
+            The optimal solution of the program.
+
+        """
+        if self._is_sef:
+            return self.two_phase_simplex()[0]
+        
+        sef = self.to_sef(show_steps)
+        solution = sef.two_phase_simplex(show_steps)[0]
+
+        if solution is not None:
+            solution = np.delete(solution, np.s_[self._c.shape[0]:self._c.shape[0] + sef._reverse_sef["drop"]], 0)
+
+            # for i in sef._reverse_sef["concat"]:
+            #     index = i - 
+            #     solution[i] -= solution[i + 1]
+
+            #     solution = np.delete(solution, i + 1, 1)
+            # TODO
+            # If conversion of basis and certificate to original is possible add them to return
+            # else ignore
+
+        return solution
 
 
 
@@ -590,12 +622,10 @@ class LinearProgram:
         if not self._is_sef:
             raise ArithmeticError("Linear program must be in SEF.")
 
-        p_aux = self.create_auxiliary(show_steps)
+        p_aux = self.create_auxiliary(show_steps).to_sef(show_steps, True)
         rows, columns = self._A.shape
         basis = [i for i in range(columns + 1, rows + columns + 1)]
         negative_indices = np.where(self._b < 0)
-
-        p_aux.to_sef(in_place=True)
 
         solution, basis, certificate = p_aux.simplex(basis)
 
@@ -800,18 +830,22 @@ class LinearProgram:
 
 
 
-    def verify_infeasibility(self, certificate):
+    def verify_infeasibility(self, certificate: Union[np.ndarray, List[float]], show_steps: bool=True) -> bool:
         """
         Verifies the certificate of infeasibility.
 
         Parameters
         ----------
-        y : array-like of int, float
+        certificate : Union[np.ndarray, List[float]]
+            The certificate to validated.
+
+        show_steps : bool (default=True)
+            Whether or not the steps should be displayed.
 
         Returns
         -------
         result : bool
-            Whether or not the certificate is valid. #review needed
+            Whether or not the certificate is valid.
 
         """
         if not self._is_sef: # Requires SEF?
@@ -825,19 +859,25 @@ class LinearProgram:
 
 
 
-    def verify_unboundedness(self, x, certificate):
+    def verify_unboundedness(self, x: Union[np.ndarray, List[float]], certificate: Union[np.ndarray, List[float]], show_steps: bool=True) -> bool:
         """
         Verifies the certificate of unboundedness.
 
         Parameters
         ----------
-        x : array-like of int, float
+        x : Union[np.ndarray, List[float]]
+            A feasible solution for the linear program.
 
-        d : array-like of int, float
+        certificate : Union[np.ndarray, List[float]]
+            The certificate to validated.
+
+        show_steps : bool (default=True)
+            Whether or not the steps should be displayed.
 
         Returns
         -------
-        result :
+        result : bool
+            Whether or not the certificate is valid.
 
         """
         certificate = self.__to_ndarray(certificate)
@@ -857,26 +897,28 @@ class LinearProgram:
 
 
     #TODO verify all verifies work for both max and min
-    def verify_optimality(self, certificate):
+    def verify_optimality(self, certificate: Union[np.ndarray, List[float]], show_steps: bool=True) -> bool:
         """
         Verifies the certificate of optimality.
 
         Parameters
         ----------
-        certificate : array-like of float
-            The certificate
+        certificate : Union[np.ndarray, List[float]]
+            The certificate to validated.
+
+        show_steps : bool (default=True)
+            Whether or not the steps should be displayed.
 
         Returns
         -------
         result : bool
-            Whether the given certificate certifies optimality or not.
+            Whether or not the certificate is valid.
 
         """
-        certificate = self.__to_ndarray(certificate)
-
         if not self._is_sef: # TODO Requires SEF?
             raise ArithmeticError()
 
+        certificate = self.__to_ndarray(certificate)
         test = self._c - certificate @ self._A
         
         return self.__is_close_compare(test, 0, "<")
@@ -980,7 +1022,7 @@ class LinearProgram:
 
 
     
-    def graph_polyhedron(self, graph_limit = 1000):
+    def graph_polyhedron(self, graph_limit: float=1000) -> None:
         """
         Graphs the feasible region of the linear program. Only supports 2 dimensional visualization.
 
@@ -1006,7 +1048,7 @@ class LinearProgram:
         copy_A = self._A.copy()
         copy_b = self._b.copy()
 
-        copy_A = np.append(copy_A, [[1, 0], [1, 0], [0, 1], [0, 1]], axis=0)
+        copy_A = np.append(copy_A, [[1, 0], [1, 0], [0, 1], [0, 1]], 0)
         copy_b = np.append(copy_b, [graph_limit, -graph_limit, graph_limit, -graph_limit])
 
         num_inequalities = len(self._inequality_indices)
@@ -1162,6 +1204,14 @@ class LinearProgram:
         """
         Converts the linear program to standard equality form.
 
+        Parameters
+        ----------
+        show_steps : bool (default=True)
+            Whether or not the steps should be displayed.
+
+        in_place : bool (default=False)
+            Whether or not the operation should be performed in place. 
+
         Returns
         -------
         result : "LinearProgram"
@@ -1185,11 +1235,15 @@ class LinearProgram:
                 ("3.03", -self._c, self._c)
             ])
 
+        self._reverse_sef = { "drop": 0, "concat": [] }
+
+        # TODO check if free variables need to be sorted
         for i in range(len(self._free_variables)):
             index = self._free_variables[i] + i
-
             self._c = np.insert(self._c, index + 1, -self._c[index])
-            self._A = np.insert(self._A, index + 1, -self._A[:, index], axis=1)
+            self._A = np.insert(self._A, index + 1, -self._A[:, index], 1)
+
+            self._reverse_sef["concat"].append(index)
 
         self._free_variables = []
 
@@ -1199,10 +1253,12 @@ class LinearProgram:
                 self._A = np.c_[self._A, np.zeros(self._A.shape[0])]
                 self._c = np.r_[self._c, 0]
 
-                if (operator == ">="):
+                if operator == ">=":
                     self._A[i, -1] = -1
-                elif (operator == "<="):
+                elif operator == "<=":
                     self._A[i, -1] = 1
+                
+                self._reverse_sef["drop"] += 1
 
         self._inequality_indices = {}
         self._is_sef = True
@@ -1801,4 +1857,4 @@ class LinearProgram:
         result : bool
 
         """
-        return self.__is_in_rref()
+        return self.__is_in_rref(self._A)
