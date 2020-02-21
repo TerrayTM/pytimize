@@ -558,7 +558,7 @@ class LinearProgram:
         c_aux = np.zeros(columns + rows)
         c_aux[columns:] = 1
 
-        return LinearProgram(A_aux, b_aux, c_aux, self._z, "min")
+        return LinearProgram(A_aux, b_aux, c_aux, 0, "min")
 
 
 
