@@ -18,7 +18,7 @@ class DisjointSet:
         """
         Finds the representative of the set that `search` is an element of.
         """
-        if search not in self._set.keys():
+        if search not in self._set:
             raise ValueError("The given search element is not in collection.")
         
         if self._set[search] == search:
@@ -33,7 +33,7 @@ class DisjointSet:
 
 
     def union(self, set_one: str, set_two: str) -> None:
-        if set_one not in self._set.keys() or set_two not in self._set.keys():
+        if set_one not in self._set or set_two not in self._set:
             raise ValueError("The representative of the set is not in collection.")
         
         parent_one = self.find(set_one)

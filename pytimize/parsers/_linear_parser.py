@@ -12,7 +12,7 @@ class LinearParser:
       for sign, coefficient, index in term.findall(expression):
         index = int(index) - 1
         
-        if index in data.keys():
+        if index in data:
           raise Exception()
         else:
           data[index] = float(("-" if sign == "-" else "") + coefficient)

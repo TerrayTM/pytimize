@@ -27,7 +27,7 @@ class UndirectedGraph: #TODO validation
 
 
   def add_edge(self, edge: Tuple[str, str], weight: float=0) -> None:
-    if edge[0] in self._graph.keys() and any(node[0] == edge[1] for node in self._graph[edge[0]]):
+    if edge[0] in self._graph and any(node[0] == edge[1] for node in self._graph[edge[0]]):
       raise ValueError("The given edge is already in graph.")
 
     if weight < 0:
@@ -57,12 +57,12 @@ class UndirectedGraph: #TODO validation
 
 
   def has_edge(self, edge: Tuple[str, str]) -> bool:
-    return edge[0] in self._graph.keys() and edge[1] in self._graph[edge[0]]
+    return edge[0] in self._graph and edge[1] in self._graph[edge[0]]
 
 
 
   def has_vertex(self, vertex: str) -> bool:
-    return vertex in self._graph.keys()
+    return vertex in self._graph
 
 
 
@@ -75,10 +75,10 @@ class UndirectedGraph: #TODO validation
 
 
   def shortest_path(self, start: str, end: str) -> List[Tuple[str, str]]:
-    if start not in self._graph.keys():
+    if start not in self._graph:
       raise ValueError("Starting vertex is not in graph.")
 
-    if end not in self._graph.keys():
+    if end not in self._graph:
       raise ValueError("Ending vertex is not in graph.")
 
     potential = {}
@@ -94,7 +94,7 @@ class UndirectedGraph: #TODO validation
         for edge in self._graph[vertex]:
           if edge[0] not in visited:
             edge_hash = self.__hash_edge((edge[0], vertex))
-            slack = edge[1] - (potential[edge_hash] if edge_hash in potential.keys() else 0)
+            slack = edge[1] - (potential[edge_hash] if edge_hash in potential else 0)
 
             #print(edge_hash, slack)
 
@@ -127,10 +127,10 @@ class UndirectedGraph: #TODO validation
 
 
   def formulate_shortest_path(self, start: str, end: str) -> "LinearProgram":
-    if start not in self._graph.keys():
+    if start not in self._graph:
       raise ValueError("Starting vertex is not in graph.")
 
-    if end not in self._graph.keys():
+    if end not in self._graph:
       raise ValueError("Ending vertex is not in graph.")
 
     vertices = self.vertices

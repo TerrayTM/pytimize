@@ -139,7 +139,7 @@ class DirectedGraph:
             If the node is in the digraph or not.
 
         """
-        return node in self._nodes.keys()
+        return node in self._nodes
 
 
 
@@ -158,7 +158,7 @@ class DirectedGraph:
             If the arc is in the digraph or not.
 
         """
-        return arc in self._arcs.keys()
+        return arc in self._arcs
 
 
 
