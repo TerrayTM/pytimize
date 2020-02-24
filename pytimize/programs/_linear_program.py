@@ -629,7 +629,7 @@ class LinearProgram:
 
         solution, basis, certificate = p_aux.simplex(basis)
 
-        if self.__is_close_to_zero(p_aux.value_of(solution)):
+        if self.__is_close_to_zero(p_aux.evaluate(solution)):
             p_basis = basis
 
             if not self.is_basis(p_basis):
@@ -832,7 +832,8 @@ class LinearProgram:
 
     def verify_infeasibility(self, certificate: Union[np.ndarray, List[float]], show_steps: bool=True) -> bool:
         """
-        Verifies the certificate of infeasibility.
+        Verifies the certificate of infeasibility. This operation requires 
+        the program to be in SEF.
 
         Parameters
         ----------
@@ -848,8 +849,8 @@ class LinearProgram:
             Whether or not the certificate is valid.
 
         """
-        if not self._is_sef: # Requires SEF?
-            raise ArithmeticError()
+        if not self._is_sef:
+            raise ArithmeticError("Linear program must be in SEF.")
 
         certificate = self.__to_ndarray(certificate)
         yA = certificate @ self._A
@@ -861,7 +862,8 @@ class LinearProgram:
 
     def verify_unboundedness(self, x: Union[np.ndarray, List[float]], certificate: Union[np.ndarray, List[float]], show_steps: bool=True) -> bool:
         """
-        Verifies the certificate of unboundedness.
+        Verifies the certificate of unboundedness. This operation requires 
+        the program to be in SEF.
 
         Parameters
         ----------
@@ -880,6 +882,9 @@ class LinearProgram:
             Whether or not the certificate is valid.
 
         """
+        if not self._is_sef:
+            raise ArithmeticError("Linear program must be in SEF.")
+
         certificate = self.__to_ndarray(certificate)
         x = self.__to_ndarray(x)
 
@@ -896,10 +901,10 @@ class LinearProgram:
 
 
 
-    #TODO verify all verifies work for both max and min
     def verify_optimality(self, certificate: Union[np.ndarray, List[float]], show_steps: bool=True) -> bool:
         """
-        Verifies the certificate of optimality.
+        Verifies the certificate of optimality. This operation requires 
+        the program to be in SEF.
 
         Parameters
         ----------
@@ -915,8 +920,8 @@ class LinearProgram:
             Whether or not the certificate is valid.
 
         """
-        if not self._is_sef: # TODO Requires SEF?
-            raise ArithmeticError()
+        if not self._is_sef:
+            raise ArithmeticError("Linear program must be in SEF.")
 
         certificate = self.__to_ndarray(certificate)
         test = self._c - certificate @ self._A
@@ -1142,13 +1147,19 @@ class LinearProgram:
 
 
 
-    def evaluate(self, x):
+    def evaluate(self, x: Union[np.ndarray, List[float]]) -> float:
         """
-        Evaluates the objective function with a given vector. Does not check if x satisfies the constraints.
+        Evaluates the objective function with a given vector.
+
+        Parameters
+        ----------
+        x : Union[np.ndarray, List[float]]
+            The input vector.
 
         Returns
         -------
         result : float
+            The value of the program with respect to the vector.
 
         """
         x = self.__to_ndarray(x)
@@ -1160,13 +1171,20 @@ class LinearProgram:
 
 
 
-    def value_of(self, x):
+    def value_of(self, x: Union[np.ndarray, List[float]]) -> float:
         """
-        Computes the value of a given x vector. The vector must satisfy the constraints.
-        
+        Evaluates the objective function with a given vector. This operation requires 
+        the vector to be feasible.
+
+        Parameters
+        ----------
+        x : Union[np.ndarray, List[float]]
+            The input vector.
+
         Returns
         -------
         result : float
+            The value of the program with respect to the vector.
         
         """
         x = self.__to_ndarray(x)
