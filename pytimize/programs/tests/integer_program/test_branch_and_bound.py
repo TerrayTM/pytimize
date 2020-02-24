@@ -15,8 +15,6 @@ class TestBranchAndBound(TestCase):
 
         p = IntegerProgram(A, b, c, z, "max", ["<=", "<="], None, [0, 1])
 
-        #p = p.to_sef()
-        
         self.assertTrue(np.allclose(p.branch_and_bound(), [4, 0]), "Should be the same solution.")
 
 if __name__ == "__main__":
