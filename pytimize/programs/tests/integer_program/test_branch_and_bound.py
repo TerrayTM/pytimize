@@ -16,11 +16,7 @@ class TestBranchAndBound(TestCase):
         p = IntegerProgram(A, b, c, z, "max", ["<=", "<="], None, [0, 1])
 
         #p = p.to_sef()
-
-        #self.assertTrue(np.allclose(p.A, copy.A), "Should be the same coefficient matrix.")
-        #self.assertEqual(copy.objective, "min", "Should be the same objective.")
-        #self.assertFalse(copy.is_sef, "Should be the same SEF state.")
-        #self.assertNotEqual(copy.objective, p.objective, "Should not copy by reference.")
+        
         self.assertTrue(np.allclose(p.branch_and_bound(), [4, 0]), "Should be the same solution.")
 
 if __name__ == "__main__":
