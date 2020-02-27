@@ -1,7 +1,9 @@
-from . import LinearProgram
-from typing import List
 import numpy as np
 import copy
+
+from . import LinearProgram
+from typing import List
+from typing import List, Tuple, Optional, Union
 
 class IntegerProgram(LinearProgram):
     def __init__(self, A, b, c, z, objective: str="max", inequalities: List[str]=None, free_variables: List[int]=None, integral_variables: List[int]=None):
@@ -14,14 +16,14 @@ class IntegerProgram(LinearProgram):
 
 
 
-    def branch_and_bound(self):
+    def branch_and_bound(self) -> Optional[np.ndarray]:
         """
         Applies the branch and bound solution method.
 
         Returns
         -------
         result : Optional[ndarray of int]
-            The optimal solution of the program.
+            The optimal solution of the program. None if IP is infeasible or unbounded.
 
         """
 
@@ -35,17 +37,18 @@ class IntegerProgram(LinearProgram):
 
 
     
-    def __branch(self, lp):
+    def __branch(self, lp: LinearProgram) -> Optional[np.ndarray]:
         """
         The recursive portion of the branch and bound solution method.
 
         Parameters
         -------
         lp : LinearProgram
+            The relaxation of the IP with the necessary bounds as additional constraints.
 
         Returns
         -------
-        result : Optional[list (ndarray of int, int)]
+        result : Optional[List (ndarray of int, int)]
             The optimal solution of the program, and its corresponding optimal value.
 
         """
@@ -118,8 +121,44 @@ class IntegerProgram(LinearProgram):
         return [solution, opt_value]  # solution passes constraints
     
 
-    def cutting_plane(self):
+
+    def cutting_plane(self) -> Optional[np.ndarray]:
+        """
+        Applies the cutting plane solution method.
+
+        Returns
+        -------
+        result : Optional[ndarray of int]
+            The optimal solution of the program. None if IP is infeasible or unbounded.
+
+        """
         pass
+
+
+
+    def __find_cutting_plane(self, lp: LinearProgram, sln: np.ndarray) -> Tuple[np.ndarray, str, float]:
+        """
+        Finds a cutting plane (additional constraint) for the cutting plane solution method.
+
+        Parameters
+        -------
+        lp : LinearProgram
+            The relaxation of the IP with the already applied cutting planes as additional constraints.
+
+        sln : ndarray
+            The current optimal solution to lp. Must be non-integral for this method to be called.
+
+        Returns
+        -------
+        result : Tuple[np.ndarray, str, float]
+            The new cutting plane, to be added as a constraint on lp. Format of the tuple:
+            The coefficient array, the inequality, and the bound.
+            i.e. x_1 - 3x_2 <= 6 is the new cutting plane, and becomes ([1, -3], "<=", 6)
+
+        """
+        pass
+
+
 
     def linear_program_relaxation(self):
         """
