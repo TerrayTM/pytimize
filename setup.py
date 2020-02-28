@@ -4,7 +4,7 @@ with open("README.md", "r") as file:
     long_description = file.read()
 
 setup(
-   name="Pytimize",
+   name="pytimize",
    version="0.0.1",
    description="Python optimization library for mathematical programming.",
    long_description=long_description,

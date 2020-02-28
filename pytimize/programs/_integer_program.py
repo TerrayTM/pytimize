@@ -27,7 +27,7 @@ class IntegerProgram(LinearProgram):
 
         """
 
-        relaxation = self.linear_program_relaxation()
+        relaxation = self.create_relaxation()
 
         result = self.__branch(relaxation)
 
@@ -135,7 +135,7 @@ class IntegerProgram(LinearProgram):
         pass
 
 
-
+    # TODO make public function so user can call find cutting plane which returns the constraint
     def __find_cutting_plane(self, lp: LinearProgram, sln: np.ndarray) -> Tuple[np.ndarray, str, float]:
         """
         Finds a cutting plane (additional constraint) for the cutting plane solution method.
@@ -160,7 +160,7 @@ class IntegerProgram(LinearProgram):
 
 
 
-    def linear_program_relaxation(self):
+    def create_relaxation(self):
         """
         Creates the LP relaxation of the current IP.
 

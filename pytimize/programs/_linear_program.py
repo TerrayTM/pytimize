@@ -12,7 +12,7 @@ from typing import List, Tuple, Optional, Union
 # TODO: for make independent rows, check for sef at end
 # TODO: add <= to variables
 class LinearProgram:
-    def __init__(self, A, b, c, z, objective: str="max", inequalities: List[str]=None, free_variables: List[int]=None):
+    def __init__(self, A: Union[np.ndarray, List[List[float]]], b, c, z: float=0, objective: str="max", inequalities: List[str]=None, free_variables: List[int]=None):
         """
         Constructs a linear program of the form [objective]{cx + z : Ax [inequalities] b, variables >= 0},
         where objective denotes whether this is a maximization or minimization problem, inequalities is a list of 
@@ -29,7 +29,7 @@ class LinearProgram:
         c : array-like of int, float
             The coefficient vector of the objective function.
 
-        z : int, float
+        z : float (default=0)
             The constant of the objective function.
 
         objective : str, optional (default="max")
@@ -84,7 +84,7 @@ class LinearProgram:
             if len(free_variables) > c.shape[0]:
                 raise ValueError()
 
-        free_variables = self.__convert_indices(free_variables or [], 0, c.shape[0])
+        free_variables = self.__convert_indices(free_variables or [], 0, c.shape[0]) # Must update to use new function
         free_variables.sort()
 
         self._A = A
@@ -232,6 +232,16 @@ class LinearProgram:
         output += "x ≥ 0\n" # TODO add variable constraints
 
         return output
+
+
+    # TODO
+    def append_constraint(self, row, value, sign):
+        pass
+
+
+    # TODO
+    def append_variable(self):
+        pass
 
 
 
@@ -586,14 +596,13 @@ class LinearProgram:
         if solution is not None:
             solution = np.delete(solution, np.s_[self._c.shape[0]:self._c.shape[0] + sef._reverse_sef["drop"]], 0)
 
-            # for i in sef._reverse_sef["concat"]:
-            #     index = i - 
-            #     solution[i] -= solution[i + 1]
-
-            #     solution = np.delete(solution, i + 1, 1)
+            for i, index in enumerate(sef._reverse_sef["concat"]):
+                index -= i - 1
+                solution[index] -= solution[index]
+                solution = np.delete(solution, index)
             # TODO
             # If conversion of basis and certificate to original is possible add them to return
-            # else ignore
+            # Distinguish between unbounded and infeasible 
 
         return solution
 
@@ -1255,7 +1264,6 @@ class LinearProgram:
 
         self._reverse_sef = { "drop": 0, "concat": [] }
 
-        # TODO check if free variables need to be sorted
         for i in range(len(self._free_variables)):
             index = self._free_variables[i] + i
             self._c = np.insert(self._c, index + 1, -self._c[index])
