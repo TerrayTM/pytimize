@@ -44,6 +44,41 @@ class TestSolve(TestCase):
         
         self.assertTrue(np.allclose(p.solve(), [4, 1, 2, 0, 0, 0, 0, 0]), "Should compute correct solution.")
 
+        A = np.array([
+            [1, 1]
+        ])
+        b = np.array([5])
+        c = np.array([1, 0])
+        z = 0
+
+        p = LinearProgram(A, b, c, z, inequalities=["<="], free_variables=[1])
+        
+        self.assertTrue(np.allclose(p.solve(), [5, 0]), "Should compute correct solution.")
+
+        A = np.array([
+            [-1, 2, 4, 2, -1],
+            [0, 1, 0, 1, 1],
+            [0, 5, 1, 2, 0]
+        ])
+        b = np.array([6, 1, 7])
+        c = np.array([-1, 8, 5, 5, 0])
+        z = -14
+
+        p = LinearProgram(A, b, c, z, inequalities=["<=", "<=", "<="], free_variables=[1, 2, 3, 4, 5])
+        self.assertTrue(np.allclose(p.solve(), [4, 1, 2, 0, 0]), "Should compute correct solution.")
+
+        A = np.array([
+            [-1, 2, 4, 2, -1],
+            [0, 1, 0, 1, 1],
+            [0, 5, 1, 2, 0]
+        ])
+        b = np.array([6, 1, 7])
+        c = np.array([-1, 8, 5, 5, 0])
+        z = -14
+        
+        p = LinearProgram(A, b, c, z, inequalities=["<=", "<=", "<="], free_variables=[1, 3, 5])
+        self.assertTrue(np.allclose(p.solve(), [4, 1, 2, 0, 0]), "Should compute correct solution.")
+
     def test_solve_sef(self) -> None:
         A = np.array([
             [-1, 2, 4, 2, -1, 1, 0, 0],
