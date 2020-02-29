@@ -99,7 +99,7 @@ class TestSolve(TestCase):
         c = np.array([0, 0, 1])
         z = 0
 
-        p = LinearProgram(A, b, c, z, "min", ['<=', '>=', '<=', '>=', '<=', '>=', '<=', '>=', '<=', '>=', '<=', '>=', '<=', '>='], None)
+        p = LinearProgram(A, b, c, z, "min", ["<=", ">=", "<=", ">=", "<=", ">=", "<=", ">=", "<=", ">=", "<=", ">=", "<=", ">="])
         self.assertTrue(np.allclose(p.solve(), [2, 0, 1]), "Should compute correct solution.")
 
     def test_solve_sef(self) -> None:
