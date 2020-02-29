@@ -867,14 +867,15 @@ class LinearProgram:
         N = [i for i in range(self._A.shape[1]) if i not in basis]
         k = None
 
-        if (self._c[N] <= 0).all():
-            if (x < 0).any():
-                raise ArithmeticError("The given linear program is infeasible.")
+        if self.__is_close_compare(self._c[N], "<=", 0):
+            for i in x:
+                if self.__is_close_compare(i, "<", 0):
+                    raise ArithmeticError("The given linear program is infeasible.")
 
             return x, self.__to_math_indexing(basis), self
 
         for i in N:
-            if self._c[i] > 0:
+            if self.__is_close_compare(self._c[i], ">", 0):
                 k = i
 
                 break
@@ -883,17 +884,17 @@ class LinearProgram:
         leave = None
         t = math.inf
 
-        if (Ak <= 0).all():
+        if self.__is_close_compare(Ak, "<=", 0):
             self._feasible_solution = x
             self._feasible_basis = basis
 
             return None, None, self
 
         for i in range(len(Ak)):
-            if Ak[i] > 0:
+            if self.__is_close_compare(Ak[i], ">", 0):
                 ratio = self._b[i] / Ak[i]
 
-                if ratio < t:
+                if self.__is_close_compare(ratio, "<", t):
                     t = ratio
                     leave = i 
         
