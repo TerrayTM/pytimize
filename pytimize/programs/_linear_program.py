@@ -1,6 +1,7 @@
-import functools
 import math
 import copy
+import random
+import functools
 import numpy as np
 
 from ..parsers._description_parser import render_descriptor
@@ -98,6 +99,24 @@ class LinearProgram:
         self._free_variables = free_variables
 
 
+
+    @staticmethod
+    def random() -> "LinearProgram":
+        """
+        Generates a linear program filled with dummy data.
+
+        """
+        # TODO needs work
+        x = random.randint(2, 10)
+        y = random.randint(2, 10)
+        A = np.round(np.random.rand(x, y) * 20)
+        b = np.random.rand(x) * 20
+        c = np.random.rand(y) * 20
+        z = random.randint(-100, 100)
+
+        return LinearProgram(A, b, c, z)
+
+
     # TODO If in SEF output x >= 0 else output correct inequalities
     # EXAMPLE
     #====================================
@@ -116,7 +135,7 @@ class LinearProgram:
     # [-2. 3.  1.  0. -1. 0. 0. 1. 0.]x    =   [5.]
     # [1.  -1. -1. 0. 0. -1. 0. 0. 1.]     =   [1.]
     # x ≥ 0
-    def __str__(self):
+    def __repr__(self):
         """
         Generates a nicely formatted string representation of the linear program.
 
@@ -234,9 +253,56 @@ class LinearProgram:
         return output
 
 
-    # TODO
-    def append_constraint(self, row, value, sign):
-        pass
+
+    def append_constraint(self, coefficients: Union[np.ndarray, List[float]], value: float, inequality: str="=", in_place: bool=False) -> "LinearProgram":
+        """
+        Appends a linear constraint of the form `<coefficients>x <inequality> <value>` to the program.
+
+        Parameters
+        ----------
+        coefficients : Union[np.ndarray, List[float]]
+            The coefficient vector of the constraint. This will be appended to `A`.
+
+        value : float
+            The value of the constraint. This will be appended to `b`.
+        
+        inequality : str (default="=")
+            The inequality of the constraint. This will be appended to `inequalities`.
+        
+        in_place : bool (default=False)
+            Whether or not the operation should be performed in place. 
+
+        Returns
+        -------
+        result : "LinearProgram"
+            The program with the new constraint added.
+
+        """
+        if not in_place:
+            return self.copy().append_constraint(coefficients, value, inequality, True)
+
+        coefficients = self.__to_ndarray(coefficients)
+
+        if not coefficients.ndim == 1:
+            raise ValueError()
+
+        if not coefficients.shape[0] == self._c.shape[0]:
+            raise ValueError()
+
+        if not inequality in {"=", ">=", "<="}:
+            raise ValueError()
+
+        if inequality == ">=" or inequality == "<=":
+            self._inequality_indices[self._A.shape[0]] = inequality
+            self._is_sef = False
+
+        # TODO check for linearly dependent rows
+
+        self._A = np.r_[self._A, [coefficients]]
+        self._b = np.r_[self._b, value]
+        
+        return self
+
 
 
     # TODO
