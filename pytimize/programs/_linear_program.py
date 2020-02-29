@@ -931,7 +931,7 @@ class LinearProgram:
         yA = certificate @ self._A
         yb = certificate @ self._b
 
-        return self.__is_close_compare(yA, 0, ">") and not self.__is_close_compare(yb, 0, ">")
+        return self.__is_close_compare(yA, ">=", 0) and self.__is_close_compare(yb, "<", 0)
 
 
 
@@ -966,13 +966,13 @@ class LinearProgram:
         if not self.is_feasible(x):
             return False
         
-        if self.__is_close_compare(self._c @ certificate, 0, "<"):
+        if self.__is_close_compare(self._c @ certificate, "<=", 0):
             return False
         
         if not np.allclose(self._A @ certificate, 0):
             return False
         
-        return self.__is_close_compare(certificate, 0, ">")
+        return self.__is_close_compare(certificate, ">=", 0)
 
 
 
@@ -1001,7 +1001,7 @@ class LinearProgram:
         certificate = self.__to_ndarray(certificate)
         test = self._c - certificate @ self._A
         
-        return self.__is_close_compare(test, 0, "<")
+        return self.__is_close_compare(test, "<=", 0)
 
 
 
@@ -1512,34 +1512,35 @@ class LinearProgram:
     def __is_close_to_zero(self, value: float) -> bool:
         """
         Checks if the given value is close to zero. Use this function over `math.isclose` for 
-        comparisions over 0.
+        comparison over 0.
         
         """
         return abs(value) < 1.0e-10
 
 
     # TODO replace <= and >= with the below function
-    def __is_close_compare(self, value: Union[float, np.ndarray], test: float, comparison: str) -> bool:
+    def __is_close_compare(self, value: Union[float, np.ndarray], comparison: str, test: float) -> bool:
         """
-        Performs less than or greater than comparision with equality. If the two values are
-        close enough then they are treated as equal.
+        Performs comparison between two numbers or an array and a number. Takes into account of
+        floating point rounding error.
         
         """
-        comparator = lambda x, y: x < y
+        comparator = self.__is_close_to_zero if test == 0 else lambda x: np.allclose(x, test)
+        result = None
 
-        if comparison == ">":
-            comparator = lambda x, y: x > y
-        #TODO replace vectorize and test with higher dimension arrays
-        if test == 0:
-            if isinstance(value, np.ndarray):
-                return np.vectorize(lambda x: self.__is_close_to_zero(x) or comparator(x, 0))(value).all()
-            
-            return self.__is_close_to_zero(value) or comparator(value, 0)
+        if comparison == ">=":            
+            result = np.logical_or(comparator(value), value >= test)
+        elif comparison == ">":
+            result = np.logical_and(np.logical_not(comparator(value)), value > test)
+        elif comparison == "<=":
+            result = np.logical_or(comparator(value), value <= test)
+        elif comparison == "<":
+            result = np.logical_and(np.logical_not(comparator(value)), value < test)
+        else:
+            raise ValueError("Invalid comparison operator.")
 
-        if isinstance(value, np.ndarray):
-            return np.vectorize(lambda x: math.isclose(x, test) or comparator(x, test))(value).all()
+        return result.all() if isinstance(result, np.ndarray) else result
 
-        return math.isclose(value, test) or comparator(value, test)
 
 
     def __get_free_variables(self):
