@@ -11,8 +11,16 @@ setup(
    author="Pytimize Development Team",
    author_email="pytimize@terrytm.com",
    url="https://pytimize.terrytm.com",
-   python_requires='>=3.8',
+   python_requires=">=3.8",
    packages=["pytimize"],
    install_requires=["numpy", "matplotlib"],
-   zip_safe=False
+   zip_safe=False,
+   classifiers=[
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved",
+        "Programming Language :: Python",
+        "Topic :: Software Development",
+        "Topic :: Scientific/Engineering"
+    ]
 )
