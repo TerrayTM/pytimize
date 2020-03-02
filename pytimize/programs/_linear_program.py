@@ -660,12 +660,13 @@ class LinearProgram:
         solution = sef.two_phase_simplex(show_steps)[0]
 
         if solution is not None:
-            solution = np.delete(solution, np.s_[self._c.shape[0]:self._c.shape[0] + sef._reverse_sef["drop"]], 0)
+            if sef._reverse_sef["drop"] > 0:
+                solution = solution[:-sef._reverse_sef["drop"]]
 
             for i, index in enumerate(sef._reverse_sef["concat"]):
-                index -= i - 1
-                solution[index] -= solution[index]
-                solution = np.delete(solution, index)
+                index -= i
+                solution[index] -= solution[index + 1]
+                solution = np.delete(solution, index + 1)
             # TODO
             # If conversion of basis and certificate to original is possible add them to return
             # Distinguish between unbounded and infeasible 
