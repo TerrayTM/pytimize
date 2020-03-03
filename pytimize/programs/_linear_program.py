@@ -10,38 +10,45 @@ from matplotlib import pyplot as plt
 from collections import deque
 from typing import List, Tuple, Optional, Union
 
+Matrix = Union[np.ndarray, List[List[float]]]
+Vector = Union[np.ndarray, List[float]]
+
 # TODO: for make independent rows, check for sef at end
 # TODO: add <= to variables
 class LinearProgram:
-    def __init__(self, A: Union[np.ndarray, List[List[float]]], b, c, z: float=0, objective: str="max", inequalities: List[str]=None, free_variables: List[int]=None):
+    def __init__(self, A: Matrix, b: Vector, c: Vector, z: float=0, objective: str="max", inequalities: List[str]=None, variable_constraints: List[str]=None):
         """
-        Constructs a linear program of the form [objective]{cx + z : Ax [inequalities] b, variables >= 0},
+        Constructs a linear program of the form `<objective> {cx + z : Ax <inequalities> b, <variable_constraints>}`,
         where objective denotes whether this is a maximization or minimization problem, inequalities is a list of 
-        operators between Ax and b, and variables are entries of x that are not free.
+        operators between Ax and b, and variable constraints are the restrictions on entries of x.
 
         Parameters
         ----------
-        A : 2D array-like of int, float
+        A : Matrix
             The coefficient matrix of the constraints. 
 
-        b : array-like of int, float
+        b : Vector
             The values of the constraints.
 
-        c : array-like of int, float
+        c : Vector
             The coefficient vector of the objective function.
 
         z : float (default=0)
             The constant of the objective function.
 
-        objective : str, optional (default="max")
+        objective : str (default="max")
             The objective of the program. Must be either `max` or `min`.
 
-        inequalities : array-like of str ["=", ">=", "<="], optional (default=None)
-            The operator type between Ax and b. Each index of the array-like corresponds to the same index of the 
-            constraint row. If input is none, the constraint becomes Ax = b.
+        inequalities : Optional[List[str]] (default=None)
+            The operator type between Ax and b. Each index of the list corresponds to the same row
+            index of the constraint. Entries of the list must be either `=`, `<=`, or `>=`. If none
+            is given, all operators are assumed to be equality (Ax = b).
 
-        free_variables : array-like of int, optional (default=None)
-            The variables that are not bounded to be nonnegative. Use math indexing to represent the free ones.
+        variable_constraints : Optional[Union[List[str], None]]] (default=None)
+            The restrictions on the vector x with respect to 0. Each index of the list corresponds 
+            to the same index of x. Entries of the list must be either `None`, `<=`, or `>=`. If none is
+            given as a list item, it signifies a free variable at that index. If none is given 
+            as an entire input, all restrictions are assumed to be greater than or equal to (x >= 0).
 
         """
         A = self.__to_ndarray(A)
@@ -55,38 +62,35 @@ class LinearProgram:
             raise ValueError()
 
         inequality_indices = {}
-        sef_condition = True
+        free_variables = []
+        negative_variables = []
 
         if inequalities is not None:
-            inequalities = self.__array_like_to_list(inequalities)
-
             if not len(inequalities) == b.shape[0]:
-                raise ValueError()
+                raise ValueError("The length of inequalities must match the number of rows in A.")
 
-            for i in range(len(inequalities)):
+            for i, inequality in enumerate(inequalities):
                 inequality = inequalities[i]
 
                 if inequality == ">=" or inequality == "<=":
                     inequality_indices[i] = inequality
-
-                    sef_condition = False
                 elif not inequality == "=":
-                    raise ValueError()
-            
-        if type(z) not in [int, float]:
-            raise ValueError()
+                    raise ValueError("Entries of inequalities must be either `>=`, `<=`, or `=`.")
 
-        if not objective == "max" and not objective == "min":
-            raise ValueError()
+        if variable_constraints is not None:
+            if not len(variable_constraints) == c.shape[0]:
+                raise ValueError("The length of variable constraints must match the number of columns in c.")
 
-        if free_variables is not None:
-            free_variables = self.__array_like_to_list(free_variables)
+            for i, constraint in enumerate(variable_constraints):
+                if constraint is None:
+                    free_variables.append(i)
+                elif constraint == "<=":
+                    negative_variables.append(i)
+                elif not constraint == ">=":
+                    raise ValueError("Entries of variable constraints should be either `None`, `<=`, or `<=`.")
 
-            if len(free_variables) > c.shape[0]:
-                raise ValueError()
-
-        free_variables = self.__convert_indices(free_variables or [], 0, c.shape[0]) # Must update to use new function
-        free_variables.sort()
+        if not objective in ["min", "max"]:
+            raise ValueError("Objective must be either `min` or `max`.")
 
         self._A = A
         self._b = b
@@ -95,8 +99,9 @@ class LinearProgram:
         self._steps = []
         self._objective = objective
         self._inequality_indices = inequality_indices
-        self._is_sef = sef_condition and len(free_variables) == 0 and objective == "max"
+        self._is_sef = len(inequality_indices) + len(free_variables) + len(negative_variables) == 0 and objective == "max"
         self._free_variables = free_variables
+        self._negative_variable = negative_variables
 
 
 
@@ -105,6 +110,11 @@ class LinearProgram:
         """
         Generates a linear program filled with dummy data.
 
+        Returns
+        -------
+        result : LinearProgram
+            A random linear program.
+    
         """
         # TODO needs work
         x = random.randint(2, 10)
@@ -142,7 +152,7 @@ class LinearProgram:
         Returns
         -------
         result : str
-            A string representation of the model.
+            A string representation of the program.
 
         """
         output = ""
@@ -274,7 +284,7 @@ class LinearProgram:
 
         Returns
         -------
-        result : "LinearProgram"
+        result : LinearProgram
             The program with the new constraint added.
 
         """
@@ -590,21 +600,38 @@ class LinearProgram:
             The corresponding dual program.
 
         """
-        pass
-    
-        #          max          |   min
-        #--------------------|-------------
-        #              <=   >= 0
-        #   constraint  =   free variable
-        #              >=   <= 0
-        #
-        #    variable  >=0  >=
-        #              free =  
-        #              <=0  <=  constraint
+        free_variables = []
+        negative_variables = []
+        inequality_indices = {}
+        free = set(self._free_variables)
+        negative = set(self._negative_variable)
+        objective = self._objective
 
-        #LinearProgram(self._A.T, self._c, self._b, 0)
+        for i in range(self._b.shape[0]):
+            if i in self._inequality_indices:
+                if self._inequality_indices == ">=" and objective == "max":
+                    negative_variables.append(i)
+            else:
+                free_variables.append(i)
+        
+        for i in range(self._c.shape[0]):
+            if i in negative:
+                inequality_indices[i] = "<=" if objective == "max" else ">="
+            elif not i in free:
+                inequality_indices[i] = ">=" if objective == "max" else "<="
 
-    
+        objective = "min" if objective == "max" else "max"
+        dual =  LinearProgram(self._A.T, self._c, self._b, 0, objective)
+
+        dual._inequality_indices = inequality_indices
+        dual._free_variables = free_variables
+        dual._negative_variable = negative_variables
+        dual._is_sef = len(inequality_indices) + len(free_variables) + len(negative_variables) == 0 and objective == "max"
+
+        return dual
+
+
+
     def create_auxiliary(self, show_steps: bool=True) -> "LinearProgram":
         """
         Creates the corresponding auxiliary program. This operation requires 
@@ -617,7 +644,7 @@ class LinearProgram:
 
         Returns
         -------
-        result : "LinearProgram"
+        result : LinearProgram
             The corresponding auxiliary program.
 
         """
@@ -839,7 +866,7 @@ class LinearProgram:
 
         Returns
         -------
-        result : Tuple[Optional[np.ndarray], Optional[List[int]], "LinearProgram"]
+        result : Tuple[Optional[np.ndarray], Optional[List[int]], LinearProgram]
             The solution vector, the basis, and the updated program. If the basis is none,
             then the linear program is unbounded.
 
@@ -1113,6 +1140,7 @@ class LinearProgram:
         Graph is limited to the region between -1000 and 1000 in both x and y coordinates.
 
         """
+        # TODO does this support free variables or negative ones? Need validation
         # run preliminary checks on data validity
         if not self._A.shape[1] == 2:
             raise ArithmeticError()
@@ -1279,7 +1307,7 @@ class LinearProgram:
 
         Returns
         -------
-        result : "LinearProgram"
+        result : LinearProgram
             The copy of the program.
 
         """
@@ -1309,7 +1337,7 @@ class LinearProgram:
 
         Returns
         -------
-        result : "LinearProgram"
+        result : LinearProgram
             The program in standard equality form.
 
         """
