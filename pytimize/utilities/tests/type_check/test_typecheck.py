@@ -395,6 +395,24 @@ class TestTypeCheck(TestCase):
 
         self.assertTrue(test.method(), "Should not crash on class method.")
 
+    def test_check_alias(self) -> None:
+        A = List[float]
+        B = int
+        C = Union[List[str], Tuple[int, int]]
+
+        @typecheck
+        def method(a: A, b: B, c: C) -> bool:
+            return True
+
+        self.assertTrue(method([1, 2, 3], 5, ["a"]), "Should check alias types.")
+        self.assertTrue(method([0.5], 1, (1, 2)), "Should check alias types.")
+
+        with self.assertRaises(TypeError, msg="Should throw error if invalid type."):
+            method([1, 2, 3], "a", [])
+    
+        with self.assertRaises(TypeError, msg="Should throw error if invalid type."):
+            method([], "b", (1, 2, 3))
+
     def test_no_annotation(self) -> None:
         @typecheck
         def method(a) -> bool:
