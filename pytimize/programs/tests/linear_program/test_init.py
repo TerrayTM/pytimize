@@ -18,7 +18,7 @@ class TestInit(TestCase):
     def test_init(self):
         inequalities = np.array(["=", "=", "="])
 
-        p = LinearProgram(self.A, self.b, self.c, self.z, "min", inequalities, [])
+        p = LinearProgram(self.A, self.b, self.c, self.z, "min", inequalities)
 
         self.assertTrue(np.allclose(p.A, self.A), "Should construct coefficient matrix.")
         self.assertTrue(np.allclose(p.b, self.b), "Should construct constraint values.")
@@ -128,26 +128,16 @@ class TestInit(TestCase):
         with self.assertRaises(ValueError, msg="Should throw exception if type of c is incorrect."):
             p = LinearProgram(self.A, self.b, c, self.z)
 
-        z = "test"
-
-        with self.assertRaises(ValueError, msg="Should throw exception if type of z is incorrect."):
-            p = LinearProgram(self.A, self.b, self.c, z)
-        
-        objective = 8
-
-        with self.assertRaises(ValueError, msg="Should throw exception if type of objective is incorrect."):
-            p = LinearProgram(self.A, self.b, self.c, self.z, objective)
-
         with self.assertRaises(ValueError, msg="Should throw exception if type of inequalities is incorrect."):
             p = LinearProgram(self.A, self.b, self.c, self.z, inequalities="test")
 
         with self.assertRaises(ValueError, msg="Should throw exception if inequalities have invalid values."):
             p = LinearProgram(self.A, self.b, self.c, self.z, inequalities=["+", 23])
         
-        with self.assertRaises(IndexError, msg="Should throw exception if free variables have invalid indices."):
+        with self.assertRaises(ValueError, msg="Should throw exception if free variables have invalid indices."):
             p = LinearProgram(self.A, self.b, self.c, self.z, free_variables=[0, 1])
 
-        with self.assertRaises(IndexError, msg="Should throw exception if free variables have invalid indices."):
+        with self.assertRaises(ValueError, msg="Should throw exception if free variables have invalid indices."):
             p = LinearProgram(self.A, self.b, self.c, self.z, free_variables=[4])
 
     def test_sef_detection(self):
