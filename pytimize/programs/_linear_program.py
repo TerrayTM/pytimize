@@ -14,13 +14,12 @@ Matrix = Union[np.ndarray, List[List[float]]]
 Vector = Union[np.ndarray, List[float]]
 
 # TODO: for make independent rows, check for sef at end
-# TODO: add <= to variables
 class LinearProgram:
-    def __init__(self, A: Matrix, b: Vector, c: Vector, z: float=0, objective: str="max", inequalities: List[str]=None, variable_constraints: List[str]=None):
+    def __init__(self, A: Matrix, b: Vector, c: Vector, z: float=0, objective: str="max", inequalities: Optional[List[str]]=None, free_variables: Optional[List[int]]=None, negative_variables: Optional[List[int]]=None):
         """
-        Constructs a linear program of the form `<objective> {cx + z : Ax <inequalities> b, <variable_constraints>}`,
+        Constructs a linear program of the form `<objective> {cx + z : Ax <inequalities> b, x >=0}`
         where objective denotes whether this is a maximization or minimization problem, inequalities is a list of 
-        operators between Ax and b, and variable constraints are the restrictions on entries of x.
+        operators between the rows of Ax and b, and x are the variables that neither free nor negative.
 
         Parameters
         ----------
@@ -40,15 +39,15 @@ class LinearProgram:
             The objective of the program. Must be either `max` or `min`.
 
         inequalities : Optional[List[str]] (default=None)
-            The operator type between Ax and b. Each index of the list corresponds to the same row
-            index of the constraint. Entries of the list must be either `=`, `<=`, or `>=`. If none
-            is given, all operators are assumed to be equality (Ax = b).
+            The operator type between the rows of Ax and b. Each index of the list corresponds to the 
+            same row index of the constraint. Entries of the list must be either `=`, `<=`, or `>=`. If none
+            is given, equality (Ax = b) will be assumed.
 
-        variable_constraints : Optional[Union[List[str], None]]] (default=None)
-            The restrictions on the vector x with respect to 0. Each index of the list corresponds 
-            to the same index of x. Entries of the list must be either `None`, `<=`, or `>=`. If none is
-            given as a list item, it signifies a free variable at that index. If none is given 
-            as an entire input, all restrictions are assumed to be greater than or equal to (x >= 0).
+        free_variables : Optional[List[int]] (default=None)
+            Indices of where the variables are free. Use math indexing (first position starts at 1).
+
+        negative_variables : Optional[List[int]] (default=None)
+            Indices of where the variables are negative (x <= 0). Use math indexing (first position starts at 1).
 
         """
         A = self.__to_ndarray(A)
@@ -62,8 +61,27 @@ class LinearProgram:
             raise ValueError()
 
         inequality_indices = {}
-        free_variables = []
-        negative_variables = []
+        free_variables = self.__to_array_indexing(free_variables) if free_variables is not None else []
+        negative_variables = self.__to_array_indexing(negative_variables) if negative_variables is not None else []
+        free_set = set(free_variables)
+        negative_set = set(negative_variables)
+
+        if len(free_variables) > 0:
+            if not len(free_set) == len(free_variables): 
+                raise ValueError("Duplicate indices are not allowed in free variables.")
+
+            if min(free_variables) < 0 or max(free_variables) >= c.shape[0]:
+                raise ValueError("Some free variable indices are invalid.")
+
+        if len(negative_variables) > 0:
+            if not len(negative_set) == len(negative_variables): 
+                raise ValueError("Duplicate indices are not allowed in negative variables.")
+
+            if min(negative_variables) < 0 or max(negative_variables) >= c.shape[0]:
+                raise ValueError("Some negative variable indices are invalid.")
+
+        if len(free_set.intersection(negative_set)) > 0:
+            raise ValueError("Variables cannot be both free and negative.")
 
         if inequalities is not None:
             if not len(inequalities) == b.shape[0]:
@@ -77,18 +95,6 @@ class LinearProgram:
                 elif not inequality == "=":
                     raise ValueError("Entries of inequalities must be either `>=`, `<=`, or `=`.")
 
-        if variable_constraints is not None:
-            if not len(variable_constraints) == c.shape[0]:
-                raise ValueError("The length of variable constraints must match the number of columns in c.")
-
-            for i, constraint in enumerate(variable_constraints):
-                if constraint is None:
-                    free_variables.append(i)
-                elif constraint == "<=":
-                    negative_variables.append(i)
-                elif not constraint == ">=":
-                    raise ValueError("Entries of variable constraints should be either `None`, `<=`, or `<=`.")
-
         if not objective in ["min", "max"]:
             raise ValueError("Objective must be either `min` or `max`.")
 
@@ -101,7 +107,7 @@ class LinearProgram:
         self._inequality_indices = inequality_indices
         self._is_sef = len(inequality_indices) + len(free_variables) + len(negative_variables) == 0 and objective == "max"
         self._free_variables = free_variables
-        self._negative_variable = negative_variables
+        self._negative_variables = negative_variables
 
 
 
@@ -264,7 +270,7 @@ class LinearProgram:
 
 
 
-    def append_constraint(self, coefficients: Union[np.ndarray, List[float]], value: float, inequality: str="=", in_place: bool=False) -> "LinearProgram":
+    def append_constraint(self, coefficients: Union[np.ndarray, List[float]], inequality: str, value: float, in_place: bool=False) -> "LinearProgram":
         """
         Appends a linear constraint of the form `<coefficients>x <inequality> <value>` to the program.
 
@@ -273,11 +279,11 @@ class LinearProgram:
         coefficients : Union[np.ndarray, List[float]]
             The coefficient vector of the constraint. This will be appended to `A`.
 
+        inequality : str
+            The inequality of the constraint. This will be appended to `inequalities`.
+
         value : float
             The value of the constraint. This will be appended to `b`.
-        
-        inequality : str (default="=")
-            The inequality of the constraint. This will be appended to `inequalities`.
         
         in_place : bool (default=False)
             Whether or not the operation should be performed in place. 
@@ -299,7 +305,7 @@ class LinearProgram:
         if not coefficients.shape[0] == self._c.shape[0]:
             raise ValueError()
 
-        if not inequality in {"=", ">=", "<="}:
+        if not inequality in ["=", ">=", "<="]:
             raise ValueError()
 
         if inequality == ">=" or inequality == "<=":
@@ -604,7 +610,7 @@ class LinearProgram:
         negative_variables = []
         inequality_indices = {}
         free = set(self._free_variables)
-        negative = set(self._negative_variable)
+        negative = set(self._negative_variables)
         objective = self._objective
 
         for i in range(self._b.shape[0]):
@@ -625,7 +631,7 @@ class LinearProgram:
 
         dual._inequality_indices = inequality_indices
         dual._free_variables = free_variables
-        dual._negative_variable = negative_variables
+        dual._negative_variables = negative_variables
         dual._is_sef = len(inequality_indices) + len(free_variables) + len(negative_variables) == 0 and objective == "max"
 
         return dual
@@ -1573,19 +1579,6 @@ class LinearProgram:
 
 
 
-    def __get_free_variables(self):
-        """
-        Converts expression to standard equality form.
-
-        Returns
-        -------
-        result : LinearProgram
-
-        """
-        return self.__to_math_indexing(self._free_variables)
-
-
-    
     def __format_steps(self):
         """
         Converts expression to standard equality form.
@@ -1873,13 +1866,13 @@ class LinearProgram:
 
 
     @property
-    def z(self):
+    def z(self) -> float:
         """ 
         Gets the constant of the objective function. 
         
         Returns
         -------
-        result : int, float
+        result : float
 
         """
         return self._z
@@ -1887,16 +1880,69 @@ class LinearProgram:
 
 
     @property
-    def inequalities(self):
+    def inequalities(self) -> List[str]:
         """
         Gets the constraint inequalities.
 
         Returns
         -------
-        result : list of str ["=", ">=", "<="]
+        result : List[str]
 
         """
         return self.__get_inequalities()
+
+
+
+    @property
+    def negative_variables(self) -> List[int]:
+        """
+        Gets the indices of where the variables are negative (x <= 0).
+
+        Returns
+        -------
+        result : List[int]
+            The indices with the first position starting at 1.
+
+        """
+        return self.__to_math_indexing(self._negative_variables)
+
+
+
+    @property
+    def positive_variables(self) -> List[int]:
+        """
+        Gets the indices of where the variables are positive (x >= 0).
+
+        Returns
+        -------
+        result : List[int]
+            The indices with the first position starting at 1.
+
+        """
+        negative_set = set(self._negative_variables)
+        free_set = set(self.free_variables)
+        positive = []
+
+        for i in range(1, self._c.shape[0] + 1):
+            if not i - 1 in negative_set and not i - 1 in free_set:
+                positive.append(i)
+
+        return positive
+
+
+
+    @property
+    def free_variables(self) -> List[int]:
+        """
+        Gets the indices of where the variables are free.
+
+        Returns
+        -------
+        result : List[int]
+            The indices with the first position starting at 1.
+
+        """
+        return self.__to_math_indexing(self._free_variables)
 
 
 
@@ -1953,20 +1999,6 @@ class LinearProgram:
 
         """
         return self.__format_steps()
-    
-
-
-    @property
-    def free_variables(self):
-        """ 
-        Gets the free variable indices in math indexing format.
-
-        Returns
-        -------
-        result : list of int
-
-        """
-        return self.__get_free_variables()
 
 
 
