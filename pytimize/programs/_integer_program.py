@@ -160,9 +160,9 @@ class IntegerProgram(LinearProgram):
 
 
 
-    def create_relaxation(self):
+    def create_relaxation(self) -> LinearProgram:
         """
-        Creates the LP relaxation of the current IP.
+        Creates the corresponding linear program relaxation.
 
         Returns
         -------

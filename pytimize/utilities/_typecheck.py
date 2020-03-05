@@ -123,6 +123,8 @@ def typecheck(method: Any) -> Any:
             expected_type = parameter_info[variable].annotation
 
             if not _validate_type(value, expected_type):
+                expected_type = str(expected_type).replace("typing.", "")
+
                 raise TypeError(f"Parameter `{variable}` expects to have type `{expected_type}`.")
         
         return method(**kwargs)
