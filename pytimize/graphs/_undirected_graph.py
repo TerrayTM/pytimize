@@ -180,24 +180,42 @@ class UndirectedGraph: #TODO validation
     return LinearProgram(result_A, np.ones(constraints), result_c, 0, "min", [">=" for i in range(constraints)])
 
 
+  def delta(self, vertices):
+    connected = []
+
+    for inner in vertices:
+      for outer in self._graph[inner]:
+        if outer not in vertices:
+          connected.append(outer[0])
+
+    return connected
+
+
 
   def formulate_max_stable_set(self) -> Tuple[IntegerProgram, List[str]]:
-    A_mapping = {vertex: i for i, vertex in enumerate(self.vertices)}
-    A_stack = []
+    mapping_A = { vertex: i for i, vertex in enumerate(self._graph.keys()) }
+    stack_A = []
+    seen = set()
 
-    for edge in self.__get_edges():
-      row = np.zeros(len(A_mapping))
-      row[A_mapping[edge[0]]] = 1
-      row[A_mapping[edge[1]]] = 1
+    for vertex in self._graph.keys():
+      row = np.zeros(len(mapping_A))
+      row[mapping_A[vertex]] = 1
+      
+      for connected in self.delta({ vertex }): # TODO Should be one item or set
+        row[mapping_A[connected]] = 1
+      
+      hash = " ".join(str(i) for i in row)
+      
+      if not hash in seen:
+        seen.add(hash)
+        stack_A.append(row)
 
-      A_stack.append(row)
+    result_A = np.array(stack_A)
+    result_b = np.ones(result_A.shape[0])
+    result_c = np.ones(result_A.shape[1]) #TODO implemented node weights
+    inequalities = ["<="] * result_A.shape[0]
 
-    result_A = np.vstack(A_stack)
-    rows, columns = result_A.shape
-    result_b = np.ones(rows)
-    result_c = np.ones(columns) #TODO implemented node weights
-
-    return IntegerProgram(result_A, result_b, result_c, 0, inequalities=["<=" for i in range(rows)]), A_mapping
+    return IntegerProgram(result_A, result_b, result_c, 0, inequalities=inequalities), mapping_A
 
 
 
