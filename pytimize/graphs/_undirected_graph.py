@@ -182,7 +182,7 @@ class UndirectedGraph: #TODO validation
 
 
   def formulate_max_stable_set(self) -> Tuple[IntegerProgram, List[str]]:
-    A_mapping = {i: vertex for i, vertex in enumerate(self.vertices)}
+    A_mapping = {vertex: i for i, vertex in enumerate(self.vertices)}
     A_stack = []
 
     for edge in self.__get_edges():
