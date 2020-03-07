@@ -270,9 +270,9 @@ class LinearProgram:
 
 
 
-    def append_constraint(self, coefficients: Union[np.ndarray, List[float]], inequality: str, value: float, in_place: bool=False) -> "LinearProgram":
+    def add_constraint(self, coefficients: Union[np.ndarray, List[float]], inequality: str, value: float, in_place: bool=False) -> "LinearProgram":
         """
-        Appends a linear constraint of the form `<coefficients>x <inequality> <value>` to the program.
+        Adds a linear constraint of the form `<coefficients>x <inequality> <value>` to the program.
 
         Parameters
         ----------
@@ -295,7 +295,7 @@ class LinearProgram:
 
         """
         if not in_place:
-            return self.copy().append_constraint(coefficients, value, inequality, True)
+            return self.copy().add_constraint(coefficients, inequality, value, True)
 
         coefficients = self.__to_ndarray(coefficients)
 
@@ -321,9 +321,54 @@ class LinearProgram:
 
 
 
-    # TODO
-    def append_variable(self):
-        pass
+    def add_variable(self, coefficient: float=0, column: Optional[Vector]=None, free: bool=False, negative: bool=False, in_place: bool=False) -> "LinearProgram":
+        """
+        Adds a new variable to the program. If the variable is not marked as free or negative, then
+        it is assumed to be positive (x >= 0).
+
+        Parameters
+        ----------
+        coefficient : float (default=0)
+            The coefficient of the objective function for this variable.
+
+        column : Optional[Vector] (default=None)
+            The column that should be added to constraints for the new variable. If
+            none is given, then the corresponding column in constraints will be zeros. 
+
+        free : bool (default=False)
+            Whether or not the variable is free. This property cannot be set if `negative` is true.
+        
+        negative : bool (default=False)
+            Whether or not the variable is negative (x <= 0). This property cannot be set if `free` is true.
+        
+        in_place : bool (default=False)
+            Whether or not the operation should be performed in place. 
+
+        Returns
+        -------
+        result : LinearProgram
+            The program with the new variable added.
+
+        """
+        if not in_place:
+            return self.copy().add_variable(coefficient, column, free, negative, True)
+
+        if free and negative:
+            raise ValueError()
+
+        if free:
+            self._free_variables.append(self._c.shape[0])
+            self._is_sef = False
+        elif negative:
+            self._negative_variables.append(self._c.shape[0])
+            self._is_sef = False
+
+        # TODO validation checks are needed
+        self._A = np.c_[self._A, column if column is not None else [0] * self._A.shape[0]]
+        self._c = np.r_[self._c, coefficient]
+
+        return self
+        
 
 
 
