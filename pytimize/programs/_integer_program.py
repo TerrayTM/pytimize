@@ -1,8 +1,8 @@
-import numpy as np
 import copy
+import math
+import numpy as np
 
 from . import LinearProgram
-from typing import List
 from typing import List, Tuple, Optional, Union
 
 class IntegerProgram(LinearProgram):
@@ -56,8 +56,7 @@ class IntegerProgram(LinearProgram):
         """
         TODO Currently, returns None if IP is infeasible OR unbounded - handle unbounded case separately in the future
         """
-        copy_lp = lp.copy()
-        solution = copy_lp.solve()
+        solution = lp.solve()
 
         if solution is None:
             return None
@@ -74,7 +73,7 @@ class IntegerProgram(LinearProgram):
                 continue
 
             value = solution[i]
-            if not value.is_integer():
+            if not self.__is_integer(value):
                 copy_A = lp.A.copy()
                 copy_b = lp.b.copy()
                 new_inequalities = copy.deepcopy(lp.inequalities)
@@ -170,5 +169,14 @@ class IntegerProgram(LinearProgram):
 
         """
         return LinearProgram(self._A, self._b, self._c, self._z, self._objective, self.inequalities, self.free_variables)
+
+    
+
+    def __is_integer(self, value):
+        integer = round(value)
+        if integer == 0:
+            return self._is_close_to_zero(value)
+        return math.isclose(value, integer)
+
 
     #TODO override evaluate of base to take consideration of integers
