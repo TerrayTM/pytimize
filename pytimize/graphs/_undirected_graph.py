@@ -181,14 +181,12 @@ class UndirectedGraph: #TODO validation
 
 
 
-  def formulate_max_stable_set(self):
-    A_mapping = { vertex: i for i, vertex in enumerate(self.vertices) }
-    length = len(A_mapping)
+  def formulate_max_stable_set(self) -> Tuple[IntegerProgram, List[str]]:
+    A_mapping = {i: vertex for i, vertex in enumerate(self.vertices)}
     A_stack = []
 
     for edge in self.__get_edges():
-      row = np.zeros(length)
-
+      row = np.zeros(len(A_mapping))
       row[A_mapping[edge[0]]] = 1
       row[A_mapping[edge[1]]] = 1
 
@@ -199,7 +197,7 @@ class UndirectedGraph: #TODO validation
     result_b = np.ones(rows)
     result_c = np.ones(columns) #TODO implemented node weights
 
-    return IntegerProgram(result_A, result_b, result_c, 0, inequalities=["<=" for i in range(rows)])
+    return IntegerProgram(result_A, result_b, result_c, 0, inequalities=["<=" for i in range(rows)]), A_mapping
 
 
 
