@@ -735,7 +735,22 @@ class LinearProgram:
             return self.two_phase_simplex()[0]
         
         sef = self.to_sef(show_steps)
-        solution = sef.two_phase_simplex(show_steps)[0]
+        rows, columns = sef.A.shape
+        solution = None
+
+        if columns >= rows:
+            basis_candidate = [i for i in range(rows + 1, columns + 1)]
+            if sef.is_basis(basis_candidate):
+                try:
+                    solution = sef.simplex(basis_candidate, show_steps)[0]
+
+                    if solution is None:
+                        return None
+                except ArithmeticError:
+                    return None
+
+        if solution is None:
+            solution = sef.two_phase_simplex(show_steps)[0]
 
         if solution is not None:
             if sef._reverse_sef["drop"] > 0:
@@ -932,14 +947,11 @@ class LinearProgram:
             raise ValueError("The given basis is invalid.")
 
         basis = self.__to_array_indexing(basis)
-
-        basis.sort()
-
         negative_indices = np.where(self._b < 0)
-
         self._b[negative_indices] *= -1
         self._A[negative_indices] *= -1
-
+        
+        basis.sort()
         self.__to_canonical_form(basis, show_steps)
 
         x = self.__compute_basic_solution(basis)
@@ -1591,6 +1603,14 @@ class LinearProgram:
 
 
     def __is_close_to_zero(self, value: float) -> bool:
+        """
+        Checks if the given value is close to zero. Use this function over `math.isclose` for 
+        comparison over 0.
+        
+        """
+        return abs(value) < 1.0e-10
+
+    def _is_close_to_zero(self, value: float) -> bool:
         """
         Checks if the given value is close to zero. Use this function over `math.isclose` for 
         comparison over 0.
