@@ -107,9 +107,9 @@ class DirectedGraph:
 
 
 
-    def  remove_node(self, node):
+    def remove_node(self, node):
         """
-        Adds a node to the digraph.
+        Removes a node from the digraph.
 
         Parameters
         ----------
@@ -121,6 +121,34 @@ class DirectedGraph:
 
         """
         pass
+
+    def _nodes_to_set(self, nodes):
+        collection = None
+
+        if isinstance(nodes, str):
+            if not self.has_node(nodes):
+                raise ValueError()
+            collection = { nodes }
+        elif isinstance(nodes, list):
+            collection = set(nodes)
+        else:
+            collection = nodes
+
+        return collection
+
+
+
+    def delta(self, nodes):
+        collection = self._nodes_to_set(nodes)
+
+        return list(filter(lambda arc: arc[0] in collection and arc[1] not in collection, self._arcs.keys()))
+
+
+
+    def delta_not(self, nodes):
+        collection = self._nodes_to_set(nodes)
+
+        return list(filter(lambda arc: arc[1] in collection and arc[0] not in collection, self._arcs.keys()))
 
 
 
@@ -177,22 +205,7 @@ class DirectedGraph:
             The indegree of the node or a set of nodes.
 
         """
-        if isinstance(nodes, str):
-            if not self.has_node(nodes):
-                raise ValueError("Given node does not exist in digraph.")
-
-            nodes = [nodes]
-        else:
-            raise ValueError("Given node does not exist in digraph.")
-
-        degree = 0
-        nodes = set(nodes)
-
-        for node, arcs in self._graph:
-            if not node in nodes:
-                degree += len(arcs.difference(nodes))
-
-        return degree
+        return len(self.delta_not(nodes))
 
 
 
@@ -211,19 +224,7 @@ class DirectedGraph:
             The outdegree of the node or a set of nodes.
 
         """
-        if isinstance(nodes, str):
-            if not self.has_node(nodes):
-                raise ValueError("Given node does not exist in digraph.")
-
-            return len(self._graph[nodes])
-
-        nodes = set(nodes)
-        degree = 0
-
-        for node in nodes:
-            degree += len(self._graph[node].difference(nodes))
-        
-        return degree
+        return len(self.delta(nodes))
 
 
 
@@ -283,10 +284,10 @@ class DirectedGraph:
         pass
 
     @property
-    def edges(self):
-        pass
+    def arcs(self):
+        return list(self._arcs.keys())
 
     @property
-    def vertices(self):
-        pass
+    def nodes(self):
+        return list(self._nodes.keys())
  
