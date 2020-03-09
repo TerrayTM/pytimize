@@ -112,9 +112,20 @@ class LinearProgram:
 
 
     @staticmethod
-    def random() -> "LinearProgram":
+    def random(rows: int=4, columns: int=6, magnitude: float=100) -> "LinearProgram":
         """
         Generates a linear program filled with dummy data.
+
+        Parameters
+        ----------
+        rows : int
+            Number of rows the constraint matrix should have.
+        
+        columns : int
+            Number of columns the constraint matrix should have.
+
+        magnitude : float
+            The magnitude of the random numbers generated.
 
         Returns
         -------
@@ -122,15 +133,22 @@ class LinearProgram:
             A random linear program.
     
         """
-        # TODO needs work
-        x = random.randint(2, 10)
-        y = random.randint(2, 10)
-        A = np.round(np.random.rand(x, y) * 20)
-        b = np.random.rand(x) * 20
-        c = np.random.rand(y) * 20
-        z = random.randint(-100, 100)
+        A = np.round(np.random.uniform(-1, 1, (rows, columns)) * magnitude, 2)
+        b = np.round(np.random.uniform(-1, 1, rows) * magnitude, 2)
+        c = np.round(np.random.uniform(-1, 1, columns) * magnitude, 2)
+        z = round(random.random() * magnitude * random.choice([-1, 1]), 2)
+        objective = random.choice(["max", "min"])
+        inequalities = [random.choice(["=", "<=", ">="]) for i in range(rows)]
+        free_variables = []
+        negative_variables = []
 
-        return LinearProgram(A, b, c, z)
+        for i, item in enumerate(random.choice([-1, 0, 1]) for i in range(columns)):
+            if item == -1:
+                free_variables.append(i + 1)
+            elif item == 0:
+                negative_variables.append(i + 1)
+    
+        return LinearProgram(A, b, c, z, objective, inequalities, free_variables, negative_variables)
 
 
     # TODO If in SEF output x >= 0 else output correct inequalities
