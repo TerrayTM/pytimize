@@ -1023,7 +1023,7 @@ class LinearProgram:
         Parameters
         ----------
         certificate : Union[np.ndarray, List[float]]
-            The certificate to validated.
+            The certificate to be validated.
 
         show_steps : bool (default=True)
             Whether or not the steps should be displayed.
@@ -1056,7 +1056,7 @@ class LinearProgram:
             A feasible solution for the linear program.
 
         certificate : Union[np.ndarray, List[float]]
-            The certificate to validated.
+            The certificate to be validated.
 
         show_steps : bool (default=True)
             Whether or not the steps should be displayed.
@@ -1094,7 +1094,7 @@ class LinearProgram:
         Parameters
         ----------
         certificate : Union[np.ndarray, List[float]]
-            The certificate to validated.
+            The certificate to be validated.
 
         show_steps : bool (default=True)
             Whether or not the steps should be displayed.
@@ -1115,17 +1115,22 @@ class LinearProgram:
 
 
 
-    def is_feasible(self, x, show_steps: bool=True):
+    def is_feasible(self, x: Vector, show_steps: bool=True) -> bool:
         """
         Checks if the given vector is a feasible solution.
 
         Parameters
         ----------
-        x : array-like of int, float
+        x : Vector
+            The vector to be checked.
+
+        show_steps : bool (default=True)
+            Whether or not the steps should be displayed.
 
         Returns
         -------
         result : bool
+            Whether or not the vector is feasible.
 
         """
         x = self.__to_ndarray(x)
@@ -1157,50 +1162,27 @@ class LinearProgram:
         
         is_feasible = True
 
-        for i in range(self._A.shape[0]):
-            row = self._A[i, :]
+        for i, entry in enumerate(x): # TODO free vars and negative vars should be set
+            if i in self._negative_variables:
+                if not entry <= 0:
+                    is_feasible = False
+            elif i not in self._free_variables:
+                if not entry >= 0:
+                    is_feasible = False
+
+        for i, row in enumerate(self._A):
             value = row @ x
-            step = None
-
-            if i not in self._free_variables and x[i] < 0:
-                show_steps and self.__append_to_steps([
-                    ("2.06", x) if is_feasible else None,
-                    ("2.09", i + 1),
-                    ("2.10", i + 1)
-                ])
-
-                is_feasible = False
-
-                if not show_steps:
-                    return False
 
             if i in self._inequality_indices:
                 current = self._inequality_indices[i]
 
                 if current == "<=" and value > self._b[i]:
-                    step = "2.11"
-
-                    if not show_steps:
-                        return False
+                    is_feasible = False
                 elif current == ">=" and value < self._b[i]:
-                    step = "2.12"
-
-                    if not show_steps:
-                        return False
+                    is_feasible = False
             elif not math.isclose(value, self._b[i]):
-                step = "2.13"
-
-                if not show_steps:
-                    return False
-
-            if step:
-                show_steps and self.__append_to_steps([
-                    ("2.06", x) if is_feasible else None,
-                    (step, row, x, value, value, self.b[i])
-                ])
-
                 is_feasible = False
-        
+        # TODO Add steps back
         if is_feasible:
             show_steps and self.__append_to_steps([
                 ("2.02", x),
