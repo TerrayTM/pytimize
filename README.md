@@ -3,59 +3,53 @@
     <img alt="pytimize" src="https://terrytm.com/files/pytimize.png" width="700">
   </a>
 </p>
-<hr>
 <p align="center">
   Python optimization library for mathematical programming.
 </p>
 
 Introduction
----
-pytimize is a python library for
+------------
+Pytimize is a python library for
 - Formulating and solving complex linear, integer, and nonlinear programs. 
-- Optimizing combinatorics with directed/undirected graphs and flows.
+- Performing combinatorial optimization with directed/undirected graphs and flows.
 - Visualizing polyhedrons and displaying computation process.
 
-Current Features
----
-* Convert to Canonical Form
-* Verify Infeasibility
-* Verify Unboundedness
-* Check Solution Feasible
-* Convert to SEF
-* Simplex Iteration
-* Show Computation Steps
-* Graph Feasible Region
-* Two Phase Simplex
-* Bland's Rule
-* Shortest Path Solver
-* Duality Theory
-* Shortest Path Linear Program
-* Graph Parser
-* Linear Constraint Parser
-* Undirected Graph
-* Integer Programming
-* Branch and Bound Solver
+Documentation
+-------------
+Coming soon!
 
-Upcoming Features
----
-* Nonlinear Programming
-* Network Flow Theory
-* Min Cut Max Flow Theorem
-* Cycle Detection
-* Directed Graph
-* Minimum Spanning Tree
-* Transshipment Solver
-* Min Cost Perfect Matching
-* KKT Conditions
-* Cutting Plane Solver
-* And More!
+Example
+-------
+The following shows a code snippet for constructing a linear program and solving
+it. For more detailed examples, please see `pytimize/examples`.
+```python
+>>> from pytimize.programs import LinearProgram
+>>> import numpy as np
+>>> A = np.array([
+      [1, 0, 2, 7, -1], 
+      [0, 1, -4, -5, 3]
+    ])
+>>> b = np.array([2, 1])
+>>> c = np.array([0, 0, 4, -11, -1])
+>>> z = 17
+>>> p = LinearProgram(A, b, c, z, "min", ["<=", ">="])
+>>> print(p)
+Min [0. 0. 4. -11. -1.]x + 17
+Subject To:
 
-Contributors Welcome!
----
-pytimize is a project that is work in progress. Contributions are welcome on a pull request basis.
+[1. 0. 2.  7.  -1.]     ≤   [2.]
+[0. 1. -4. -5. 3. ]x    ≥   [1.]
+x ≥ 0
+
+>>> p.solve()
+array([0.    , 0.    , 0.    , 0.4375, 1.0625])
+```
+
+Contributing
+------------
+Pytimize is a work in progress project. Contributions are welcome on a pull request basis.
 
 Credits
----
-Created and maintained by Terry Zheng and Jonathan Wang. Logo designed by Kayla Estacio.
-
-
+-------
+Pytimize is created and maintained by Terry Zheng, Jonathan Wang, and Colin He.
+Logo is designed by Kayla Estacio.
