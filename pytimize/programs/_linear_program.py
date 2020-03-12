@@ -66,6 +66,9 @@ class LinearProgram:
         free_set = set(free_variables)
         negative_set = set(negative_variables)
 
+        free_variables.sort()
+        negative_variables.sort()
+
         if len(free_variables) > 0:
             if not len(free_set) == len(free_variables): 
                 raise ValueError("Duplicate indices are not allowed in free variables.")
@@ -778,6 +781,9 @@ class LinearProgram:
                 index -= i
                 solution[index] -= solution[index + 1]
                 solution = np.delete(solution, index + 1)
+
+            for i in sef._reverse_sef["negative"]:
+                solution[i] *= -1
             # TODO
             # If conversion of basis and certificate to original is possible add them to return
             # Distinguish between unbounded and infeasible 
@@ -1378,6 +1384,7 @@ class LinearProgram:
 
         p._inequality_indices = self._inequality_indices.copy()
         p._free_variables = self._free_variables.copy()
+        p._negative_variables = self._negative_variables.copy()
         p._steps = self._steps.copy()
         p._is_sef = self._is_sef
 
@@ -1421,7 +1428,13 @@ class LinearProgram:
                 ("3.03", -self._c, self._c)
             ])
 
-        self._reverse_sef = { "drop": 0, "concat": [] }
+        self._reverse_sef = { "drop": len(self._inequality_indices), "concat": [], "negative": self._negative_variables }
+
+        for i in self._negative_variables:
+            self._A[:, i] *= -1
+            self._c[i] *= -1
+
+        self._negative_variables = []
 
         for i in range(len(self._free_variables)):
             index = self._free_variables[i] + i
@@ -1432,18 +1445,14 @@ class LinearProgram:
 
         self._free_variables = []
 
-        for i in range(self._b.shape[0]):
-            if i in self._inequality_indices:
-                operator = self._inequality_indices[i]
-                self._A = np.c_[self._A, np.zeros(self._A.shape[0])]
-                self._c = np.r_[self._c, 0]
+        for i, operator in enumerate(self._inequality_indices):
+            self._A = np.c_[self._A, np.zeros(self._A.shape[0])]
+            self._c = np.r_[self._c, 0]
 
-                if operator == ">=":
-                    self._A[i, -1] = -1
-                elif operator == "<=":
-                    self._A[i, -1] = 1
-                
-                self._reverse_sef["drop"] += 1
+            if operator == ">=":
+                self._A[i, -1] = -1
+            elif operator == "<=":
+                self._A[i, -1] = 1
 
         self._inequality_indices = {}
         self._is_sef = True
