@@ -78,7 +78,7 @@ class TestIsFeasible(TestCase):
 
         for i in range(-5, 6):
             for j in range(-5, 6):
-                self.assertFalse(p.is_feasible([-5, 6]), "Should output false.")
+                self.assertFalse(p.is_feasible([i, j]), "Should output false.")
     
     def test_feasible2(self):
         A = np.array([
