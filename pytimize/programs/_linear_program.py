@@ -5,6 +5,7 @@ import functools
 import numpy as np
 
 from ..parsers._description_parser import render_descriptor
+from ..parsers._symbol_parser import SymbolParser
 from ..utilities._typecheck import typecheck
 from matplotlib import pyplot as plt
 from collections import deque
@@ -54,12 +55,12 @@ class LinearProgram:
         A = self.__to_ndarray(A)
         b = self.__to_ndarray(b)
         c = self.__to_ndarray(c)
-
+        # TODO allow unconstrained
         if not A.ndim == 2:
-            raise ValueError()
+            raise ValueError("The given `A` is not a matrix.")
         
         if not self.__is_vector_of_size(b, A.shape[0]) or not self.__is_vector_of_size(c, A.shape[1]):
-            raise ValueError()
+            raise ValueError("Dimension mismatch between `A`, `b`, or `c`.")
 
         inequality_indices = {}
         free_variables = self.__to_array_indexing(free_variables) if free_variables is not None else []
@@ -155,16 +156,12 @@ class LinearProgram:
         return LinearProgram(A, b, c, z, objective, inequalities, free_variables, negative_variables)
 
 
-    # TODO If in SEF output x >= 0 else output correct inequalities
-    # EXAMPLE
-    #====================================
-    # Max [0. 0. 4. -11. -1.]x + 17
-    # Subject To:
-
-    # [1. 0. 2.  7.  -1.]     =   [2.]
-    # [0. 1. -4. -5. 3. ]x    =   [1.]
-    # x ≥ 0
-    def __repr__(self):
+    #TODO "{:.3e}".format(1.123e30) <--- use this for formatting scientific notation
+    # any number greater than 1e10 use above to format as scientific notation
+    # any number between 1e-5 and 1e-10 format using above as scientific notation
+    # any number less than 1e-10 treat as zero
+    # above is stated for magnitude of number (so same thing applies to negative numbers)
+    def __repr__(self) -> str:
         """
         Generates a nicely formatted string representation of the linear program.
 
@@ -200,7 +197,7 @@ class LinearProgram:
         output += "]x"
 
         # add z to output
-        if not self._is_close_to_zero(abs(self._z)):
+        if not self._is_close_to_zero(self._z):
             sign = "+"
             number = self._z
 
@@ -340,8 +337,17 @@ class LinearProgram:
                 output += " " * spaces
 
             output += "]\n"
+            positive = self.positive_variables
 
-        output += "x ≥ 0\n" # TODO add variable constraints
+        if len(self._negative_variables) == shape[1]:
+            output += "x ≤ 0\n"
+        elif len(self._negative_variables) > 0:
+            output += SymbolParser.subscript(", ".join(map(lambda i: f"x{i + 1}", self._negative_variables))) + " ≤ 0\n"
+        
+        if len(positive) == shape[1]:
+            output += "x ≥ 0\n"
+        elif len(positive) > 0:
+            output += SymbolParser.subscript(", ".join(map(lambda i: f"x{i}", positive))) + " ≥ 0\n"
 
         return output
 
@@ -2052,7 +2058,7 @@ class LinearProgram:
 
         """
         negative_set = set(self._negative_variables)
-        free_set = set(self.free_variables)
+        free_set = set(self._free_variables)
         positive = []
 
         for i in range(1, self._c.shape[0] + 1):

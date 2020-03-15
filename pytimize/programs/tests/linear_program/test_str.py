@@ -154,5 +154,113 @@ class TestStr(TestCase):
         p = LinearProgram(A, b, c, z, "min", [">=", "<=", "<="])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
+    def test_variable_constraints(self):
+        A = np.array([
+            [1, 2, 3, 4, 5, 6],
+            [0, 1, 0, 1, 0, 1]
+        ])
+        b = np.array([1, 2])
+        c = np.array([4, 5, 6, 7, 8, 9])
+        z = -2
+
+        expected_one = (
+            "Min [4. 5. 6. 7. 8. 9.]x - 2\n"
+            "Subject To:\n"
+            "\n"
+            "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"
+            "[0.  1.  0.  1.  0.  1.]x    =   [2.]\n"
+            "x₂, x₄, x₆ ≤ 0\n"
+            "x₁, x₃, x₅ ≥ 0\n"
+        )
+        p = LinearProgram(A, b, c, z, "min", negative_variables=[2, 4, 6])
+        self.assertEqual(str(p), expected_one, "Should output in correct string format.")
+
+        expected_two = (
+            "Min [4. 5. 6. 7. 8. 9.]x - 2\n"
+            "Subject To:\n"
+            "\n"
+            "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"
+            "[0.  1.  0.  1.  0.  1.]x    =   [2.]\n"
+        )
+        p = LinearProgram(A, b, c, z, "min", free_variables=[1, 2, 3, 4, 5, 6])
+        self.assertEqual(str(p), expected_two, "Should output in correct string format.")
+
+        expected_three = (
+            "Min [4. 5. 6. 7. 8. 9.]x - 2\n"
+            "Subject To:\n"
+            "\n"
+            "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"
+            "[0.  1.  0.  1.  0.  1.]x    =   [2.]\n"
+            "x ≤ 0\n"
+        )
+        p = LinearProgram(A, b, c, z, "min", negative_variables=[1, 2, 3, 4, 5, 6])
+        self.assertEqual(str(p), expected_three, "Should output in correct string format.")
+
+        expected_four = (
+            "Min [4. 5. 6. 7. 8. 9.]x - 2\n"
+            "Subject To:\n"
+            "\n"
+            "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"
+            "[0.  1.  0.  1.  0.  1.]x    =   [2.]\n"
+            "x ≥ 0\n"
+        )
+        p = LinearProgram(A, b, c, z, "min")
+        self.assertEqual(str(p), expected_four, "Should output in correct string format.")
+
+        expected_five = (
+            "Min [4. 5. 6. 7. 8. 9.]x - 2\n"
+            "Subject To:\n"
+            "\n"
+            "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"
+            "[0.  1.  0.  1.  0.  1.]x    =   [2.]\n"
+            "x₂, x₃, x₄, x₆ ≥ 0\n"
+        )
+        p = LinearProgram(A, b, c, z, "min", free_variables=[1, 5])
+        self.assertEqual(str(p), expected_five, "Should output in correct string format.")
+
+        expected_six = (
+            "Min [4. 5. 6. 7. 8. 9.]x - 2\n"
+            "Subject To:\n"
+            "\n"
+            "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"
+            "[0.  1.  0.  1.  0.  1.]x    =   [2.]\n"
+            "x₂, x₆ ≤ 0\n"
+            "x₃, x₄ ≥ 0\n"    
+        )
+        p = LinearProgram(A, b, c, z, "min", free_variables=[1, 5], negative_variables=[2, 6])
+        self.assertEqual(str(p), expected_six, "Should output in correct string format.")
+
+    def test_long_variable_index(self):
+        A = np.array([
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+            [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1]
+        ])
+        b = np.array([1, 2])
+        c = np.array([4.4877, 5.123456, 6.14564, 7.444, 88779798, 9, 11, 12, 13e10, 45e13, 1.1547841e-7, 1, 12])
+        z = 125.1549879465
+        expected = (
+            "TODO FILL IN"
+        )
+
+        p = LinearProgram(A, b, c, z, "min", negative_variables=[11, 13])
+        self.assertEqual(str(p), expected, "Should output in correct string format.")
+
+    def test_scientific_notation(self):
+        A = np.array([
+            [1.123e30, 456, 1.123555557894e13],
+            [1e-5, 6.123e-8, -6.123456789456],
+            [-1e-10, 7e17, 1.254e11],
+            [1e-11, 5.499999e-4, -10.1248683e28]
+        ])
+        b = np.array([-600e23, 19e13, 1.87e-4, 799.456])
+        c = np.array([1, 2, 3])
+        z = -2
+        expected = (
+            "TODO FILL IN"
+        )
+
+        p = LinearProgram(A, b, c, z, "min")
+        self.assertEqual(str(p), expected, "Should output in correct string format.")
+
 if __name__ == "__main__":
     main()
