@@ -233,7 +233,6 @@ class LinearProgram:
 
             int_spaces.append(int_length)
             dec_spaces.append(dec_length)
-            print(dec_length)
 
 
         # list of spaces required for b vector
