@@ -112,8 +112,26 @@ class TestStr(TestCase):
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
     def test_rounding(self):
-        pass
-        #TODO rounding test coverage
+        A = np.array([
+            [1, 100000.123456789, -0.0123456789],
+            [0, -10.223456789, -6.00000567],
+            [-1.12345, -7.9995, 90.56]
+        ])
+        b = np.array([-600.01234567, 15.00000005, 0.999999])
+        c = np.array([5, 5, 35])
+        z = 8
+        expected = (
+            "Min [5. 5. 35.]x + 8\n"
+            "Subject To:\n"
+            "\n"
+            "[ 1.     100000.123  -0.012]     ≥   [-600.012]\n"
+            "[ 0.        -10.223  -6.   ]x    ≤   [  15.   ]\n"
+            "[-1.123      -8.     90.56 ]     ≤   [   1.   ]\n"
+            "x ≥ 0\n"
+        )
+        
+        p = LinearProgram(A, b, c, z, "min", [">=", "<=", "<="])
+        self.assertEqual(str(p), expected, "Should output in correct string format.")
 
 if __name__ == "__main__":
     main()

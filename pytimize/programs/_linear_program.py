@@ -222,9 +222,11 @@ class LinearProgram:
             dec_length = 0
 
             for row in range(shape[0]):
-                int_length = max(len(str(int(self._A[row, col]))), int_length)
-                if not self._A[row, col].is_integer():
-                    decimals = Decimal(str(abs(self._A[row, col]))) % 1  # get decimal portion of number
+                entry = self._A[row, col]
+                entry = round(entry, places)
+                int_length = max(len(str(int(entry))), int_length)
+                if not entry.is_integer():
+                    decimals = Decimal(str(abs(entry))) % 1  # get decimal portion of number
 
                     # must account for the "0." lead in decimals (i.e. 0.6548) - subtract 2 from length
                     entry_dec_length = len(str(decimals)) - 2
@@ -246,10 +248,12 @@ class LinearProgram:
         b_dec_spaces = 0
 
         for i in range(shape[0]):
-            b_int_spaces = max(len(str(int(self._b[i]))), b_int_spaces)
+            entry = self._b[i]
+            entry = round(entry, places)
+            b_int_spaces = max(len(str(int(entry))), b_int_spaces)
 
-            if not self._b[i].is_integer():
-                decimals = Decimal(str(abs(self._b[i]))) % 1  # get decimal portion of number
+            if not entry.is_integer():
+                decimals = Decimal(str(abs(entry))) % 1  # get decimal portion of number
                 
                 entry_dec_length = len(str(decimals)) - 2
                 if decimals < 0:
@@ -263,6 +267,7 @@ class LinearProgram:
             output += "["
             for col in range(shape[1]):
                 entry = self._A[row, col]
+                entry = round(entry, places)
                 
                 # add integer part of entry and spaces as needed
                 spaces = int_spaces[col] - len(str(int(entry)))
@@ -281,16 +286,7 @@ class LinearProgram:
                     entry_dec = Decimal(str(abs(entry))) % 1  # get decimal portion of number
                     entry_dec = str(entry_dec)[2:]
 
-                    # if greater than number of decimal places exists, round the string representation
-                    if len(entry_dec) > places:
-                        output += entry_dec[:places - 1]
-                        last_digit = int(entry_dec[places - 1])
-                        if int(entry_dec[places]) >= 5:
-                            last_digit += 1
-                        output += str(last_digit)
-                    else:
-                        output += entry_dec
-                    
+                    output += entry_dec
                     spaces = dec_spaces[col] - len(entry_dec)
                     output += " " * spaces
 
@@ -320,6 +316,7 @@ class LinearProgram:
             output += "["
 
             b_entry = self._b[row]
+            b_entry = round(b_entry, places)
 
             # add integer part of entry and spaces as needed
             spaces = b_int_spaces - len(str(int(b_entry)))
@@ -338,16 +335,7 @@ class LinearProgram:
                 entry_dec = Decimal(str(abs(b_entry))) % 1  # get decimal portion of number
                 entry_dec = str(entry_dec)[2:]
 
-                # if greater than number of decimal places exists, round the string representation
-                if len(entry_dec) > places:
-                    output += entry_dec[:places - 1]
-                    last_digit = int(entry_dec[places - 1])
-                    if int(entry_dec[places]) >= 5:
-                        last_digit += 1
-                    output += str(last_digit)
-                else:
-                    output += entry_dec
-
+                output += entry_dec
                 spaces = b_dec_spaces - len(entry_dec)
                 output += " " * spaces
 
