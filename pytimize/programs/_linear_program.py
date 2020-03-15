@@ -9,6 +9,7 @@ from ..utilities._typecheck import typecheck
 from matplotlib import pyplot as plt
 from collections import deque
 from typing import List, Tuple, Optional, Union
+from decimal import Decimal
 
 Matrix = Union[np.ndarray, List[List[float]]]
 Vector = Union[np.ndarray, List[float]]
@@ -223,7 +224,7 @@ class LinearProgram:
             for row in range(shape[0]):
                 int_length = max(len(str(int(self._A[row, col]))), int_length)
                 if not self._A[row, col].is_integer():
-                    decimals = self._A[row, col] - int(self._A[row, col])
+                    decimals = Decimal(str(abs(self._A[row, col]))) % 1  # get decimal portion of number
 
                     # must account for the "0." lead in decimals (i.e. 0.6548) - subtract 2 from length
                     entry_dec_length = len(str(decimals)) - 2
@@ -248,7 +249,7 @@ class LinearProgram:
             b_int_spaces = max(len(str(int(self._b[i]))), b_int_spaces)
 
             if not self._b[i].is_integer():
-                decimals = self._b[i] - int(self._b[i])
+                decimals = Decimal(str(abs(self._b[i]))) % 1  # get decimal portion of number
                 
                 entry_dec_length = len(str(decimals)) - 2
                 if decimals < 0:
@@ -265,7 +266,11 @@ class LinearProgram:
                 
                 # add integer part of entry and spaces as needed
                 spaces = int_spaces[col] - len(str(int(entry)))
+                if int(entry) == 0 and entry < 0:
+                    spaces -= 1  # using int(entry) will remove the "-"
                 output += " " * spaces
+                if int(entry) == 0 and entry < 0:
+                    output += "-"
                 output += str(int(entry))
                 output += "."
 
@@ -273,20 +278,20 @@ class LinearProgram:
                 if entry.is_integer():
                     output += " " * dec_spaces[col]
                 else:
-                    entry = abs(entry)  # remove needing to handle negatives
-                    entry -= int(entry)
+                    entry_dec = Decimal(str(abs(entry))) % 1  # get decimal portion of number
+                    entry_dec = str(entry_dec)[2:]
 
                     # if greater than number of decimal places exists, round the string representation
-                    if len(str(entry)[2:]) > places:
-                        output += str(entry)[2:places + 1]
-                        last_digit = int(str(entry)[places])
-                        if int(str(entry)[places + 1]) >= 5:
+                    if len(entry_dec) > places:
+                        output += entry_dec[:places - 1]
+                        last_digit = int(entry_dec[places - 1])
+                        if int(entry_dec[places]) >= 5:
                             last_digit += 1
                         output += str(last_digit)
                     else:
-                        output += str(entry)[2:]  # skip leading "0." in string
+                        output += entry_dec
                     
-                    spaces = dec_spaces[col] - len(str(entry)) + 2
+                    spaces = dec_spaces[col] - len(entry_dec)
                     output += " " * spaces
 
                 if not col == shape[1] - 1:
@@ -318,7 +323,11 @@ class LinearProgram:
 
             # add integer part of entry and spaces as needed
             spaces = b_int_spaces - len(str(int(b_entry)))
+            if int(b_entry) == 0 and b_entry < 0:
+                spaces -= 1  # using int(b_entry) will remove the "-"
             output += " " * spaces
+            if int(b_entry) == 0 and b_entry < 0:
+                output += "-"
             output += str(int(b_entry))
             output += "."
 
@@ -326,10 +335,20 @@ class LinearProgram:
             if b_entry.is_integer():
                 output += " " * b_dec_spaces
             else:
-                b_entry = abs(b_entry)  # remove needing to handle negatives
-                b_entry -= int(b_entry)
-                output += str(b_entry)[2:]  # skip leading "0." in string
-                spaces = b_dec_spaces - len(str(b_entry)) + 2
+                entry_dec = Decimal(str(abs(b_entry))) % 1  # get decimal portion of number
+                entry_dec = str(entry_dec)[2:]
+
+                # if greater than number of decimal places exists, round the string representation
+                if len(entry_dec) > places:
+                    output += entry_dec[:places - 1]
+                    last_digit = int(entry_dec[places - 1])
+                    if int(entry_dec[places]) >= 5:
+                        last_digit += 1
+                    output += str(last_digit)
+                else:
+                    output += entry_dec
+
+                spaces = b_dec_spaces - len(entry_dec)
                 output += " " * spaces
 
             output += "]\n"
