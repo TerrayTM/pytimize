@@ -14,6 +14,8 @@ Pytimize is a python library for
 - Performing combinatorial optimization with directed/undirected graphs and flows.
 - Visualizing polyhedrons and displaying computation process.
 
+Install using `pip install pytimize`!
+
 Documentation
 -------------
 Coming soon!
