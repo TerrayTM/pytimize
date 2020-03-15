@@ -175,6 +175,7 @@ class LinearProgram:
         """
         output = ""
         shape = self._A.shape
+        places = 3  # how many decimal places to round to
 
         # set objective to be human readable
         if self._objective == "min":
@@ -198,7 +199,7 @@ class LinearProgram:
         output += "]x"
 
         # add z to output
-        if abs(self._z) > 10e-10:
+        if not self._is_close_to_zero(abs(self._z)):
             sign = "+"
             number = self._z
 
@@ -230,6 +231,10 @@ class LinearProgram:
                         entry_dec_length -= 1  # account for "-" sign
                     
                     dec_length = max(entry_dec_length, dec_length)
+
+                    # limit decimal places
+                    if dec_length > places:
+                        dec_length = places
 
             int_spaces.append(int_length)
             dec_spaces.append(dec_length)
@@ -270,7 +275,17 @@ class LinearProgram:
                 else:
                     entry = abs(entry)  # remove needing to handle negatives
                     entry -= int(entry)
-                    output += str(entry)[2:]  # skip leading "0." in string
+
+                    # if greater than number of decimal places exists, round the string representation
+                    if len(str(entry)[2:]) > places:
+                        output += str(entry)[2:places + 1]
+                        last_digit = int(str(entry)[places])
+                        if int(str(entry)[places + 1]) >= 5:
+                            last_digit += 1
+                        output += str(last_digit)
+                    else:
+                        output += str(entry)[2:]  # skip leading "0." in string
+                    
                     spaces = dec_spaces[col] - len(str(entry)) + 2
                     output += " " * spaces
 
