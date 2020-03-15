@@ -89,6 +89,27 @@ class TestStr(TestCase):
         p = LinearProgram(A, b, c, z, "min", [">=", "=", "="])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
+        A = np.array([
+            [2, -1.125, -2, 1, 0, 0.628, 1, 0, 0],
+            [-2, 3.984951, 1, 0, -1, 0, 0, 1, 0],
+            [1, -1.1, -1, 0, 0, -1, 0, 0, 1]
+        ])
+        b = np.array([4, -5.1, 1.75])
+        c = np.array([0, 0, 0, 0, 0, 0, -1, -1, -1])
+        z = 0
+        expected = (
+            "Max [0. 0. 0. 0. 0. 0. -1. -1. -1.]x\n"
+            "Subject To:\n"
+            "\n"
+            "[ 2.  -1.125  -2.  1.   0.   0.628  1.  0.  0.]     =   [ 4.  ]\n"
+            "[-2.   3.985   1.  0.  -1.   0.     0.  1.  0.]x    =   [-5.1 ]\n"
+            "[ 1.  -1.1    -1.  0.   0.  -1.     0.  0.  1.]     =   [ 1.75]\n"
+            "x ≥ 0\n"
+        )
+        
+        p = LinearProgram(A, b, c, z)
+        self.assertEqual(str(p), expected, "Should output in correct string format.")
+
     def test_align_b(self):
         A = np.array([
             [2, -1, -2, 1, 0, 0, 1, 0, 0],
