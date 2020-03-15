@@ -163,15 +163,6 @@ class LinearProgram:
     # [1. 0. 2.  7.  -1.]     =   [2.]
     # [0. 1. -4. -5. 3. ]x    =   [1.]
     # x ≥ 0
-
-    # BUG formatted incorrectly (b does not line up)
-    # Max [0. 0. 0. 0. 0. 0. -1. -1. -1.]x
-    # Subject To:
-
-    # [2.  -1. -2. 1.  0.  0.  1. 0. 0.]     =   [4.]
-    # [-2. 3.  1.  0. -1. 0. 0. 1. 0.]x    =   [5.]
-    # [1.  -1. -1. 0. 0. -1. 0. 0. 1.]     =   [1.]
-    # x ≥ 0
     def __repr__(self):
         """
         Generates a nicely formatted string representation of the linear program.
@@ -206,6 +197,7 @@ class LinearProgram:
         
         output += "]x"
 
+        # add z to output
         if abs(self._z) > 10e-10:
             sign = "+"
             number = self._z
@@ -218,48 +210,79 @@ class LinearProgram:
 
         output += "\nSubject To:\n\n"
 
-        # list of spaces required for each column
-        col_spaces = []
+        # lists of spaces required for each column
+        int_spaces = []  # number of spaces before decimal point
+        dec_spaces = []  # number of spaces after decimal point
 
         # find max length of each column for formatting
         for col in range(shape[1]):
-            length = 0
-            for row in range(shape[0]):
-                entry_len = len(str(self._A[row, col]))
-                if self._A[row, col].is_integer():
-                    entry_len -= 1  # account for extra x.0 at end instead of x.
-                length = max(entry_len, length)
+            int_length = 0
+            dec_length = 0
 
-            col_spaces.append(length)
+            for row in range(shape[0]):
+                int_length = max(len(str(int(self._A[row, col]))), int_length)
+                if not self._A[row, col].is_integer():
+                    decimals = self._A[row, col] - int(self._A[row, col])
+
+                    # must account for the "0." lead in decimals (i.e. 0.6548) - subtract 2 from length
+                    entry_dec_length = len(str(decimals)) - 2
+                    if decimals < 0:
+                        entry_dec_length -= 1  # account for "-" sign
+                    
+                    dec_length = max(entry_dec_length, dec_length)
+
+            int_spaces.append(int_length)
+            dec_spaces.append(dec_length)
+            print(dec_length)
+
 
         # list of spaces required for b vector
-        b_spaces = 0
+        b_int_spaces = 0
+        b_dec_spaces = 0
 
         for i in range(shape[0]):
-            b_entry_len = len(str(self._b[i]))
-            if self._b[i].is_integer():
-                b_entry_len -= 1
-            b_spaces = max(b_entry_len, b_spaces)
+            b_int_spaces = max(len(str(int(self._b[i]))), b_int_spaces)
+
+            if not self._b[i].is_integer():
+                decimals = self._b[i] - int(self._b[i])
+                
+                entry_dec_length = len(str(decimals)) - 2
+                if decimals < 0:
+                    entry_dec_length -= 1  # account for "-" sign
+                
+                b_dec_spaces = max(entry_dec_length, b_dec_spaces)
+
 
         # add each number to output string
         for row in range(shape[0]):
             output += "["
             for col in range(shape[1]):
-                if self._A[row, col].is_integer():
-                    spaces = col_spaces[col] - len(str(self._A[row, col])) + 1
-                    output += str(int(self._A[row, col]))
-                    output += "."
-                else:
-                    spaces = col_spaces[col] - len(str(self._A[row, col]))
-                    output += str(self._A[row, col])
+                entry = self._A[row, col]
+                
+                # add integer part of entry and spaces as needed
+                spaces = int_spaces[col] - len(str(int(entry)))
                 output += " " * spaces
+                output += str(int(entry))
+                output += "."
+
+                # add decimal values and spaces as needed
+                if entry.is_integer():
+                    output += " " * dec_spaces[col]
+                else:
+                    entry = abs(entry)  # remove needing to handle negatives
+                    entry -= int(entry)
+                    output += str(entry)[2:]  # skip leading "0." in string
+                    spaces = dec_spaces[col] - len(str(entry)) + 2
+                    output += " " * spaces
 
                 if not col == shape[1] - 1:
-                    # add a space between numbers only
-                    output += " "
+                    # add spacing between numbers only
+                    output += "  "
             
             output += "]"
 
+
+            # add x to the middle of the array
             if row == shape[0] // 2:
                 output += "x    "
             else:
@@ -273,15 +296,27 @@ class LinearProgram:
             else:
                 output += "=   "
 
+
             # add row-th entry from b
             output += "["
-            
-            if self._b[row].is_integer():
-                output += f"{str(int(self._b[row]))}."
-                output += " " * (b_spaces - len(str(self._b[row])) + 1)
+
+            b_entry = self._b[row]
+
+            # add integer part of entry and spaces as needed
+            spaces = b_int_spaces - len(str(int(b_entry)))
+            output += " " * spaces
+            output += str(int(b_entry))
+            output += "."
+
+            # add decimal values and spaces as needed
+            if b_entry.is_integer():
+                output += " " * b_dec_spaces
             else:
-                output += str(self._b[row])
-                output += " " * (b_spaces - len(str(self._b[row])))
+                b_entry = abs(b_entry)  # remove needing to handle negatives
+                b_entry -= int(b_entry)
+                output += str(b_entry)[2:]  # skip leading "0." in string
+                spaces = b_dec_spaces - len(str(b_entry)) + 2
+                output += " " * spaces
 
             output += "]\n"
 
