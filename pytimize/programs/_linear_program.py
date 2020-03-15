@@ -150,7 +150,7 @@ class LinearProgram:
                 free_variables.append(i + 1)
             elif item == 0:
                 negative_variables.append(i + 1)
-    
+
         return LinearProgram(A, b, c, z, objective, inequalities, free_variables, negative_variables)
 
 
@@ -1479,14 +1479,16 @@ class LinearProgram:
 
         self._free_variables = []
 
-        for i, operator in enumerate(self._inequality_indices):
-            self._A = np.c_[self._A, np.zeros(self._A.shape[0])]
-            self._c = np.r_[self._c, 0]
+        for i in range(self._b.shape[0]):
+            if i in self._inequality_indices:
+                operator = self._inequality_indices[i]
+                self._A = np.c_[self._A, np.zeros(self._A.shape[0])]
+                self._c = np.r_[self._c, 0]
 
-            if operator == ">=":
-                self._A[i, -1] = -1
-            elif operator == "<=":
-                self._A[i, -1] = 1
+                if operator == ">=":
+                    self._A[i, -1] = -1
+                elif operator == "<=":
+                    self._A[i, -1] = 1
 
         self._inequality_indices = {}
         self._is_sef = True
