@@ -89,6 +89,28 @@ class TestStr(TestCase):
         p = LinearProgram(A, b, c, z, "min", [">=", "=", "="])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
+    def test_align_b(self):
+        A = np.array([
+            [2, -1, -2, 1, 0, 0, 1, 0, 0],
+            [-2, 3, 1, 0, -1, 0, 0, 1, 0],
+            [1, -1, -1, 0, 0, -1, 0, 0, 1]
+        ])
+        b = np.array([4, 5, 1])
+        c = np.array([0, 0, 0, 0, 0, 0, -1, -1, -1])
+        z = -2
+        expected = (
+            "Min [0. 0. 0. 0. 0. 0. -1. -1. -1.]x - 2\n"
+            "Subject To:\n"
+            "\n"
+            "[ 2.  -1.  -2.  1.   0.   0.  1.  0.  0.]     ≥   [4.]\n"
+            "[-2.   3.   1.  0.  -1.   0.  0.  1.  0.]x    =   [5.]\n"
+            "[ 1.  -1.  -1.  0.   0.  -1.  0.  0.  1.]     =   [1.]\n"
+            "x ≥ 0\n"
+        )
+        
+        p = LinearProgram(A, b, c, z, "min", [">=", "=", "="])
+        self.assertEqual(str(p), expected, "Should output in correct string format.")
+
     def test_rounding(self):
         pass
         #TODO rounding test coverage
