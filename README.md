@@ -7,8 +7,8 @@
   Python optimization library for mathematical programming.
 </p>
 <p align="center">
-  <a href="https://badge.fury.io/py/pytimize"><img alt="PyPI Pytimize" src="https://badge.fury.io/py/pytimize.svg"></a>
-  <a href="https://opensource.org/licenses/Apache-2.0"><img alt="Apache 2.0" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"></a>
+  <img alt="PyPI" src="https://img.shields.io/pypi/v/pytimize?color=green&label=PyPI%20Package">
+  <a href="https://opensource.org/licenses/Apache-2.0"><img alt="Apache" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"></a>
 </p>
 
 Introduction

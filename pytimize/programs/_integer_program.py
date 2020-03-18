@@ -3,16 +3,25 @@ import math
 import numpy as np
 
 from . import LinearProgram
+from ..utilities import Comparator
 from typing import List, Tuple, Optional, Union
 
 class IntegerProgram(LinearProgram):
-    def __init__(self, A, b, c, z, objective: str="max", inequalities: List[str]=None, free_variables: List[int]=None, integral_variables: List[int]=None):
-        super().__init__(A, b, c, z, objective, inequalities, free_variables)
+    def __init__(self, A, b, c, z: float=0, objective: str="max", inequalities: Optional[List[str]]=None, free_variables: Optional[List[int]]=None, negative_variables: Optional[List[int]]=None, integral_variables: Optional[List[int]]=None):
+        """
+        Integral variable = None => all integers
+        """
+        super().__init__(A, b, c, z, objective, inequalities, free_variables, negative_variables)
         
         self._integral_variables = integral_variables
 
-    def __str__(self): #TODO add integral constraint
-        return super().__str__()
+    def __repr__(self) -> str: #TODO add integral constraint
+        output = super().__repr__().rstrip("\n")
+
+        if self._integral_variables is None:
+            output += "x ∈ Z"
+
+        return output
 
 
 
@@ -73,7 +82,7 @@ class IntegerProgram(LinearProgram):
                 continue
 
             value = solution[i]
-            if not self.__is_integer(value):
+            if not Comparator.is_integer(value):
                 copy_A = lp.A.copy()
                 copy_b = lp.b.copy()
                 new_inequalities = copy.deepcopy(lp.inequalities)
@@ -168,15 +177,14 @@ class IntegerProgram(LinearProgram):
         result : LinearProgram
 
         """
-        return LinearProgram(self._A, self._b, self._c, self._z, self._objective, self.inequalities, self.free_variables)
+        return LinearProgram(self._A, self._b, self._c, self._z, self._objective, self.inequalities, self.free_variables, self.negative_variables)
 
-    
 
-    def __is_integer(self, value):
-        integer = round(value)
-        if integer == 0:
-            return self._is_close_to_zero(value)
-        return math.isclose(value, integer)
+
+    def is_feasible(self, x, show_steps: bool=True) -> bool:
+        result = super().is_feasible(x, show_steps)
+        return result
+
 
 
     #TODO override evaluate of base to take consideration of integers

@@ -1,4 +1,4 @@
-from ..._typecheck import typecheck
+from ... import typecheck
 from unittest import TestCase, main
 from typing import List, Set, Tuple, Union
 

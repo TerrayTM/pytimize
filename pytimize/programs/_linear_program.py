@@ -6,7 +6,7 @@ import numpy as np
 
 from ..parsers._description_parser import render_descriptor
 from ..parsers._symbol_parser import SymbolParser
-from ..utilities._typecheck import typecheck
+from ..utilities import typecheck, Comparator
 from matplotlib import pyplot as plt
 from collections import deque
 from typing import List, Tuple, Optional, Union
@@ -197,11 +197,11 @@ class LinearProgram:
         output += "]x"
 
         # add z to output
-        if not self._is_close_to_zero(self._z):
+        if not Comparator.is_close_to_zero(self._z):
             sign = "+"
             number = self._z
 
-            if self.z < 0:
+            if Comparator.is_negative(self.z):
                 sign = "-"
                 number = str(self._z)[1:]
             
@@ -293,7 +293,6 @@ class LinearProgram:
             
             output += "]"
 
-
             # add x to the middle of the array
             if row == shape[0] // 2:
                 output += "x    "
@@ -307,7 +306,6 @@ class LinearProgram:
                     output += "≤   "
             else:
                 output += "=   "
-
 
             # add row-th entry from b
             output += "["
@@ -517,7 +515,7 @@ class LinearProgram:
         result = True
 
         for i in range(self._c.shape[0]):
-            if i not in basis and not self.__is_close_to_zero(x[i]):
+            if i not in basis and not Comparator.is_close_to_zero(x[i]):
                 show_steps and self.__append_to_steps(("4.02", i + 1))
 
                 result = False
@@ -558,7 +556,7 @@ class LinearProgram:
         if not self.__is_vector_of_size(x, self._c):
             raise ValueError()
 
-        return (x >= 0).all() and self.is_basic_solution(x, basis) 
+        return Comparator.is_close_compare(x, ">=", 0) and self.is_basic_solution(x, basis)
 
 
 
@@ -587,7 +585,8 @@ class LinearProgram:
         if max(basis) >= self._A.shape[1] or min(basis) < 0:
             return False
         
-        return not self.__is_close_to_zero(np.linalg.det(self._A[:, basis]))
+        return not Comparator.is_close_to_zero(np.linalg.det(self._A[:, basis]))
+
 
 
     @typecheck
@@ -606,7 +605,7 @@ class LinearProgram:
             Whether or not the basis is feasible.
 
         """
-        return self.is_basis(basis) and (self.compute_basic_solution(basis) >= 0).all()
+        return self.is_basis(basis) and Comparator.is_close_compare(self.compute_basic_solution(basis), ">=", 0)
 
 
 
@@ -884,7 +883,7 @@ class LinearProgram:
 
         solution, basis, certificate = p_aux.simplex(basis)
 
-        if self.__is_close_to_zero(p_aux.evaluate(solution)):
+        if Comparator.is_close_to_zero(p_aux.evaluate(solution)):
             p_basis = basis
 
             if not self.is_basis(p_basis):
@@ -892,7 +891,7 @@ class LinearProgram:
                 zero_set = []
 
                 for i, value in enumerate(solution[:columns], 1):
-                    if not self.__is_close_to_zero(value):
+                    if not Comparator.is_close_to_zero(value):
                         p_basis.append(i)
                     else:
                         zero_set.append(i)
@@ -1044,15 +1043,15 @@ class LinearProgram:
         N = [i for i in range(self._A.shape[1]) if i not in basis]
         k = None
 
-        if self.__is_close_compare(self._c[N], "<=", 0):
+        if Comparator.is_close_compare(self._c[N], "<=", 0):
             for i in x:
-                if self.__is_close_compare(i, "<", 0):
+                if Comparator.is_negative(i):
                     raise ArithmeticError("The given linear program is infeasible.")
 
             return x, self.__to_math_indexing(basis), self
 
         for i in N:
-            if self.__is_close_compare(self._c[i], ">", 0):
+            if Comparator.is_positive(self._c[i]):
                 k = i
 
                 break
@@ -1061,17 +1060,17 @@ class LinearProgram:
         leave = None
         t = math.inf
 
-        if self.__is_close_compare(Ak, "<=", 0):
+        if Comparator.is_close_compare(Ak, "<=", 0):
             self._feasible_solution = x
             self._feasible_basis = basis
 
             return None, None, self
 
         for i in range(len(Ak)):
-            if self.__is_close_compare(Ak[i], ">", 0):
+            if Comparator.is_positive(Ak[i]):
                 ratio = self._b[i] / Ak[i]
 
-                if self.__is_close_compare(ratio, "<", t):
+                if Comparator.is_close_compare(ratio, "<", t):
                     t = ratio
                     leave = i 
         
@@ -1109,7 +1108,7 @@ class LinearProgram:
         yA = certificate @ self._A
         yb = certificate @ self._b
 
-        return self.__is_close_compare(yA, ">=", 0) and self.__is_close_compare(yb, "<", 0)
+        return Comparator.is_close_compare(yA, ">=", 0) and Comparator.is_negative(yb)
 
 
 
@@ -1144,13 +1143,13 @@ class LinearProgram:
         if not self.is_feasible(x):
             return False
         
-        if self.__is_close_compare(self._c @ certificate, "<=", 0):
+        if Comparator.is_close_compare(self._c @ certificate, "<=", 0):
             return False
         
         if not np.allclose(self._A @ certificate, 0):
             return False
         
-        return self.__is_close_compare(certificate, ">=", 0)
+        return Comparator.is_close_compare(certificate, ">=", 0)
 
 
 
@@ -1179,7 +1178,7 @@ class LinearProgram:
         certificate = self.__to_ndarray(certificate)
         test = self._c - certificate @ self._A
         
-        return self.__is_close_compare(test, "<=", 0)
+        return Comparator.is_close_compare(test, "<=", 0)
 
 
 
@@ -1209,7 +1208,7 @@ class LinearProgram:
         show_steps and self.__append_to_steps(("2.01", x))
 
         if self._is_sef:
-            all_nonnegative = (x >= 0).all()
+            all_nonnegative = Comparator.is_close_compare(x, ">=", 0)
             satisfy_constraints = np.allclose(self._A @ x, self._b)
             is_feasible = all_nonnegative and satisfy_constraints
 
@@ -1672,48 +1671,7 @@ class LinearProgram:
                 "key": key,
                 "text": render_descriptor(key, list(entity[1:]))
             })
-
-
-
-    def __is_close_to_zero(self, value: float) -> bool:
-        """
-        Checks if the given value is close to zero. Use this function over `math.isclose` for 
-        comparison over 0.
-        
-        """
-        return abs(value) < 1.0e-10
-
-    def _is_close_to_zero(self, value: float) -> bool:
-        """
-        Checks if the given value is close to zero. Use this function over `math.isclose` for 
-        comparison over 0.
-        
-        """
-        return abs(value) < 1.0e-10
-
-
     # TODO replace <= and >= with the below function
-    def __is_close_compare(self, value: Union[float, np.ndarray], comparison: str, test: float) -> bool:
-        """
-        Performs comparison between two numbers or an array and a number. Takes into account of
-        floating point rounding error.
-        
-        """
-        comparator = self.__is_close_to_zero if test == 0 else lambda x: np.allclose(x, test)
-        result = None
-
-        if comparison == ">=":            
-            result = np.logical_or(comparator(value), value >= test)
-        elif comparison == ">":
-            result = np.logical_and(np.logical_not(comparator(value)), value > test)
-        elif comparison == "<=":
-            result = np.logical_or(comparator(value), value <= test)
-        elif comparison == "<":
-            result = np.logical_and(np.logical_not(comparator(value)), value < test)
-        else:
-            raise ValueError("Invalid comparison operator.")
-
-        return result.all() if isinstance(result, np.ndarray) else result
 
 
 

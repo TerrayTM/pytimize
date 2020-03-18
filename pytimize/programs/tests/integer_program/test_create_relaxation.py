@@ -5,7 +5,7 @@ from ... import IntegerProgram, LinearProgram
 from unittest import TestCase, main
 
 class TestCreateRelaxation(TestCase):
-    def test_create_relaxation(self) -> None:
+    def test_create_relaxation(self):
         A = np.array([
             [1, 2, 3, 4],
             [3, 5, 7, 9]
@@ -14,7 +14,7 @@ class TestCreateRelaxation(TestCase):
         c = np.array([1, 7, 1, 5])
         z = 25
 
-        ip = IntegerProgram(A, b, c, z, "min", ["<=", ">="], [1], [0, 1])
+        ip = IntegerProgram(A, b, c, z, "min", ["<=", ">="], [2], [1])
         lp = ip.create_relaxation()
 
         self.assertTrue(isinstance(lp, LinearProgram), "Should be a linear program.")
@@ -22,8 +22,8 @@ class TestCreateRelaxation(TestCase):
         self.assertTrue(np.allclose(lp.b, b), "Should have the same constraint vector.")
         self.assertTrue(np.allclose(lp.c, c), "Should have the same coefficient vector.")
         self.assertTrue(math.isclose(lp.z, z), "Should have the same constant.")
-
-        # TODO Add cases for inequalities and other data
+        self.assertEqual(lp.negative_variables, ip.negative_variables, "Should have the same negative variables.")
+        self.assertEqual(lp.free_variables, ip.free_variables, "Should have the same free variables.")
 
 if __name__ == "__main__":
     main()

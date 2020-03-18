@@ -13,7 +13,7 @@ class TestBranchAndBound(TestCase):
         c = np.array([60, 50])
         z = 0
 
-        p = IntegerProgram(A, b, c, z, "max", ["<=", "<="], None, [0, 1])
+        p = IntegerProgram(A, b, c, z, "max", ["<=", "<="])
 
         self.assertTrue(np.allclose(p.branch_and_bound(), [4, 0]), "Should be the same solution.")
 

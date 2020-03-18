@@ -4,7 +4,7 @@ from math import isclose
 from typing import Union
 
 class Comparator:
-    @staticmethod        
+    @staticmethod
     def is_close_to_zero(value: Union[float, np.ndarray]) -> Union[bool, np.ndarray]:
         """
         Checks if the given value is close to zero. Use this function over 
@@ -23,6 +23,8 @@ class Comparator:
         
         """
         return abs(value) < 1.0e-10
+
+
 
     @staticmethod
     def is_close_compare(value: Union[float, np.ndarray], comparison: str, test: float) -> bool:
@@ -64,6 +66,8 @@ class Comparator:
 
         return result.all() if isinstance(result, np.ndarray) else result
 
+
+
     @staticmethod
     def is_integer(value: Union[float, np.ndarray]) -> bool:
         """
@@ -83,6 +87,8 @@ class Comparator:
         """
         return np.allclose(value, np.round(value))
 
+
+
     @staticmethod
     def is_negative(value: Union[float, np.ndarray]) -> bool:
         """
@@ -101,7 +107,9 @@ class Comparator:
         
         """
         return Comparator.is_close_compare(value, "<", 0)
+
     
+
     @staticmethod
     def is_positive(value: Union[float, np.ndarray]) -> bool:
         """
