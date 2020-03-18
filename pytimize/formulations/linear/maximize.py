@@ -1,0 +1,2 @@
+def maximize(equation):
+    pass

@@ -1,0 +1,2 @@
+class LinearConstraint:
+    pass
