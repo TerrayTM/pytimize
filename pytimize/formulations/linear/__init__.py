@@ -1,16 +1,17 @@
-from .abstract_program import AbstractProgram
-from .linear_constraint import LinearConstraint
-from .linear_equation import LinearEquation
-from .objective_function import ObjectiveFunction
-from .variable import Variable, x
-from .maximize import maximize
+from ._objective import ObjectiveFunction, maximize, minimize
+from ._abstract import AbstractLinearProgram
+from ._constraint import LinearConstraint
+from ._equation import LinearEquation
+from ._variable import x
+from ._term import Term
 
 __all__ = [
-    "AbstractProgram",
+    "AbstractLinearProgram",
+    "ObjectiveFunction",
     "LinearConstraint",
     "LinearEquation",
-    "ObjectiveFunction",
-    "Variable",
     "maximize",
+    "minimize",
+    "Term",
     "x",
 ]
