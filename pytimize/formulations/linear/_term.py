@@ -1,4 +1,5 @@
-from . import LinearEquation
+from ._equation import LinearEquation
+from ._constraint import LinearConstraint
 
 class Term:
     def __init__(self, label: int):
@@ -61,6 +62,20 @@ class Term:
 
     def __imult__(self, other):
         return self * other
+
+
+    def __le__(self, other):
+        pass 
+
+
+
+    def __ge__(self, other):
+        pass 
+
+
+
+    def __eq__(self, other):
+        pass
 
 
 

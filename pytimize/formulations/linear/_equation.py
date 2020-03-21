@@ -1,6 +1,6 @@
 import numpy as np
 
-from . import LinearConstraint
+from ._constraint import LinearConstraint
 from ._types import LinearEquationLike
 from ._utilities import to_linear_equation, pad_right
 from typing import Dict, Union, Optional

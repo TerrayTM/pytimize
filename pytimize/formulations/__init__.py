@@ -1,3 +1,5 @@
 from . import linear
 
-__all__ = ["linear"]
+__all__ = [
+    "linear"
+]

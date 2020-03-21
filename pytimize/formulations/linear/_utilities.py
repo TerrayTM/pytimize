@@ -1,7 +1,8 @@
 import numpy as np
 
-from . import LinearEquation, Term
+from ._equation import LinearEquation
 from ._types import LinearEquationLike
+from ._term import Term
 from typing import Optional
 
 def to_linear_equation(equation: LinearEquationLike) -> LinearEquation:

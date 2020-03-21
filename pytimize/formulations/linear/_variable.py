@@ -1,4 +1,4 @@
-from . import Term
+from ._term import Term
 
 class MetaVariable(type):
     def __getitem__(cls, slice):

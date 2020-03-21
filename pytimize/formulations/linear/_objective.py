@@ -1,8 +1,11 @@
 import numpy as np
 
-from . import LinearConstraint, LinearEquation, Term, AbstractLinearProgram
-from ._types import LinearEquationLike
 from ._utilities import to_linear_equation, pad_right
+from ._constraint import LinearConstraint
+from ._equation import LinearEquation
+from ._abstract import AbstractLinearProgram
+from ._types import LinearEquationLike
+from ._term import Term
 
 class ObjectiveFunction:
     def __init__(self, equation: LinearEquation, objective: str):

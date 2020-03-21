@@ -1,5 +1,9 @@
-from ._linear_program import LinearProgram
-from ._integer_program import IntegerProgram
-from ._nonlinear_program import NonlinearProgram
+from ._linear import LinearProgram
+from ._integer import IntegerProgram
+from ._nonlinear import NonlinearProgram
 
-__all__ = ["LinearProgram", "IntegerProgram", "NonlinearProgram"]
+__all__ = [
+    "LinearProgram",
+    "IntegerProgram",
+    "NonlinearProgram"
+]
