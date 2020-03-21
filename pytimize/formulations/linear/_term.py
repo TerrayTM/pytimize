@@ -8,12 +8,14 @@ class Term:
 
 
     def __neg__(self):
-        pass
+        self._coefficient = -self._coefficient
+        
+        return self
 
 
 
     def __pos__(self):
-        pass
+        return self
 
 
 
@@ -58,7 +60,7 @@ class Term:
 
 
     def __imult__(self, other):
-        pass
+        return self * other
 
 
 
