@@ -69,13 +69,13 @@ class LinearEquation:
 
     def _generate_constraint(self, inequality: str, other: LinearEquationLike) -> LinearConstraint:
         other = to_linear_equation(other)
-        b = other.constant + self._constant
+        constant = other.constant + self._constant
         coefficients = self._broadcast_add(self.coefficients, other.coefficients)
 
         if coefficients is None:
             raise ValueError("Constraint cannot be constructed with only constants.")
 
-        return LinearConstraint(coefficients, inequality, b)
+        return LinearConstraint(coefficients, inequality, constant)
 
 
 
@@ -89,7 +89,7 @@ class LinearEquation:
         if array_one.shape[0] > array_two.shape[0]:
             array_one, array_two = array_two, array_one
         
-        return array_two  + pad_right(array_one, array_two.shape[0])
+        return array_two + pad_right(array_one, array_two.shape[0])
 
 
 
