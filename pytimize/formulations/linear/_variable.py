@@ -1,4 +1,5 @@
 from ._equation import LinearEquation
+from ._constraint import VariableConstraint
 from typing import Union
 
 class MetaVariable(type):
@@ -12,6 +13,16 @@ class MetaVariable(type):
             key -= 1
 
         return LinearEquation({ key: 1 })
+
+
+
+    def __le__(self, other: int) -> VariableConstraint:
+        pass
+
+
+
+    def __ge__(self, other: int) -> VariableConstraint:
+        pass
 
 
 

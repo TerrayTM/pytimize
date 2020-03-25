@@ -8,7 +8,7 @@ class ObjectiveFunction(LinearObjective):
 
 
 def minimize(equation: Union[LinearEquation, float]) -> ObjectiveFunction:
-    if isinstance(equation, float):
+    if isinstance(equation, float) or isinstance(equation, int):
         equation = LinearEquation({}, equation)
 
     return ObjectiveFunction(equation, "min")
@@ -16,7 +16,7 @@ def minimize(equation: Union[LinearEquation, float]) -> ObjectiveFunction:
 
 
 def maximize(equation: Union[LinearEquation, float]) -> ObjectiveFunction:
-    if isinstance(equation, float):
+    if isinstance(equation, float) or isinstance(equation, int):
         equation = LinearEquation({}, equation)
 
     return ObjectiveFunction(equation, "max")
