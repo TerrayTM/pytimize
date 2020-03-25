@@ -1,11 +1,10 @@
 import numpy as np
 
-from ._utilities import to_linear_equation, pad_right
+from ._utilities import pad_right
 from ._constraint import LinearConstraint
 from ._equation import LinearEquation
 from ._abstract import AbstractLinearProgram
-from ._types import LinearEquationLike
-from ._term import Term
+from typing import Union
 
 class ObjectiveFunction:
     def __init__(self, equation: LinearEquation, objective: str):
@@ -41,10 +40,16 @@ class ObjectiveFunction:
 
 
 
-def minimize(equation: LinearEquationLike) -> ObjectiveFunction:
-    return ObjectiveFunction(to_linear_equation(equation), "min")
+def minimize(equation: Union[LinearEquation, float]) -> ObjectiveFunction:
+    if isinstance(equation, float):
+        equation = LinearEquation({}, equation)
+
+    return ObjectiveFunction(LinearEquation.create_from(equation), "min")
 
 
 
-def maximize(equation: LinearEquationLike) -> ObjectiveFunction:
-    return ObjectiveFunction(to_linear_equation(equation), "max")
+def maximize(equation: Union[LinearEquation, float]) -> ObjectiveFunction:
+    if isinstance(equation, float):
+        equation = LinearEquation({}, equation)
+
+    return ObjectiveFunction(LinearEquation.create_from(equation), "max")

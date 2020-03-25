@@ -1,57 +1,91 @@
 import numpy as np
 
 from ._constraint import LinearConstraint
-from ._types import LinearEquationLike
-from ._utilities import to_linear_equation, pad_right
+from ._utilities import pad_right
 from typing import Dict, Union, Optional
 
 class LinearEquation:
-    # TODO add check for math indexing in terms
     def __init__(self, terms: Dict[int, float], constant: float=0):
+        # TODO Verify terms is valid
         self._terms = terms
         self._constant = constant
+
+
 
     def __repr__(self):
         pass # TODO
 
 
 
-    def __add__(self, other):
-        pass
-
-
-
-    def __radd__(self, other): 
-        pass 
-
-    def __iadd__(self, other):
-        pass
-
     def __neg__(self):
-        pass
+        self._coefficient = -self._coefficient
+        
+        return self
+
+
 
     def __pos__(self):
         return self
 
-    def __sub__(self, other):
-        pass 
 
-    def __rsub__(self, other):
+
+    def __add__(self, other):
+        # if isinstance(other, Term):
+        #     if other.label == self._label:
+        #         self._coefficient += other.coefficient
+        #         return self
+            
+        #     return LinearEquation({ 
+        #         self._label: self._coefficient,
+        #         other.label: other.coefficient
+        #     })
+        # elif isinstance(other, LinearEquation):
+        #     return other.add_variable(self._label, self._coefficient)
+        # elif isinstance(other, int) or isinstance(other, float): 
+        #     return LinearEquation({ self._label: self._coefficient }, other)
+        # raise Exception()
         pass
 
 
 
-    def __le__(self, other: LinearEquationLike) -> LinearConstraint:
+    def __radd__(self, other):
+        pass
+
+
+
+    def __iadd__(self, other):
+        pass
+
+
+
+    def __mul__(self, other: float): 
+        if isinstance(other, float) or isinstance(other, int): 
+            self._coefficient *= other
+            return self
+
+
+
+    def __rmul__(self, other):
+        return self * other
+
+
+
+    def __imult__(self, other):
+        return self * other
+
+
+
+    def __le__(self, other: Union["LinearEquation", float]) -> LinearConstraint:
         return self._generate_constraint("<=", other)
 
 
 
-    def __ge__(self, other: LinearEquationLike) -> LinearConstraint:
+    def __ge__(self, other: Union["LinearEquation", float]) -> LinearConstraint:
         return self._generate_constraint(">=", other)
 
 
 
-    def __eq__(self, other: LinearEquationLike) -> LinearConstraint:
+    def __eq__(self, other: Union["LinearEquation", float]) -> LinearConstraint:
         return self._generate_constraint("=", other)
 
 
@@ -67,8 +101,10 @@ class LinearEquation:
 
 
 
-    def _generate_constraint(self, inequality: str, other: LinearEquationLike) -> LinearConstraint:
-        other = to_linear_equation(other)
+    def _generate_constraint(self, inequality: str, other: Union["LinearEquation", float]) -> LinearConstraint:
+        if isinstance(other, float):
+            other = LinearEquation({}, other)
+
         constant = other.constant + self._constant
         coefficients = self._broadcast_add(self.coefficients, other.coefficients)
 

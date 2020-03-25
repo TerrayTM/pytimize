@@ -1,19 +1,6 @@
 import numpy as np
 
-from ._equation import LinearEquation
-from ._types import LinearEquationLike
-from ._term import Term
 from typing import Optional
-
-def to_linear_equation(equation: LinearEquationLike) -> LinearEquation:
-    if isinstance(equation, Term):
-        equation = equation.to_equation()
-    elif isinstance(equation, float) or isinstance(equation, int):
-        equation = LinearEquation({}, equation)
-
-    return equation
-
-
 
 def pad_right(array: Optional[np.ndarray], max_length: int) -> np.ndarray:
     if max_length < 0:
