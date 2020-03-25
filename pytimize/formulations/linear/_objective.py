@@ -44,7 +44,7 @@ def minimize(equation: Union[LinearEquation, float]) -> ObjectiveFunction:
     if isinstance(equation, float):
         equation = LinearEquation({}, equation)
 
-    return ObjectiveFunction(LinearEquation.create_from(equation), "min")
+    return ObjectiveFunction(equation, "min")
 
 
 
@@ -52,4 +52,4 @@ def maximize(equation: Union[LinearEquation, float]) -> ObjectiveFunction:
     if isinstance(equation, float):
         equation = LinearEquation({}, equation)
 
-    return ObjectiveFunction(LinearEquation.create_from(equation), "max")
+    return ObjectiveFunction(equation, "max")
