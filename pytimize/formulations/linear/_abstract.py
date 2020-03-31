@@ -17,7 +17,7 @@ class AbstractLinearProgram:
 
 
     def where(self, *variable_constraints):
-        pass
+        return self
 
 
 

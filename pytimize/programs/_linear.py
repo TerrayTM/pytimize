@@ -4,8 +4,8 @@ import random
 import functools
 import numpy as np
 
-from ..parsers._description_parser import render_descriptor
-from ..parsers._symbol_parser import SymbolParser
+from ..parsers._description import render_descriptor
+from ..parsers._symbol import SymbolParser
 from ..utilities import typecheck, Comparator
 from matplotlib import pyplot as plt
 from collections import deque

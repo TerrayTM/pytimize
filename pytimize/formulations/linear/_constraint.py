@@ -13,11 +13,6 @@ class LinearConstraint:
 
 
 
-    def compile(self):
-        pass # TODO
-
-    
-
     @property
     def inequality(self):
         return self._inequality
@@ -33,3 +28,9 @@ class LinearConstraint:
     @property    
     def constant(self):
         return self._constant
+
+
+
+class VariableConstraint:
+    def __init__(self):
+        pass 

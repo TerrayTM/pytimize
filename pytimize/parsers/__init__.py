@@ -1,4 +1,7 @@
-from ._linear_parser import LinearParser
-from ._graph_parser import GraphParser
+from ._linear import LinearParser
+from ._graph import GraphParser
 
-__all__ = ["LinearParser", "GraphParser"]
+__all__ = [
+    "LinearParser",
+    "GraphParser"
+]

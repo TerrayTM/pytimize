@@ -2,7 +2,7 @@ import copy
 import math
 import numpy as np
 
-from . import LinearProgram
+from ._linear import LinearProgram
 from ..utilities import Comparator
 from typing import List, Tuple, Optional, Union
 

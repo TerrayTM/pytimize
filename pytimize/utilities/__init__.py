@@ -1,5 +1,9 @@
-from ._disjoint_set import DisjointSet
-from .comparator import Comparator
-from .typecheck import typecheck
+from ._disjoint import DisjointSet
+from ._comparator import Comparator
+from ._typecheck import typecheck
 
-__all__ = ["DisjointSet", "Comparator", "typecheck"]
+__all__ = [
+    "DisjointSet",
+    "Comparator",
+    "typecheck"
+]
