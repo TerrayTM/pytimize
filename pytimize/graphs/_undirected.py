@@ -126,7 +126,7 @@ class UndirectedGraph: #TODO validation
 
 
 
-  def formulate_shortest_path(self, start: str, end: str) -> "LinearProgram":
+  def formulate_shortest_path(self, start: str, end: str, disjoint_cuts=True) -> "LinearProgram":
     if start not in self._graph:
       raise ValueError("Starting vertex is not in graph.")
 
@@ -139,7 +139,7 @@ class UndirectedGraph: #TODO validation
     vertices.remove(end)
 
     power_set = []
-
+    # TODO: BFS Disjoint st-cuts
     for i in range(2 ** len(vertices)):
       current_set = set()
 

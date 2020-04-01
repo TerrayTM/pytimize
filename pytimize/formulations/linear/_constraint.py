@@ -32,5 +32,5 @@ class LinearConstraint:
 
 
 class VariableConstraint:
-    def __init__(self):
+    def __init__(self, negative, positive):
         pass 
