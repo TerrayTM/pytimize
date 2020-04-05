@@ -50,7 +50,7 @@ class Comparator:
             The result of the comparision.
         
         """
-        comparator = Comparator.is_close_to_zero if test == 0 else lambda x: np.allclose(x, test)
+        comparator = Comparator.is_close_to_zero if test == 0 else lambda x: np.isclose(x, test)
         result = None
 
         if comparison == ">=":            
