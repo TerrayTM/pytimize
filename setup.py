@@ -29,14 +29,12 @@ setup(
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Science/Research",
         "Intended Audience :: Developers",
+        "Intended Audience :: Education",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.8",
         "Topic :: Software Development",
         "Topic :: Scientific/Engineering",
-        "Operating System :: Microsoft :: Windows",
-        "Operating System :: POSIX",
-        "Operating System :: Unix",
-        "Operating System :: MacOS"
+        "Operating System :: OS Independent"
     ]
 )
