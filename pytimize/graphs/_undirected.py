@@ -1,7 +1,8 @@
 import math
 import numpy as np 
 
-from ..programs import LinearProgram, IntegerProgram
+from ..programs._linear import LinearProgram
+from ..programs._integer import IntegerProgram
 from typing import List, Tuple, Dict, Set
 
 class UndirectedGraph: #TODO validation 
@@ -177,7 +178,7 @@ class UndirectedGraph: #TODO validation
     for edge in graph_edges:
       result_c[edge_positions[self.__hash_edge((edge[0], edge[1]))]] = edge[2]
 
-    return LinearProgram(result_A, np.ones(constraints), result_c, 0, "min", [">=" for i in range(constraints)])
+    return LinearProgram(result_A, np.ones(constraints), result_c, 0, "min", [">="] * constraints)
 
 
   def delta(self, vertices):
@@ -192,13 +193,17 @@ class UndirectedGraph: #TODO validation
 
 
 
-  def formulate_max_stable_set(self) -> Tuple[IntegerProgram, List[str]]:
+  def formulate_max_stable_set(self) -> Tuple[IntegerProgram, Dict[str, int]]:
+    if len(self._graph) == 0:
+      return None #TODO this can't be none
+
     mapping_A = { vertex: i for i, vertex in enumerate(self._graph.keys()) }
-    stack_A = []
+    columns = len(mapping_A)
+    stack_A = np.empty(columns)
     seen = set()
 
     for vertex in self._graph.keys():
-      row = np.zeros(len(mapping_A))
+      row = np.zeros(columns)
       row[mapping_A[vertex]] = 1
       
       for connected in self.delta({ vertex }): # TODO Should be one item or set
@@ -208,9 +213,10 @@ class UndirectedGraph: #TODO validation
       
       if not hash in seen:
         seen.add(hash)
-        stack_A.append(row)
 
-    result_A = np.array(stack_A)
+        stack_A = np.vstack((stack_A, row))
+
+    result_A = stack_A[1:]
     result_b = np.ones(result_A.shape[0])
     result_c = np.ones(result_A.shape[1]) #TODO implemented node weights
     inequalities = ["<="] * result_A.shape[0]
