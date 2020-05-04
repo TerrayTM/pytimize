@@ -3,34 +3,92 @@ import numpy as np
 
 from ..programs._linear import LinearProgram
 from ..programs._integer import IntegerProgram
-from typing import List, Tuple, Dict, Set
+from typing import List, Tuple, Dict, Set, Optional
 
-class UndirectedGraph: #TODO validation 
-  def __init__(self, edges: List[Tuple[str, str, float]]=None) -> None:
+class UndirectedGraph:
+  def __init__(self, graph: Optional[Dict[str, Set[str]]]=None, edges: Optional[Dict[Tuple[str, str], float]]=None, vertices: Optional[Dict[str, float]]=None) -> None:
+    """
+    Constructs a undirected graph with support for edge and vertex weights.
+    If `graph`, `edges`, `vertices`, or a combination of them is provided, the 
+    graph will be built respectively with any nonspecified weights set to 0.
+
+    Parameters
+    ----------
+    graph : Optional[Dict[str, Set[str]]] (default=None)
+      The graph dictionary where key is the vertex and value is the set of 
+      vertices that are connected to that vertex.
+
+    edges : Optional[Dict[Tuple[str, str], float]] (default=None)
+      The edges dictionary where key is the edge and value is the weight. 
+
+    vertices : Optional[Dict[str, float]] (default=None)
+      The vertices dictionary where key is the vertex and value is the weight.
+
+    """
     self._graph = {}
+    self._edges = {}
+    self._vertices = {}
 
-    if edges is not None:
-      if not isinstance(edges, list):
-        raise TypeError("Edges must be a list.")
+    if graph is not None:
+      for vertex, connections in graph.items():
+        for connection in connections:
+          edge = vertex, connection
 
-      for edge in edges:
-        if not isinstance(edge, tuple):
-          raise TypeError("Each entry of edges must be a tuple.")
+          if self.has_edge(edge):
+            continue
 
-        if not len(edge) == 3:
-          raise TypeError("Each tuple must have 3 items.")
+          self.add_edge(edge)
 
-        if not isinstance(edge[0], str) or not isinstance(edge[1], str):
-          raise TypeError("First two entries of tuple must be strings.")
+    if edges is not None: 
+      for edge, weight in edges.items():
+        if not self.has_edge(edge):
+          self.add_edge(edge)
 
-        self.add_edge((edge[0], edge[1]), edge[2])
+        self.set_edge_weight(edge, weight)
+
+    if vertices is not None:
+      for vertex, weight in vertices.items():
+        if not self.has_vertex(vertex): 
+          self.add_vertex(vertex)
+
+        self.set_vertex_weight(vertex, weight)
+
+
+
+  def __repr__(self) -> str:
+    """
+    Generates a string representation of the graph.
+
+    Returns
+    -------
+    result : str
+        A string representation of the graph.
+
+    """
+    adjacency = set()
+
+    for vertex, connections in self._graph.items():
+      formatted = '-'.join(sorted(connections))
+
+      adjacency.add(f"{vertex}: {formatted}")
+
+    return "\n".join(sorted(adjacency))
 
 
 
   def add_edge(self, edge: Tuple[str, str], weight: float=0) -> None:
-    if edge[0] in self._graph and any(node[0] == edge[1] for node in self._graph[edge[0]]):
-      raise ValueError("The given edge is already in graph.")
+    """
+    Adds an edge to the graph. Any newly created vertices will have a weight of 0.
 
+    Parameters
+    ----------
+    edge : Tuple[str, str]
+      The identifier of the edge.
+
+    weight : float (default=0)
+      The weight of the edge.
+
+    """
     if weight < 0:
       raise ValueError("Weight cannot be negative.")
 
@@ -38,13 +96,18 @@ class UndirectedGraph: #TODO validation
       raise ValueError("Cannot form an edge with the same vertex.")
 
     if not edge[0] or not edge[1]:
-      raise ValueError("Vertices cannot be empty string.")
+      raise ValueError("Vertices cannot be an empty string.")
+    
+    edge = tuple(sorted(edge))
 
-    if not isinstance(edge[0], str) or not isinstance(edge[1], str):
-      raise ValueError("Vertices must be of type string.")
+    if self.has_edge(edge):
+      raise ValueError("The given edge is already in graph.")
 
-    self._graph.setdefault(edge[0], set()).add((edge[1], weight))
-    self._graph.setdefault(edge[1], set()).add((edge[0], weight))
+    self._graph.setdefault(edge[0], set()).add(edge[1])
+    self._graph.setdefault(edge[1], set()).add(edge[0])
+    self._edges.setdefault(edge, weight)
+    self._vertices.setdefault(edge[0], 0)
+    self._vertices.setdefault(edge[1], 0)
 
 
 
@@ -58,20 +121,129 @@ class UndirectedGraph: #TODO validation
 
 
   def has_edge(self, edge: Tuple[str, str]) -> bool:
-    return edge[0] in self._graph and edge[1] in self._graph[edge[0]]
+    """
+    Checks if given edge is in graph.
+
+    Parameters
+    ----------
+    edge : Tuple[str, str]
+      The identifier of the edge.
+
+    Returns
+    -------
+    result : bool
+        Whether or not the given edge is in graph.
+
+    """
+    return tuple(sorted(edge)) in self._edges
+
+
+
+  def add_vertex(self, vertex: str, weight: float=0) -> None:
+    """
+    Adds a vertex to the graph.
+
+    Parameters
+    ----------
+    vertex : str
+      The identifier of the vertex.
+
+    weight : float (default=0)
+      The weight of the vertex.
+
+    """
+    if weight < 0:
+      raise ValueError("Weight cannot be negative.")
+
+    if self.has_vertex(vertex):
+      raise ValueError("The given vertex is already in graph.")
+
+    self._graph.setdefault(vertex, set())
+    self._vertices.setdefault(vertex, weight)
+
+
+
+  def remove_vertex(self):
+    pass
 
 
 
   def has_vertex(self, vertex: str) -> bool:
-    return vertex in self._graph
+    """
+    Checks if given vertex is in graph.
+
+    Parameters
+    ----------
+    vertex : str
+      The identifier of the vertex.
+
+    Returns
+    -------
+    result : bool
+        Whether or not the given vertex is in graph.
+
+    """
+    return vertex in self._vertices
 
 
 
-  def get_weight(self, edge: Tuple[str, str]) -> float:
+  def set_edge_weight(self, edge: Tuple[str, str], weight: float) -> None:
     if not self.has_edge(edge):
       raise ValueError("The given edge is not in graph.")
 
-    return self._graph[edge[0]][edge][1]
+    self._edges[tuple(sorted(edge))] = weight
+
+
+
+  def set_vertex_weight(self, vertex: str, weight: float) -> None:
+    if not self.has_vertex(vertex):
+      raise ValueError("The given vertex is not in graph.")
+
+    self._vertices[vertex] = weight
+
+
+
+  def get_edge_weight(self, edge: Tuple[str, str]) -> float:
+    """
+    Gets the weight of an edge.
+
+    Parameters
+    ----------
+    edge : Tuple[str, str]
+      The identifier of the edge.
+
+    Returns
+    -------
+    result : float
+      The weight of the edge.
+
+    """
+    if not self.has_edge(edge):
+      raise ValueError("The given edge is not in graph.")
+
+    return self._edges[tuple(sorted(edge))]
+
+
+
+  def get_vertex_weight(self, vertex: str) -> float:
+    """
+    Gets the weight of a vertex.
+
+    Parameters
+    ----------
+    vertex : str
+      The identifier of the vertex.
+
+    Returns
+    -------
+    result : float
+      The weight of the vertex.
+
+    """
+    if not self.has_vertex(vertex):
+      raise ValueError("The given vertex is not in graph.")
+
+    return self._vertices[vertex]
 
 
 
@@ -94,7 +266,7 @@ class UndirectedGraph: #TODO validation
       for vertex in visited:
         for edge in self._graph[vertex]:
           if edge[0] not in visited:
-            edge_hash = self.__hash_edge((edge[0], vertex))
+            edge_hash = self._hash_edge((edge[0], vertex))
             slack = edge[1] - (potential[edge_hash] if edge_hash in potential else 0)
 
             #print(edge_hash, slack)
@@ -103,7 +275,7 @@ class UndirectedGraph: #TODO validation
 
             if slack < best_slack:
               best_slack = slack
-              best_edge = (vertex, edge[0], edge_hash)
+              best_edge = vertex, edge[0], edge_hash
       
             #print(visited, best_slack)
 
@@ -152,13 +324,13 @@ class UndirectedGraph: #TODO validation
       power_set.append(current_set)
 
     graph_edges = self.__get_edges()
-    A = { self.__hash_edge((edge[0], edge[1])): np.zeros(len(power_set)) for edge in graph_edges }
+    A = {self._hash_edge((edge[0], edge[1])): np.zeros(len(power_set)) for edge in graph_edges}
 
     for i, group in enumerate(power_set):
       edges = set()
 
       for vertex in group:
-        edges = edges.union(map(lambda x: self.__hash_edge((vertex, x[0])), self._graph[vertex]))
+        edges = edges.union(map(lambda x: self._hash_edge((vertex, x[0])), self._graph[vertex]))
 
       for edge in filter(lambda x: x[0] not in group or x[1] not in group, edges):
         A[edge][i] = 1
@@ -176,7 +348,7 @@ class UndirectedGraph: #TODO validation
     constraints = result_A.shape[0]
 
     for edge in graph_edges:
-      result_c[edge_positions[self.__hash_edge((edge[0], edge[1]))]] = edge[2]
+      result_c[edge_positions[self._hash_edge((edge[0], edge[1]))]] = edge[2]
 
     return LinearProgram(result_A, np.ones(constraints), result_c, 0, "min", [">="] * constraints)
 
@@ -225,69 +397,56 @@ class UndirectedGraph: #TODO validation
 
 
 
-  def __hash_edge(self, edge: Tuple[str, str]) -> str:
-    a, b = edge[0], edge[1]
+  def _hash_edge(self, edge: Tuple[str, str]) -> str:
+    a, b = edge
     
-    if a < b:
+    if a > b:
       a, b = b, a
     
     return f"{a}{b}"
 
 
 
-  def __get_edges(self) -> List[Tuple[str, str, float]]:
-    result = set()
-
-    for vertex, connections in self._graph.items():
-      for connection in connections:
-        a = vertex
-        b = connection[0]
-
-        if a < b:
-          a, b = b, a
-        
-        result.add((a, b, connection[1]))
-    
-    return result
-
-
-
   @property
-  def edges(self) -> Set[Tuple[str, str, float]]:
+  def edges(self) -> Dict[Tuple[str, str], float]:
     """
     Gets the edges of the graph.
 
     Returns
     -------
-    result : list of tuples (str, str, float)
+    result : Dict[Tuple[str, str], float]
+      The edges dictionary where key is the edge and value is the weight. 
 
     """
-    return self.__get_edges()
+    return self._edges.copy()
 
 
 
   @property
-  def graph(self) -> Dict[str, Set[Tuple[str, float]]]:
+  def graph(self) -> Dict[str, Set[str]]:
     """
-    Gets the graph representation as an adjacency list.
+    Gets the graph representation.
 
     Returns
     -------
-    result : Dict[str, List[Set[str, float]]]
+    result : Dict[str, Set[str]]
+      The graph dictionary where key is the vertex and value is the set of 
+      vertices that are connected to that vertex.
 
     """
-    return self._graph
+    return self._graph.copy()
 
 
 
   @property
-  def vertices(self) -> List[str]:
+  def vertices(self) -> Dict[str, float]:
     """
     Gets the vertices of the graph.
 
     Returns
     -------
-    result : list of str
+    result : Dict[str, float]
+      The vertices dictionary where key is the vertex and value is the weight.
 
     """
-    return list(self._graph.keys())
+    return self._vertices.copy()
