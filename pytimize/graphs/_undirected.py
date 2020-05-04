@@ -411,46 +411,30 @@ class UndirectedGraph:
 
   # TODO: note if graph is segmented then dfs and bfs shouldn't work
   def dfs(self, start: str) -> List[str]:
-    return list(self.walk_dfs(start))
+    return list(self.walk(start, "dfs"))
 
 
 
   def bfs(self, start: str) -> List[str]:
-    return list(self.walk_bfs(start))
+    return list(self.walk(start, "bfs"))
 
 
-  
-  def walk_dfs(self, start: str) -> Iterator[Tuple[str, Optional[Tuple[str, str]]]]:
+
+  def walk(self, start: str, traversal: str="bfs") -> Iterator[Tuple[str, Optional[Tuple[str, str]]]]:
     """
-    Walks through the graph in depth first search order.
+    Walks through the graph in breadth first search or depth first search order.
 
     Parameters
     ----------
     start : str
       The starting vertex.
+
+    traversal : str (default="bfs")
+      The type of graph traversal. Options are `bfs` or `dfs`.
 
     Returns
     -------
     result : Iterator[Tuple[str, Optional[Tuple[str, str]]]]
-      The iterator giving the current vertex and the edge that reaches it. The starting vertex will have
-      no edge reaching it, so it will return none.
-
-    """
-    pass
-
-
-
-  def walk_bfs(self, start: str) -> Iterator[Tuple[str, Optional[Tuple[str, str]]]]:
-    """
-    Walks through the graph in breath first search order.
-
-    Parameters
-    ----------
-    start : str
-      The starting vertex.
-
-    Returns
-    -------
       The iterator giving the current vertex and the edge that reaches it. The starting vertex will have
       no edge reaching it, so it will return none.
 
