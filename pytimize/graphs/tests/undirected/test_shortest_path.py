@@ -3,6 +3,8 @@ from ....parsers import GraphParser
 from unittest import TestCase, main
 
 class TestShortestPath(TestCase):
+    import unittest
+    @unittest.skip("Refactor to new graph standard.")
     def test_shortest_path(self) -> None:
         g = UndirectedGraph(GraphParser.parse("sa:6 at:4 tb:5 sb:2 cs:4 bc:1 ac:1 ct:2"))
         

@@ -161,6 +161,28 @@ class LinearProgram:
     # any number between 1e-5 and 1e-10 format using above as scientific notation
     # any number less than 1e-10 treat as zero
     # above is stated for magnitude of number (so same thing applies to negative numbers)
+    def _format_number(self, number: float) -> Tuple[str, int, int]:
+        # TODO: Need verification of specification
+        number = float(number)
+        formatted = None
+        magnitude = abs(number)
+        
+        if Comparator.is_close_to_zero(magnitude):
+            formatted = "0."
+        elif magnitude > 1e10 or magnitude < 1e-5:
+            formatted = "{:.3e}".format(number)
+        else:
+            formatted = str(round(number, 3))
+
+        if Comparator.is_negative(number): 
+            formatted = f"-{formatted}"
+
+        integer_length, decimal_length = [len(part) for part in formatted.split(".")]
+
+        return formatted, integer_length, decimal_length
+
+
+
     def __repr__(self) -> str:
         """
         Generates a nicely formatted string representation of the linear program.
@@ -213,7 +235,7 @@ class LinearProgram:
         int_spaces = []  # number of spaces before decimal point
         dec_spaces = []  # number of spaces after decimal point
 
-        # find max length of each column for formatting
+         # find max length of each column for formatting
         for col in range(shape[1]):
             int_length = 0
             dec_length = 0
@@ -449,7 +471,6 @@ class LinearProgram:
         self._c = np.r_[self._c, coefficient]
 
         return self
-        
 
 
 
@@ -976,7 +997,7 @@ class LinearProgram:
             show_steps and self.__append_to_steps(("5.01", updated_lp))
         
         if basis is None:
-            certificate = (updated_lp._feasible_solution, np.zeros(self._c.shape[0]))
+            certificate = updated_lp._feasible_solution, np.zeros(self._c.shape[0])
             k = np.argmax(updated_lp.c > 0)
             certificate[1][updated_lp._feasible_basis] = -updated_lp.A[:, k]
             certificate[1][k] = 1

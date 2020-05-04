@@ -229,7 +229,8 @@ class TestStr(TestCase):
         )
         p = LinearProgram(A, b, c, z, "min", free_variables=[1, 5], negative_variables=[2, 6])
         self.assertEqual(str(p), expected_six, "Should output in correct string format.")
-
+    import unittest # TODO: Remove
+    @unittest.skip("Work in progress. Requires new str feature.")
     def test_long_variable_index(self):
         A = np.array([
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
@@ -245,6 +246,7 @@ class TestStr(TestCase):
         p = LinearProgram(A, b, c, z, "min", negative_variables=[11, 13])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
+    @unittest.skip("Work in progress. Requires new str feature.")
     def test_scientific_notation(self):
         A = np.array([
             [1.123e30, 456, 1.123555557894e13],
@@ -256,7 +258,13 @@ class TestStr(TestCase):
         c = np.array([1, 2, 3])
         z = -2
         expected = (
-            "TODO FILL IN"
+            "Min [1. 2. 3.]x - 2\n"
+            "Subject To:\n"
+            "\n"
+            "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"
+            "[0.  1.  0.  1.  0.  1.]x    =   [2.]\n"
+            "x₂, x₆ ≤ 0\n"
+            "x₃, x₄ ≥ 0\n"    
         )
 
         p = LinearProgram(A, b, c, z, "min")
