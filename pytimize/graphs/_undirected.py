@@ -4,6 +4,7 @@ import numpy as np
 from ..programs._linear import LinearProgram
 from ..programs._integer import IntegerProgram
 from typing import List, Tuple, Dict, Set, Optional, Iterator, Union
+from collections import deque
 
 class UndirectedGraph:
   def __init__(self, graph: Optional[Dict[str, Set[str]]]=None, edges: Optional[Dict[Tuple[str, str], float]]=None, vertices: Optional[Dict[str, float]]=None) -> None:
@@ -255,7 +256,7 @@ class UndirectedGraph:
       raise ValueError("Ending vertex is not in graph.")
 
     potential = {}
-    visited = { start }
+    visited = {start}
     directed_graph = {}
 
     while end not in visited:
@@ -323,7 +324,7 @@ class UndirectedGraph:
       current_set.add(start)
       power_set.append(current_set)
 
-    graph_edges = self.__get_edges()
+    graph_edges = self.edges
     A = {self._hash_edge((edge[0], edge[1])): np.zeros(len(power_set)) for edge in graph_edges}
 
     for i, group in enumerate(power_set):
@@ -343,7 +344,7 @@ class UndirectedGraph:
       ordered_edges.append(edge)
 
     result_A = np.vstack(ordered_A).T
-    edge_positions = { edge: i for i, edge in enumerate(ordered_edges) }
+    edge_positions = {edge: i for i, edge in enumerate(ordered_edges)}
     result_c = np.zeros(len(ordered_edges))
     constraints = result_A.shape[0]
 
@@ -380,7 +381,7 @@ class UndirectedGraph:
     if len(self._graph) == 0:
       return None #TODO this can't be none
 
-    mapping_A = { vertex: i for i, vertex in enumerate(self._graph.keys()) }
+    mapping_A = {vertex: i for i, vertex in enumerate(self._graph.keys())}
     columns = len(mapping_A)
     stack_A = np.empty(columns)
     seen = set()
@@ -410,26 +411,67 @@ class UndirectedGraph:
 
   # TODO: note if graph is segmented then dfs and bfs shouldn't work
   def dfs(self, start: str) -> List[str]:
-    return list(self.walk_dfs)
+    return list(self.walk_dfs(start))
 
 
 
   def bfs(self, start: str) -> List[str]:
-    return list(self.walk_bfs)
+    return list(self.walk_bfs(start))
 
 
   
-  def walk_dfs(self, start: str) -> Iterator[Tuple[Tuple[Tuple[str, str], float], Tuple[str, float]]]:
+  def walk_dfs(self, start: str) -> Iterator[Tuple[str, Optional[Tuple[str, str]]]]:
     """
+    Walks through the graph in depth first search order.
+
+    Parameters
+    ----------
+    start : str
+      The starting vertex.
+
+    Returns
+    -------
+    result : Iterator[Tuple[str, Optional[Tuple[str, str]]]]
+      The iterator giving the current vertex and the edge that reaches it. The starting vertex will have
+      no edge reaching it, so it will return none.
+
     """
     pass
 
 
 
-  def walk_bfs(self, start: str) -> Iterator[Tuple[Tuple[Tuple[str, str], float], Tuple[str, float]]]:
+  def walk_bfs(self, start: str) -> Iterator[Tuple[str, Optional[Tuple[str, str]]]]:
     """
+    Walks through the graph in breath first search order.
+
+    Parameters
+    ----------
+    start : str
+      The starting vertex.
+
+    Returns
+    -------
+      The iterator giving the current vertex and the edge that reaches it. The starting vertex will have
+      no edge reaching it, so it will return none.
+
     """
-    pass
+    if not self.has_vertex(start):
+      raise ValueError("The starting vertex is not in graph.")
+
+    visited = set()
+    queue = deque([(None, start)])
+    
+    while len(queue) > 0:
+      head, current = queue.popleft()
+
+      if current not in visited:
+        visited.add(current)
+      else: 
+        continue
+
+      queue.extend((current, vertex) for vertex in self._graph[current])
+
+      yield current, tuple(sorted((head, current))) if head is not None else None
 
 
 
