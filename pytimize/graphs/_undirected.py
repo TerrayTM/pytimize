@@ -3,7 +3,7 @@ import numpy as np
 
 from ..programs._linear import LinearProgram
 from ..programs._integer import IntegerProgram
-from typing import List, Tuple, Dict, Set, Optional
+from typing import List, Tuple, Dict, Set, Optional, Iterator, Union
 
 class UndirectedGraph:
   def __init__(self, graph: Optional[Dict[str, Set[str]]]=None, edges: Optional[Dict[Tuple[str, str], float]]=None, vertices: Optional[Dict[str, float]]=None) -> None:
@@ -55,7 +55,7 @@ class UndirectedGraph:
 
 
 
-  def __repr__(self) -> str:
+  def __repr__(self) -> str: # TODO use table
     """
     Generates a string representation of the graph.
 
@@ -353,15 +353,26 @@ class UndirectedGraph:
     return LinearProgram(result_A, np.ones(constraints), result_c, 0, "min", [">="] * constraints)
 
 
-  def delta(self, vertices):
-    connected = []
+  def delta(self, vertices: Union[Set[str], str]) -> Set[str]:
+    """
+    Gets a set of edges where every edge has exactly one endpoint in given `vertices`.
 
-    for inner in vertices:
-      for outer in self._graph[inner]:
-        if outer not in vertices:
-          connected.append(outer[0])
+    Parameters
+    ----------
+    vertices : Union[Set[str], str]
+      The vertex or vertices of the operation.
 
-    return connected
+    Returns
+    -------
+    result : Set[str]
+      The set of edges that satisfies the above condition.
+
+    """
+    if not isinstance(vertices, set):
+      vertices = set(vertices)
+
+    return set(filter(lambda x: (x[0] in vertices and x[1] not in vertices) or \
+      (x[1] in vertices and x[0] not in vertices), self._edges.keys()))
 
 
 
@@ -378,7 +389,7 @@ class UndirectedGraph:
       row = np.zeros(columns)
       row[mapping_A[vertex]] = 1
       
-      for connected in self.delta({ vertex }): # TODO Should be one item or set
+      for connected in self.delta(vertex): # TODO Should be one item or set
         row[mapping_A[connected]] = 1
       
       hash = " ".join(str(i) for i in row)
@@ -394,6 +405,71 @@ class UndirectedGraph:
     inequalities = ["<="] * result_A.shape[0]
 
     return IntegerProgram(result_A, result_b, result_c, 0, inequalities=inequalities), mapping_A
+
+
+
+  # TODO: note if graph is segmented then dfs and bfs shouldn't work
+  def dfs(self, start: str) -> List[str]:
+    return list(self.walk_dfs)
+
+
+
+  def bfs(self, start: str) -> List[str]:
+    return list(self.walk_bfs)
+
+
+  
+  def walk_dfs(self, start: str) -> Iterator[Tuple[Tuple[Tuple[str, str], float], Tuple[str, float]]]:
+    """
+    """
+    pass
+
+
+
+  def walk_bfs(self, start: str) -> Iterator[Tuple[Tuple[Tuple[str, str], float], Tuple[str, float]]]:
+    """
+    """
+    pass
+
+
+
+  def is_connected(self) -> bool:
+    pass
+
+
+
+  def has_cycle(self) -> bool:
+    pass 
+
+
+
+  def degree(self, vertices: Union[Set[str], str]) -> int: 
+    """
+    Computes the degree of a vertex or vertices. Degree is defined as the number of
+    edges that has exactly one endpoint inside `vertices`.
+
+    Parameters
+    ----------
+    vertices : Union[Set[str], str]
+      The vertex or vertices of the operation.
+
+    Returns
+    -------
+    result : int
+      The degree of the vertices.
+
+    """
+    return len(self.delta(vertices))
+
+
+
+  def is_tree(self) -> bool:
+    pass
+
+
+
+  def is_binary_tree(self) -> bool:
+    pass
 
 
 
