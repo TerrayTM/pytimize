@@ -3,7 +3,7 @@ import numpy as np
 
 from ..programs._linear import LinearProgram
 from ..programs._integer import IntegerProgram
-from typing import List, Tuple, Dict, Set, Optional, Iterator, Union
+from typing import List, Tuple, Dict, Set, Optional, Iterator, Union, Callable, Any
 from collections import deque
 
 class UndirectedGraph:
@@ -354,6 +354,7 @@ class UndirectedGraph:
     return LinearProgram(result_A, np.ones(constraints), result_c, 0, "min", [">="] * constraints)
 
 
+
   def delta(self, vertices: Union[Set[str], str]) -> Set[str]:
     """
     Gets a set of edges where every edge has exactly one endpoint in given `vertices`.
@@ -420,7 +421,7 @@ class UndirectedGraph:
 
 
 
-  def walk(self, start: str, traversal: str="bfs") -> Iterator[Tuple[str, Optional[Tuple[str, str]]]]:
+  def walk(self, start: str, traversal: str="bfs", order: Optional[Callable[[Tuple[str, str]], Any]]=None) -> Iterator[Tuple[str, Optional[Tuple[str, str]]]]:
     """
     Walks through the graph in breadth first search or depth first search order.
 
@@ -432,15 +433,23 @@ class UndirectedGraph:
     traversal : str (default="bfs")
       The type of graph traversal. Options are `bfs` or `dfs`.
 
+    order : Optional[Callable[[Tuple[str, str]], Any]] (default=None)
+      The sorting order of vertices to output. This callable takes a tuple
+      of previous vertex and current vertex. If given none, lexical order based
+      on current vertex is used.
+
     Returns
     -------
     result : Iterator[Tuple[str, Optional[Tuple[str, str]]]]
       The iterator giving the current vertex and the edge that reaches it. The starting vertex will have
       no edge reaching it, so it will return none.
 
-    """
+    """ # TODO add dfs and rng
     if not self.has_vertex(start):
       raise ValueError("The starting vertex is not in graph.")
+
+    if order is None: 
+      order = lambda x: x[1]
 
     visited = set()
     queue = deque([(None, start)])
@@ -448,24 +457,92 @@ class UndirectedGraph:
     while len(queue) > 0:
       head, current = queue.popleft()
 
-      if current not in visited:
-        visited.add(current)
-      else: 
+      if current in visited:
         continue
 
-      queue.extend((current, vertex) for vertex in self._graph[current])
+      visited.add(current)
+      queue.extend(sorted(((current, vertex) for vertex in self._graph[current]), key=order))
 
       yield current, tuple(sorted((head, current))) if head is not None else None
 
 
 
   def is_connected(self) -> bool:
+    """
+    Checks if the graph is fully connected.
+
+    Returns
+    -------
+    result : bool
+      Whether or not the graph is fully connected.
+
+    """
+    if self.is_empty():
+      return False
+
+    return len(self.bfs(next(iter(self._vertices)))) == len(self._vertices)
+
+
+
+  def is_cyclic(self) -> bool:
+    """
+    Checks if the graph is cyclic.
+
+    Returns
+    -------
+    result : bool
+      Whether or not the graph is cyclic.
+
+    """
+    if self.is_empty():
+      return False
+    
+    unexplored = set(self._vertices.keys())
+
+    while len(unexplored) > 0:
+      queue = deque([next(iter(unexplored))])
+      visited = set()
+
+      while len(queue) > 0: 
+        current = queue.popleft()
+
+        if current in visited:
+          return True
+
+        visited.add(current)
+        queue.extend(self._graph[current])
+
+      unexplored = unexplored.difference(visited)
+
+    return False
+
+
+  def copy(self) -> "UndirectedGraph":
+    """
+    Creates a deep copy of the graph.
+
+    Returns
+    -------
+    result : UndirectedGraph
+        The copy of the graph.
+
+    """
+    g = UndirectedGraph() 
+
+    g._graph = self.graph
+    g._vertices = self.vertices
+    g._edges = self.edges
+
+    return g
+
+
+  def partitions(self) -> List["UndirectedGraph"]:
     pass
 
 
 
-  def has_cycle(self) -> bool:
-    pass 
+  def is_empty(self): 
+    return len(self._vertices) == 0
 
 
 
@@ -489,8 +566,43 @@ class UndirectedGraph:
 
 
 
-  def is_tree(self) -> bool:
+  def has_spanning_tree(self) -> bool:
+    return self.is_connected()
+
+
+
+  def minimum_spanning_tree(self) -> bool:
     pass
+
+
+
+  def is_tree(self) -> bool:
+    """
+    Checks if the graph is a tree. By definition, a graph is a tree if it is
+    connected and it has no cycles.
+
+    Returns
+    -------
+    result : bool
+      Whether or not the graph is cyclic.
+
+    """
+    if self.is_empty():
+      return False
+
+    queue = deque([next(iter(self._vertices))])
+    visited = set()
+
+    while len(queue) > 0:
+      current = queue.popleft() 
+
+      if current in visited:
+        return False
+
+      visited.add(current)
+      queue.extend(self._graph[current])
+
+    return len(visited) == len(self._vertices)
 
 
 
