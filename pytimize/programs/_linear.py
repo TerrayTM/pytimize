@@ -373,6 +373,15 @@ class LinearProgram:
 
 
 
+    def __eq__(self, other: "LinearProgram") -> bool:
+        # TODO Work in progress
+        return other._A == self._A and other._b == self._b and other._c == self._c and other._z == self._z and \
+            other._objective == self._objective and other._inequality_indices == self._inequality_indices and \
+            other._free_variables == self._free_variables and other._negative_variables == self._negative_variables and \
+            other._is_sef == self._is_sef
+
+
+
     def add_constraint(self, coefficients: Union[np.ndarray, List[float]], inequality: str, value: float, in_place: bool=False) -> "LinearProgram":
         """
         Adds a linear constraint of the form `<coefficients>x <inequality> <value>` to the program.
@@ -1510,7 +1519,7 @@ class LinearProgram:
                 ("3.03", -self._c, self._c)
             ])
 
-        self._reverse_sef = { "drop": len(self._inequality_indices), "concat": [], "negative": self._negative_variables }
+        self._reverse_sef = {"drop": len(self._inequality_indices), "concat": [], "negative": self._negative_variables}
 
         for i in self._negative_variables:
             self._A[:, i] *= -1
@@ -2098,7 +2107,7 @@ class LinearProgram:
         
         Returns
         -------
-        result : list of dict { "key" : int, "text" : str }
+        result : List[Dict[int, str]]
 
         """
         return self._steps

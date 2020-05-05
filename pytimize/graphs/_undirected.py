@@ -1,5 +1,6 @@
 import math
-import numpy as np 
+import random
+import numpy as np
 
 from ..programs._linear import LinearProgram
 from ..programs._integer import IntegerProgram
@@ -32,13 +33,17 @@ class UndirectedGraph:
 
     if graph is not None:
       for vertex, connections in graph.items():
-        for connection in connections:
-          edge = vertex, connection
+        if len(connections) == 0:
+          if not self.has_vertex(vertex):
+            self.add_vertex(vertex)
+        else:
+          for connection in connections:
+            edge = vertex, connection
 
-          if self.has_edge(edge):
-            continue
+            if self.has_edge(edge):
+              continue
 
-          self.add_edge(edge)
+            self.add_edge(edge)
 
     if edges is not None: 
       for edge, weight in edges.items():
@@ -74,6 +79,20 @@ class UndirectedGraph:
       adjacency.add(f"{vertex}: {formatted}")
 
     return "\n".join(sorted(adjacency))
+
+
+
+  def __eq__(self, other: "UndirectedGraph") -> bool:
+    """
+    Compares if two graphs are the same.
+
+    Returns
+    -------
+    result : bool
+        Whether or not the other is the same graph. 
+
+    """
+    return other._graph == self._graph and other._edges == self._edges and other._vertices == self._vertices 
 
 
 
@@ -379,38 +398,39 @@ class UndirectedGraph:
 
 
   def formulate_max_stable_set(self) -> Tuple[IntegerProgram, Dict[str, int]]:
-    if len(self._graph) == 0:
-      return None #TODO this can't be none
+    if self.is_empty():
+      return # TODO Return max 0 unconstrained
 
-    mapping_A = {vertex: i for i, vertex in enumerate(self._graph.keys())}
-    columns = len(mapping_A)
-    stack_A = np.empty(columns)
-    seen = set()
+    mapping = {vertex: i for i, vertex in enumerate(self._vertices)}
+    rows = len(self._edges)
+    columns = len(mapping)
+    A = np.empty(columns)
 
-    for vertex in self._graph.keys():
+    for a, b in self._edges:
       row = np.zeros(columns)
-      row[mapping_A[vertex]] = 1
-      
-      for connected in self.delta(vertex): # TODO Should be one item or set
-        row[mapping_A[connected]] = 1
-      
-      hash = " ".join(str(i) for i in row)
-      
-      if not hash in seen:
-        seen.add(hash)
+      row[mapping[a]] = 1
+      row[mapping[b]] = 1
+      A = np.vstack((A, row))
 
-        stack_A = np.vstack((stack_A, row))
+    A = A[1:]
+    b = np.ones(rows)
+    c = np.zeros(columns)
+    inequalities = ["<="] * (rows + columns) # Includes x <= 1 columns
 
-    result_A = stack_A[1:]
-    result_b = np.ones(result_A.shape[0])
-    result_c = np.ones(result_A.shape[1]) #TODO implemented node weights
-    inequalities = ["<="] * result_A.shape[0]
+    for vertex, weight in self._vertices.items():
+      c[mapping[vertex]] = weight
 
-    return IntegerProgram(result_A, result_b, result_c, 0, inequalities=inequalities), mapping_A
+    # TODO this could be optimized by setting x <= 1 all at once
+    for i in range(columns):
+      row = np.zeros(columns)
+      row[i] = 1
+      A = np.vstack((A, row))
+      b = np.hstack((b, 1))
+
+    return IntegerProgram(A, b, c, 0, inequalities=inequalities), mapping
 
 
 
-  # TODO: note if graph is segmented then dfs and bfs shouldn't work
   def dfs(self, start: str) -> List[str]:
     return list(self.walk(start, "dfs"))
 
@@ -421,9 +441,11 @@ class UndirectedGraph:
 
 
 
-  def walk(self, start: str, traversal: str="bfs", order: Optional[Callable[[Tuple[str, str]], Any]]=None) -> Iterator[Tuple[str, Optional[Tuple[str, str]]]]:
+  def walk(self, start: str, traversal: str="bfs", order: Optional[Callable[[str], Any]]=None) -> Iterator[str]:
     """
-    Walks through the graph in breadth first search or depth first search order.
+    Walks through the graph and returns its vertices. Traversal can be breath first,
+    depth first, or random search. If the graph is not connected `bfs` and `dfs` may not
+    return all the vertices. 
 
     Parameters
     ----------
@@ -431,50 +453,54 @@ class UndirectedGraph:
       The starting vertex.
 
     traversal : str (default="bfs")
-      The type of graph traversal. Options are `bfs` or `dfs`.
+      The type of graph traversal. Options are `bfs`, `dfs`, or `rng`.
 
-    order : Optional[Callable[[Tuple[str, str]], Any]] (default=None)
+    order : Optional[Callable[[str], Any]] (default=None)
       The sorting order of vertices to output. This callable takes a tuple
       of previous vertex and current vertex. If given none, lexical order based
       on current vertex is used.
 
     Returns
     -------
-    result : Iterator[Tuple[str, Optional[Tuple[str, str]]]]
-      The iterator giving the current vertex and the edge that reaches it. The starting vertex will have
-      no edge reaching it, so it will return none.
+    result : Iterator[str]
+      The iterator giving the current vertex of the walk.
 
-    """ # TODO add dfs and rng
+    """
+    # TODO Add dfs
     if not self.has_vertex(start):
       raise ValueError("The starting vertex is not in graph.")
 
-    if order is None: 
-      order = lambda x: x[1]
+    if traversal == "rng":
+      vertices = list(self._vertices.keys())
+
+      random.shuffle(vertices)
+
+      return iter(vertices)
 
     visited = set()
-    queue = deque([(None, start)])
+    queue = deque([start])
     
     while len(queue) > 0:
-      head, current = queue.popleft()
+      current = queue.popleft()
 
       if current in visited:
         continue
 
       visited.add(current)
-      queue.extend(sorted(((current, vertex) for vertex in self._graph[current]), key=order))
+      queue.extend(sorted(self._graph[current], key=order))
 
-      yield current, tuple(sorted((head, current))) if head is not None else None
+      yield current
 
 
 
   def is_connected(self) -> bool:
     """
-    Checks if the graph is fully connected.
+    Checks if the graph is connected.
 
     Returns
     -------
     result : bool
-      Whether or not the graph is fully connected.
+      Whether or not the graph is connected.
 
     """
     if self.is_empty():
@@ -517,6 +543,7 @@ class UndirectedGraph:
     return False
 
 
+
   def copy(self) -> "UndirectedGraph":
     """
     Creates a deep copy of the graph.
@@ -534,6 +561,7 @@ class UndirectedGraph:
     g._edges = self.edges
 
     return g
+
 
 
   def partitions(self) -> List["UndirectedGraph"]:
@@ -600,7 +628,7 @@ class UndirectedGraph:
         return False
 
       visited.add(current)
-      queue.extend(self._graph[current])
+      queue.extend(set(self._graph[current]).difference(visited))
 
     return len(visited) == len(self._vertices)
 

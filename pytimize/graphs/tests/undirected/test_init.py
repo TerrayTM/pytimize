@@ -23,6 +23,16 @@ class TestInit(TestCase):
         self.assertEqual(g.edges, {("a", "b"): 0, ("a", "c"): 0, ("b", "w"): 0, ("b", "z"): 0, ("t", "w"): 0}, "Should initialize with correct edges.")
         self.assertEqual(g.vertices, {"a": 0, "b": 0, "c": 0, "t": 0, "w": 0, "z": 0}, "Should initialize with correct vertices.")
 
+        g = UndirectedGraph(graph={
+            "a": {"b", "c"},
+            "w": {"t", "b"},
+            "b": set(),
+            "d": set()
+        })
+        self.assertEqual(g.graph, {"a": {"c", "b"}, "b": {"w", "a"}, "c": {"a"}, "t": {"w"}, "w": {"b", "t"}, "d": set()}, "Should initialize with correct graph.")
+        self.assertEqual(g.edges, {("a", "b"): 0, ("a", "c"): 0, ("b", "w"): 0, ("t", "w"): 0}, "Should initialize with correct edges.")
+        self.assertEqual(g.vertices, {"a": 0, "b": 0, "c": 0, "t": 0, "w": 0, "d": 0}, "Should initialize with correct vertices.")
+
     def test_init_edges(self) -> None:
         g = UndirectedGraph(edges={
             ("a", "b"): 1, 
