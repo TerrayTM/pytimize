@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://pypi.org/project/pytimize/"><img alt="PyPI" src="https://img.shields.io/pypi/v/pytimize?color=green&label=PyPI%20Package"></a>
   <a href="https://opensource.org/licenses/Apache-2.0"><img alt="Apache" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"></a>
-  <img alt="Build" src="https://terrytm.com/files/pytimize-build.svg">
+  <img alt="Build" src="https://terrytm.com/api/wain.php?route=badge&name=pytimize">
 </p>
 
 Introduction
