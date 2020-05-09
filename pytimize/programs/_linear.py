@@ -748,7 +748,7 @@ class LinearProgram:
 
 
 
-    def create_dual(self, show_steps: bool=True) -> "LinearProgram":
+    def dual(self, show_steps: bool=True) -> "LinearProgram":
         """
         Creates the corresponding dual program.
 
@@ -795,7 +795,7 @@ class LinearProgram:
 
 
 
-    def create_auxiliary(self, show_steps: bool=True) -> "LinearProgram":
+    def auxiliary(self, show_steps: bool=True) -> "LinearProgram":
         """
         Creates the corresponding auxiliary program. This operation requires 
         the program to be in SEF.
@@ -906,7 +906,7 @@ class LinearProgram:
         if not self._is_sef:
             raise ArithmeticError("Linear program must be in SEF.")
 
-        p_aux = self.create_auxiliary(show_steps).to_sef(show_steps, True)
+        p_aux = self.auxiliary(show_steps).to_sef(show_steps, True)
         rows, columns = self._A.shape
         basis = [i for i in range(columns + 1, rows + columns + 1)]
         negative_indices = np.where(self._b < 0)

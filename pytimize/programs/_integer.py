@@ -35,13 +35,11 @@ class IntegerProgram(LinearProgram):
             The optimal solution of the program. None if IP is infeasible or unbounded.
 
         """
-
-        relaxation = self.create_relaxation()
-
-        result = self.__branch(relaxation)
+        result = self.__branch(self.relax())
 
         if result is None:
             return None
+
         return result[0]
 
 
@@ -168,7 +166,7 @@ class IntegerProgram(LinearProgram):
 
 
 
-    def create_relaxation(self) -> LinearProgram:
+    def relax(self) -> LinearProgram:
         """
         Creates the corresponding linear program relaxation.
 

@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     x, y = g.formulate_max_stable_set()
     print(x)
-    print(x.create_relaxation().solve())
+    print(x.relax().solve())
     print(y)
 
     # TODO default weight should be 1

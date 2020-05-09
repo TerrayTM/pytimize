@@ -4,8 +4,8 @@ import numpy as np
 from ... import IntegerProgram, LinearProgram
 from unittest import TestCase, main
 
-class TestCreateRelaxation(TestCase):
-    def test_create_relaxation(self):
+class TestRelax(TestCase):
+    def test_relax(self):
         A = np.array([
             [1, 2, 3, 4],
             [3, 5, 7, 9]
@@ -15,7 +15,7 @@ class TestCreateRelaxation(TestCase):
         z = 25
 
         ip = IntegerProgram(A, b, c, z, "min", ["<=", ">="], [2], [1])
-        lp = ip.create_relaxation()
+        lp = ip.relax()
 
         self.assertTrue(isinstance(lp, LinearProgram), "Should be a linear program.")
         self.assertTrue(np.allclose(lp.A, A), "Should have the same constraint matrix.")
