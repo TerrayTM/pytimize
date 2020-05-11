@@ -151,7 +151,6 @@ class TestStr(TestCase):
             "x ≥ 0\n"
         )
         
-        self.maxDiff = None
         p = LinearProgram(A, b, c, z, "min", [">=", "<=", "<="])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
@@ -230,8 +229,7 @@ class TestStr(TestCase):
         )
         p = LinearProgram(A, b, c, z, "min", free_variables=[1, 5], negative_variables=[2, 6])
         self.assertEqual(str(p), expected_six, "Should output in correct string format.")
-    import unittest # TODO: Remove
-    @unittest.skip("Work in progress. Requires new str feature.")
+
     def test_long_variable_index(self):
         A = np.array([
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
@@ -241,13 +239,18 @@ class TestStr(TestCase):
         c = np.array([4.4877, 5.123456, 6.14564, 7.444, 88779798, 9, 11, 12, 13e10, 45e13, 1.1547841e-7, 1, 12])
         z = 125.1549879465
         expected = (
-            "TODO FILL IN"
+            "Min [4.488 5.123 6.146 7.444 88779798. 9. 11. 12. 1.300e+11 4.500e+14 1.155e-07 1. 12.]x + 125.155\n"
+            "Subject To:\n"
+            "\n"
+            "[1.  2.  3.  4.  5.  6.  7.  8.  9.  10.  11.  12.  13.]     =   [1.]\n"
+            "[0.  1.  0.  1.  0.  1.  0.  1.  0.   1.   0.   1.   1.]x    =   [2.]\n"
+            "x₁₁, x₁₃ ≤ 0\n"
+            "x₁, x₂, x₃, x₄, x₅, x₆, x₇, x₈, x₉, x₁₀, x₁₂ ≥ 0\n"
         )
 
         p = LinearProgram(A, b, c, z, "min", negative_variables=[11, 13])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
-    @unittest.skip("Work in progress. Requires new str feature.")
     def test_scientific_notation(self):
         A = np.array([
             [1.123e30, 456, 1.123555557894e13],
@@ -262,10 +265,30 @@ class TestStr(TestCase):
             "Min [1. 2. 3.]x - 2.\n"
             "Subject To:\n"
             "\n"
-            "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"
-            "[0.  1.  0.  1.  0.  1.]x    =   [2.]\n"
-            "x₂, x₆ ≤ 0\n"
-            "x₃, x₄ ≥ 0\n"    
+            "[ 1.123e+30  456.          1.124e+13]     =   [ -6.000e+25]\n"
+            "[ 1.000e-05    6.123e-08  -6.123    ]     =   [  1.900e+14]\n"
+            "[-1.000e-10    7.000e+17   1.254e+11]x    =   [  0.000187 ]\n"
+            "[ 0.           0.00055    -1.012e+29]     =   [799.456    ]\n"
+            "x ≥ 0\n"  
+        )
+
+        p = LinearProgram(A, b, c, z, "min")
+        self.assertEqual(str(p), expected, "Should output in correct string format.")
+
+        A = np.array([
+            [0.999e-4, -0.0000012335, -0.0000012336],
+            [0.00000499999, 123456789.0000012336, 234567890123.4567890123]
+        ])
+        b = np.array([1.0000012336, 0.0000012336])
+        c = np.array([-123456789123456789, 0.000003456789, 0.999e-11])
+        z = -0.0000000059999999999
+        expected = (
+            "Min [-1.235e+17 3.457e-06 0.]x - 6.000e-09\n"
+            "Subject To:\n"
+            "\n"
+            "[9.990e-05         -1.234e-06  -1.234e-06]     =   [1.0      ]\n"
+            "[5.000e-06  123456789.0         2.346e+11]x    =   [1.234e-06]\n"
+            "x ≥ 0\n"  
         )
 
         p = LinearProgram(A, b, c, z, "min")

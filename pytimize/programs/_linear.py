@@ -156,29 +156,45 @@ class LinearProgram:
         return LinearProgram(A, b, c, z, objective, inequalities, free_variables, negative_variables)
 
 
-    # "{:.3e}".format(1.123e30) <--- use this for formatting scientific notation
-    # any number greater than 1e10 use above to format as scientific notation
-    # any number between 1e-5 and 1e-10 format using above as scientific notation
-    # any number less than 1e-10 treat as zero
-    # above is stated for magnitude of number (so same thing applies to negative numbers)
+
     def _format_number(self, number: float) -> Tuple[str, int, int]:
         """
-        TODO add documentation
+        Formats a number, applying scientific notation and rounding as needed.
+
+        Parameters
+        ----------
+        number : float
+            The number to be formatted.
+
+        Returns
+        -------
+        formatted : str
+            The number after formatting in string form. If the number is an integer, this
+            does not include the trailing zero.
+
+        integer_length : int
+            The number of characters strictly before the decimal point. Includes the negative sign.
+
+        decimal_length : int
+            The number of characters strictly after the decimal point. Includes the scientific notation.
+        
         """
         formatted = None
         magnitude = abs(number)
         
         if Comparator.is_close_to_zero(magnitude):
             formatted = "0."
-        elif Comparator.is_integer(magnitude):
-            formatted = f"{int(np.round(magnitude))}."
         elif magnitude > 1e10:
             formatted = "{:.3e}".format(magnitude)
+        elif Comparator.is_integer(magnitude):
+            formatted = f"{int(np.round(magnitude))}."
         elif magnitude < 1:
             # find precise magnitude, then dynamically calculate decimal points to round to
-            # round will automatically apply scientific notation to numbers 1e-05 or less
             precision = abs(math.floor(math.log(magnitude, 10))) + 3
-            formatted = str(round(magnitude, precision))
+            if magnitude < 1e-04:
+                formatted = "{:.3e}".format(round(magnitude, precision))
+            else:
+                formatted = str(round(magnitude, precision))
         else:
             formatted = str(round(magnitude, 3))
 
@@ -273,7 +289,7 @@ class LinearProgram:
                 output += entry[:curr_int_spaces + 1]  # + 1 to add "."
 
                 # add decimal values and spaces as needed
-                if Comparator.is_integer(self._A[row, col]):
+                if curr_dec_spaces == 0:
                     output += " " * dec_spaces[col]
                 else:
                     output += entry[-curr_dec_spaces:]
@@ -311,7 +327,7 @@ class LinearProgram:
             output += b_entry[:curr_b_int_spaces + 1]
 
             # add decimal values and spaces as needed
-            if Comparator.is_integer(self._b[row]):
+            if curr_b_dec_spaces == 0:
                 output += " " * b_dec_spaces
             else:
                 output += b_entry[-curr_b_dec_spaces:]
