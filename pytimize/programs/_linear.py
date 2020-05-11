@@ -162,15 +162,19 @@ class LinearProgram:
     # any number less than 1e-10 treat as zero
     # above is stated for magnitude of number (so same thing applies to negative numbers)
     def _format_number(self, number: float) -> Tuple[str, int, int]:
-        # TODO: Need verification of specification
         number = float(number)
         formatted = None
         magnitude = abs(number)
         
         if Comparator.is_close_to_zero(magnitude):
             formatted = "0."
-        elif magnitude > 1e10 or magnitude < 1e-5:
+        elif magnitude > 1e10:
             formatted = "{:.3e}".format(number)
+        elif magnitude < 1:
+            # find precise magnitude, then dynamically calculate decimal points to round to
+            # round will automatically apply scientific notation to numbers 1e-05 or less
+            precision = abs(math.floor(math.log(number, 10))) + 3
+            formatted = str(round(number, precision))
         else:
             formatted = str(round(number, 3))
 
@@ -179,6 +183,8 @@ class LinearProgram:
 
         integer_length, decimal_length = [len(part) for part in formatted.split(".")]
 
+        if magnitude < 1e-4:
+            decimal_length -= 4  # account for "e-0x" in string
         return formatted, integer_length, decimal_length
 
 
