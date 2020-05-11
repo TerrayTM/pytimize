@@ -156,35 +156,37 @@ class LinearProgram:
         return LinearProgram(A, b, c, z, objective, inequalities, free_variables, negative_variables)
 
 
-    #TODO "{:.3e}".format(1.123e30) <--- use this for formatting scientific notation
+    # "{:.3e}".format(1.123e30) <--- use this for formatting scientific notation
     # any number greater than 1e10 use above to format as scientific notation
     # any number between 1e-5 and 1e-10 format using above as scientific notation
     # any number less than 1e-10 treat as zero
     # above is stated for magnitude of number (so same thing applies to negative numbers)
     def _format_number(self, number: float) -> Tuple[str, int, int]:
-        number = float(number)
+        """
+        TODO add documentation
+        """
         formatted = None
         magnitude = abs(number)
         
         if Comparator.is_close_to_zero(magnitude):
             formatted = "0."
+        elif Comparator.is_integer(magnitude):
+            formatted = f"{int(np.round(magnitude))}."
         elif magnitude > 1e10:
-            formatted = "{:.3e}".format(number)
+            formatted = "{:.3e}".format(magnitude)
         elif magnitude < 1:
             # find precise magnitude, then dynamically calculate decimal points to round to
             # round will automatically apply scientific notation to numbers 1e-05 or less
-            precision = abs(math.floor(math.log(number, 10))) + 3
-            formatted = str(round(number, precision))
+            precision = abs(math.floor(math.log(magnitude, 10))) + 3
+            formatted = str(round(magnitude, precision))
         else:
-            formatted = str(round(number, 3))
+            formatted = str(round(magnitude, 3))
 
         if Comparator.is_negative(number): 
             formatted = f"-{formatted}"
 
         integer_length, decimal_length = [len(part) for part in formatted.split(".")]
 
-        if magnitude < 1e-4:
-            decimal_length -= 4  # account for "e-0x" in string
         return formatted, integer_length, decimal_length
 
 
@@ -201,7 +203,6 @@ class LinearProgram:
         """
         output = ""
         shape = self._A.shape
-        places = 3  # how many decimal places to round to
 
         # set objective to be human readable
         if self._objective == "min":
@@ -213,10 +214,7 @@ class LinearProgram:
 
         # add c vector to output
         for i in range(len(self._c)):
-            if self._c[i].is_integer():
-                output += str(int(self._c[i])) + "."
-            else:
-                output += str(self._c[i])
+            output += self._format_number(self._c[i])[0]
 
             if not i == len(self._c) - 1:
                 # add a space between numbers only
@@ -227,18 +225,16 @@ class LinearProgram:
         # add z to output
         if not Comparator.is_close_to_zero(self._z):
             sign = "+"
-            number = self._z
 
             if Comparator.is_negative(self.z):
                 sign = "-"
-                number = str(self._z)[1:]
             
-            output += f" {sign} {number}"
+            output += f" {sign} {self._format_number(abs(self._z))[0]}"
 
         output += "\nSubject To:\n\n"
 
         # lists of spaces required for each column
-        int_spaces = []  # number of spaces before decimal point
+        int_spaces = []  # number of spaces before decimal point (including - sign)
         dec_spaces = []  # number of spaces after decimal point
 
          # find max length of each column for formatting
@@ -247,22 +243,9 @@ class LinearProgram:
             dec_length = 0
 
             for row in range(shape[0]):
-                entry = self._A[row, col]
-                entry = round(entry, places)
-                int_length = max(len(str(int(entry))), int_length)
-                if not entry.is_integer():
-                    decimals = Decimal(str(abs(entry))) % 1  # get decimal portion of number
-
-                    # must account for the "0." lead in decimals (i.e. 0.6548) - subtract 2 from length
-                    entry_dec_length = len(str(decimals)) - 2
-                    if decimals < 0:
-                        entry_dec_length -= 1  # account for "-" sign
-                    
-                    dec_length = max(entry_dec_length, dec_length)
-
-                    # limit decimal places
-                    if dec_length > places:
-                        dec_length = places
+                entry, curr_int_length, curr_dec_length = self._format_number(self._A[row, col])
+                int_length = max(curr_int_length, int_length)
+                dec_length = max(curr_dec_length, dec_length)
 
             int_spaces.append(int_length)
             dec_spaces.append(dec_length)
@@ -273,46 +256,28 @@ class LinearProgram:
         b_dec_spaces = 0
 
         for i in range(shape[0]):
-            entry = self._b[i]
-            entry = round(entry, places)
-            b_int_spaces = max(len(str(int(entry))), b_int_spaces)
-
-            if not entry.is_integer():
-                decimals = Decimal(str(abs(entry))) % 1  # get decimal portion of number
-                
-                entry_dec_length = len(str(decimals)) - 2
-                if decimals < 0:
-                    entry_dec_length -= 1  # account for "-" sign
-                
-                b_dec_spaces = max(entry_dec_length, b_dec_spaces)
+            entry, curr_b_int_spaces, curr_b_dec_spaces = self._format_number(self._b[i])
+            b_int_spaces = max(curr_b_int_spaces, b_int_spaces)
+            b_dec_spaces = max(curr_b_dec_spaces, b_dec_spaces)
 
 
         # add each number to output string
         for row in range(shape[0]):
             output += "["
             for col in range(shape[1]):
-                entry = self._A[row, col]
-                entry = round(entry, places)
+                entry, curr_int_spaces, curr_dec_spaces = self._format_number(self._A[row, col])
                 
                 # add integer part of entry and spaces as needed
-                spaces = int_spaces[col] - len(str(int(entry)))
-                if int(entry) == 0 and entry < 0:
-                    spaces -= 1  # using int(entry) will remove the "-"
+                spaces = int_spaces[col] - curr_int_spaces
                 output += " " * spaces
-                if int(entry) == 0 and entry < 0:
-                    output += "-"
-                output += str(int(entry))
-                output += "."
+                output += entry[:curr_int_spaces + 1]  # + 1 to add "."
 
                 # add decimal values and spaces as needed
-                if entry.is_integer():
+                if Comparator.is_integer(self._A[row, col]):
                     output += " " * dec_spaces[col]
                 else:
-                    entry_dec = Decimal(str(abs(entry))) % 1  # get decimal portion of number
-                    entry_dec = str(entry_dec)[2:]
-
-                    output += entry_dec
-                    spaces = dec_spaces[col] - len(entry_dec)
+                    output += entry[-curr_dec_spaces:]
+                    spaces = dec_spaces[col] - curr_dec_spaces
                     output += " " * spaces
 
                 if not col == shape[1] - 1:
@@ -338,28 +303,19 @@ class LinearProgram:
             # add row-th entry from b
             output += "["
 
-            b_entry = self._b[row]
-            b_entry = round(b_entry, places)
+            b_entry, curr_b_int_spaces, curr_b_dec_spaces = self._format_number(self._b[row])
 
             # add integer part of entry and spaces as needed
-            spaces = b_int_spaces - len(str(int(b_entry)))
-            if int(b_entry) == 0 and b_entry < 0:
-                spaces -= 1  # using int(b_entry) will remove the "-"
+            spaces = b_int_spaces - curr_b_int_spaces
             output += " " * spaces
-            if int(b_entry) == 0 and b_entry < 0:
-                output += "-"
-            output += str(int(b_entry))
-            output += "."
+            output += b_entry[:curr_b_int_spaces + 1]
 
             # add decimal values and spaces as needed
-            if b_entry.is_integer():
+            if Comparator.is_integer(self._b[row]):
                 output += " " * b_dec_spaces
             else:
-                entry_dec = Decimal(str(abs(b_entry))) % 1  # get decimal portion of number
-                entry_dec = str(entry_dec)[2:]
-
-                output += entry_dec
-                spaces = b_dec_spaces - len(entry_dec)
+                output += b_entry[-curr_b_dec_spaces:]
+                spaces = b_dec_spaces - curr_b_dec_spaces
                 output += " " * spaces
 
             output += "]\n"

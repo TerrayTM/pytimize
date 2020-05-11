@@ -14,7 +14,7 @@ class TestStr(TestCase):
         c = np.array([100, 200, 300])
         z = 5
         expected = (
-            "Max [100. 200. 300.]x + 5\n"
+            "Max [100. 200. 300.]x + 5.\n"
             "Subject To:\n"
             "\n"
             "[1.  2.  3.]     =   [ 6.]\n"
@@ -56,7 +56,7 @@ class TestStr(TestCase):
         c = np.array([5, 5, 35])
         z = 8
         expected = (
-            "Min [5. 5. 35.]x + 8\n"
+            "Min [5. 5. 35.]x + 8.\n"
             "Subject To:\n"
             "\n"
             "[100.  9589.   -0.693]     ≥   [-600.   ]\n"
@@ -77,7 +77,7 @@ class TestStr(TestCase):
         c = np.array([5, 5, 35])
         z = -123
         expected = (
-            "Min [5. 5. 35.]x - 123\n"
+            "Min [5. 5. 35.]x - 123.\n"
             "Subject To:\n"
             "\n"
             "[ 1.   1.   0.]     ≥   [ 1.]\n"
@@ -120,7 +120,7 @@ class TestStr(TestCase):
         c = np.array([0, 0, 0, 0, 0, 0, -1, -1, -1])
         z = -2
         expected = (
-            "Min [0. 0. 0. 0. 0. 0. -1. -1. -1.]x - 2\n"
+            "Min [0. 0. 0. 0. 0. 0. -1. -1. -1.]x - 2.\n"
             "Subject To:\n"
             "\n"
             "[ 2.  -1.  -2.  1.   0.   0.  1.  0.  0.]     ≥   [4.]\n"
@@ -142,15 +142,16 @@ class TestStr(TestCase):
         c = np.array([5, 5, 35])
         z = 8
         expected = (
-            "Min [5. 5. 35.]x + 8\n"
+            "Min [5. 5. 35.]x + 8.\n"
             "Subject To:\n"
             "\n"
-            "[ 1.     100000.123  -0.012]     ≥   [-600.012]\n"
-            "[ 0.        -10.223  -6.   ]x    ≤   [  15.   ]\n"
-            "[-1.123      -8.     90.56 ]     ≤   [   1.   ]\n"
+            "[ 1.     100000.123  -0.01235]     ≥   [-600.012]\n"
+            "[ 0.        -10.223  -6.0    ]x    ≤   [  15.0  ]\n"
+            "[-1.123      -8.0    90.56   ]     ≤   [   1.0  ]\n"
             "x ≥ 0\n"
         )
         
+        self.maxDiff = None
         p = LinearProgram(A, b, c, z, "min", [">=", "<=", "<="])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
@@ -164,7 +165,7 @@ class TestStr(TestCase):
         z = -2
 
         expected_one = (
-            "Min [4. 5. 6. 7. 8. 9.]x - 2\n"
+            "Min [4. 5. 6. 7. 8. 9.]x - 2.\n"
             "Subject To:\n"
             "\n"
             "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"
@@ -176,7 +177,7 @@ class TestStr(TestCase):
         self.assertEqual(str(p), expected_one, "Should output in correct string format.")
 
         expected_two = (
-            "Min [4. 5. 6. 7. 8. 9.]x - 2\n"
+            "Min [4. 5. 6. 7. 8. 9.]x - 2.\n"
             "Subject To:\n"
             "\n"
             "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"
@@ -186,7 +187,7 @@ class TestStr(TestCase):
         self.assertEqual(str(p), expected_two, "Should output in correct string format.")
 
         expected_three = (
-            "Min [4. 5. 6. 7. 8. 9.]x - 2\n"
+            "Min [4. 5. 6. 7. 8. 9.]x - 2.\n"
             "Subject To:\n"
             "\n"
             "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"
@@ -197,7 +198,7 @@ class TestStr(TestCase):
         self.assertEqual(str(p), expected_three, "Should output in correct string format.")
 
         expected_four = (
-            "Min [4. 5. 6. 7. 8. 9.]x - 2\n"
+            "Min [4. 5. 6. 7. 8. 9.]x - 2.\n"
             "Subject To:\n"
             "\n"
             "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"
@@ -208,7 +209,7 @@ class TestStr(TestCase):
         self.assertEqual(str(p), expected_four, "Should output in correct string format.")
 
         expected_five = (
-            "Min [4. 5. 6. 7. 8. 9.]x - 2\n"
+            "Min [4. 5. 6. 7. 8. 9.]x - 2.\n"
             "Subject To:\n"
             "\n"
             "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"
@@ -219,7 +220,7 @@ class TestStr(TestCase):
         self.assertEqual(str(p), expected_five, "Should output in correct string format.")
 
         expected_six = (
-            "Min [4. 5. 6. 7. 8. 9.]x - 2\n"
+            "Min [4. 5. 6. 7. 8. 9.]x - 2.\n"
             "Subject To:\n"
             "\n"
             "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"
@@ -258,7 +259,7 @@ class TestStr(TestCase):
         c = np.array([1, 2, 3])
         z = -2
         expected = (
-            "Min [1. 2. 3.]x - 2\n"
+            "Min [1. 2. 3.]x - 2.\n"
             "Subject To:\n"
             "\n"
             "[1.  2.  3.  4.  5.  6.]     =   [1.]\n"

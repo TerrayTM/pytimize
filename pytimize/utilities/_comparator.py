@@ -85,7 +85,18 @@ class Comparator:
             Whether or not the value is an integer.
         
         """
-        return np.allclose(value, np.round(value))
+        if type(value) == np.ndarray:
+            for entry in value:
+                result = Comparator.is_integer(entry)
+                if not result:
+                    return False
+            return True
+        else:
+            value = abs(value)
+            value -= int(value)
+            if value > 0.5:
+                return Comparator.is_close_to_zero(1 - value)
+            return Comparator.is_close_to_zero(value)
 
 
 
