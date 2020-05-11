@@ -37,7 +37,7 @@ class TestIsPositive(TestCase):
         self.assertFalse(Comparator.is_positive(np.array([
             [1, -3],
             [-4, -6]
-        ])), "Should return false if any element is negative")
+        ])), "Should return false if any element is negative.")
 
 if __name__ == "__main__":
     main()

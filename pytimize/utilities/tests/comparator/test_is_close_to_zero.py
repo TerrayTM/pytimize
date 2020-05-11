@@ -15,13 +15,13 @@ class TestIsCloseToZero(TestCase):
         ])).all(), "Should be close to zero.")
 
     def test_nonzero(self):
-        self.assertFalse(Comparator.is_close_to_zero(100), "Should not be close to zero")
-        self.assertFalse(Comparator.is_close_to_zero(-100), "Should not be close to zero")
-        self.assertFalse(Comparator.is_close_to_zero(np.array([4, 5])).all(), "Should not be close to zero")
+        self.assertFalse(Comparator.is_close_to_zero(100), "Should not be close to zero.")
+        self.assertFalse(Comparator.is_close_to_zero(-100), "Should not be close to zero.")
+        self.assertFalse(Comparator.is_close_to_zero(np.array([4, 5])).all(), "Should not be close to zero.")
         self.assertFalse(Comparator.is_close_to_zero(np.array([
             [1e-5, 2.7e-4],
             [1e-6, 4.2e-6]
-        ])).all(), "Should not be close to zero")
+        ])).all(), "Should not be close to zero.")
 
 if __name__ == "__main__":
     main()
