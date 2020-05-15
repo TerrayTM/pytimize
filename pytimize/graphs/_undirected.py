@@ -589,7 +589,7 @@ class UndirectedGraph:
 
         for vertex, connections in self._graph[current].items():
           for connection in connections:
-            edge = sorted((vertex, connection))
+            edge = tuple(sorted((vertex, connection)))
 
             subedges.setdefault(edge, self._edges[edge])
 
@@ -690,6 +690,15 @@ class UndirectedGraph:
 
 
   def _hash_edge(self, edge: Tuple[str, str]) -> str:
+    """
+    Computes a hash for the given edge that is independent of the tuple order.
+
+    Returns
+    -------
+    result : str
+      The hash of the edge.
+
+    """
     a, b = edge
     
     if a > b:
