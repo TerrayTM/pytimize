@@ -374,9 +374,9 @@ class UndirectedGraph:
 
 
 
-  def delta(self, vertices: Union[Set[str], str]) -> Set[str]:
+  def cut(self, vertices: Union[Set[str], str]) -> Set[str]:
     """
-    Gets a set of edges where every edge has exactly one endpoint in given `vertices`.
+    Gets a set of edges where every edge has exactly one endpoint in `vertices`.
 
     Parameters
     ----------
@@ -432,16 +432,16 @@ class UndirectedGraph:
 
 
   def dfs(self, start: str) -> List[str]:
-    return list(self.walk(start, "dfs"))
+    return list(self.traverse(start, "dfs"))
 
 
 
   def bfs(self, start: str) -> List[str]:
-    return list(self.walk(start, "bfs"))
+    return list(self.traverse(start, "bfs"))
 
 
 
-  def walk(self, start: str, traversal: str="bfs", order: Optional[Callable[[str], Any]]=None) -> Iterator[str]:
+  def traverse(self, start: str, method: str="bfs", order: Optional[Callable[[str], Any]]=None) -> Iterator[str]:
     """
     Walks through the graph and returns its vertices. Traversal can be breath first,
     depth first, or random search. If the graph is not connected `bfs` and `dfs` may not
@@ -452,7 +452,7 @@ class UndirectedGraph:
     start : str
       The starting vertex.
 
-    traversal : str (default="bfs")
+    method : str (default="bfs")
       The type of graph traversal. Options are `bfs`, `dfs`, or `rng`.
 
     order : Optional[Callable[[str], Any]] (default=None)
@@ -470,7 +470,7 @@ class UndirectedGraph:
     if not self.has_vertex(start):
       raise ValueError("The starting vertex is not in graph.")
 
-    if traversal == "rng":
+    if method == "rng":
       vertices = list(self._vertices.keys())
 
       random.shuffle(vertices)
@@ -512,7 +512,7 @@ class UndirectedGraph:
 
   def is_cyclic(self) -> bool:
     """
-    Checks if the graph is cyclic.
+    Checks if the graph contains at least one cycle.
 
     Returns
     -------
@@ -520,9 +520,6 @@ class UndirectedGraph:
       Whether or not the graph is cyclic.
 
     """
-    if self.is_empty():
-      return False
-    
     unexplored = set(self._vertices.keys())
 
     while len(unexplored) > 0:
@@ -551,7 +548,7 @@ class UndirectedGraph:
     Returns
     -------
     result : UndirectedGraph
-        The copy of the graph.
+      The copy of the graph.
 
     """
     g = UndirectedGraph() 
@@ -564,12 +561,65 @@ class UndirectedGraph:
 
 
 
-  def partitions(self) -> List["UndirectedGraph"]:
-    pass
+  def partition(self) -> List["UndirectedGraph"]:
+    """
+    Partitions the graph into subgraphs such that each subgraph is connected.
+
+    Returns
+    -------
+    result : List[UndirectedGraph]
+      List of connected subgraphs.
+
+    """    
+    unexplored = set(self._vertices.keys())
+    partitions = []
+
+    while len(unexplored) > 0:
+      queue = deque([next(iter(unexplored))])
+      visited = set()
+      subgraph = {}
+      subedges = {}
+      subvertices = {}
+
+      while len(queue) > 0: 
+        current = queue.popleft()
+
+        if current in visited:
+          continue
+
+        for vertex, connections in self._graph[current].items():
+          for connection in connections:
+            edge = sorted((vertex, connection))
+
+            subedges.setdefault(edge, self._edges[edge])
+
+        visited.add(current)
+        queue.extend(self._graph[current])
+        subgraph.setdefault(current, self._graph.copy())
+        subvertices.setdefault(current, self._vertices[current])
+
+      g = UndirectedGraph()
+      g._graph = subgraph
+      g._edges = subedges
+      g._vertices = subvertices
+      unexplored = unexplored.difference(visited)
+
+      partitions.append(g)
+
+    return partitions
 
 
 
-  def is_empty(self): 
+  def is_empty(self) -> bool: 
+    """
+    Checks if the graph is empty (does not have any vertices).
+
+    Returns
+    -------
+    result : bool
+      Whether or not the graph is empty.
+
+    """    
     return len(self._vertices) == 0
 
 
@@ -590,7 +640,7 @@ class UndirectedGraph:
       The degree of the vertices.
 
     """
-    return len(self.delta(vertices))
+    return len(self.cut(vertices))
 
 
 
@@ -645,7 +695,7 @@ class UndirectedGraph:
     if a > b:
       a, b = b, a
     
-    return f"{a}{b}"
+    return f"{a}-{b}"
 
 
 
