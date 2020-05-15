@@ -456,9 +456,9 @@ class UndirectedGraph:
       The type of graph traversal. Options are `bfs`, `dfs`, or `rng`.
 
     order : Optional[Callable[[str], Any]] (default=None)
-      The sorting order of vertices to output. This callable takes a tuple
-      of previous vertex and current vertex. If given none, lexical order based
-      on current vertex is used.
+      The sorting order of new vertices when added to the queue/stack for breadth first
+      and depth first respectively. This property does not affect random search, and it 
+      takes a callable with vertex as its argument. If given none, lexical ordering is used.
 
     Returns
     -------
@@ -649,7 +649,36 @@ class UndirectedGraph:
 
 
 
-  def minimum_spanning_tree(self) -> bool:
+  def minimum_spanning_tree(self) -> "UndirectedGraph":
+    """
+    Computes the minimum spanning tree of the graph.
+
+    Returns
+    -------
+    result : UndirectedGraph
+      The minimum spanning tree.
+
+    """
+    if not self.is_connected():
+      raise ValueError() # must be connected
+
+    # NOTES
+    # self._graph is a dictionary where key (str) is vertex and value (Set[str]) is
+    #   all the adjacent vertices. All vertices are uniquely represented by a str
+    # self._edges is a dictionary where key (tuple[str,str]) is edge and value (float) is weight of edge
+    #   since edge is unordered, the key should always be sorted via `tuple(sorted((a, b)))` where a,b is an edge
+    # self._vertices is a dictionary where key (str) is vertex and value (float) is weight of the vertex
+
+    # to declare a graph:
+    # g = UndirectedGraph()
+    # set private members instead of constructor for performance reasons
+    # g._edges = ...
+    # g._vertices = ...
+    # g._graph = ...
+    # All 3 properties above must be consistent with each other
+
+
+
     pass
 
 
