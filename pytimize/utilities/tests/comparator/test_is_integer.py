@@ -4,7 +4,7 @@ from ... import Comparator
 from unittest import TestCase, main
 
 class TestIsInteger(TestCase):
-    def test_integer(self):
+    def test_integer(self) -> None:
         self.assertTrue(Comparator.is_integer(6), "Should be close to an integer.")
         self.assertTrue(Comparator.is_integer(-5), "Should be close to an integer.")
         self.assertTrue(Comparator.is_integer(5.00000000001), "Should be close to an integer.")
@@ -14,7 +14,7 @@ class TestIsInteger(TestCase):
             [2.3e-34, 1.2e-13]
         ])), "Should be close to an integer.")
 
-    def test_noninteger(self):
+    def test_noninteger(self) -> None:
         self.assertFalse(Comparator.is_integer(4.3), "Should not be close to an integer.")
         self.assertFalse(Comparator.is_integer(100000.123), "Should not be close to an integer.")
         self.assertFalse(Comparator.is_integer(100000000.003), "Should not be close to an integer.")

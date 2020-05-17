@@ -1,15 +1,12 @@
 import numpy as np
 
+from typing import List, Optional
+
 class LinearConstraint:
     def __init__(self, coefficients: np.ndarray, inequality: str, constant: float=0):
         self._coefficients = coefficients
         self._inequality = inequality
         self._constant = constant
-
-
-
-    def __repr__(self):
-        pass # TODO
 
 
 
@@ -32,5 +29,18 @@ class LinearConstraint:
 
 
 class VariableConstraint:
-    def __init__(self, negative, positive):
-        pass 
+    def __init__(self, positive_variables: Optional[List[int]]=None, negative_variables: Optional[List[int]]=None):
+        self._positive_variables = positive_variables
+        self._negative_variables = negative_variables
+
+
+
+    @property
+    def positive_variables(self) -> List[int]:
+        return self._positive_variables
+
+
+
+    @property
+    def negative_variables(self) -> List[int]:
+        return self._negative_variables

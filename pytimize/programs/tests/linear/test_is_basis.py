@@ -4,7 +4,7 @@ from ... import LinearProgram
 from unittest import TestCase, main
 
 class TestIsBasis(TestCase):
-    def test_is_basis(self):
+    def test_is_basis(self) -> None:
         A = np.array([
             [2, 1, 2, -1, 0, 0],
             [1, 0, -1, 2, 1, 0],

@@ -5,7 +5,7 @@ from ... import IntegerProgram, LinearProgram
 from unittest import TestCase, main
 
 class TestRelax(TestCase):
-    def test_relax(self):
+    def test_relax(self) -> None:
         A = np.array([
             [1, 2, 3, 4],
             [3, 5, 7, 9]
