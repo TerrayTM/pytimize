@@ -1,5 +1,3 @@
-import numpy as np
-
 from ...linear import maximize, minimize, x, variables
 from ....programs import LinearProgram
 from unittest import TestCase, main
@@ -9,9 +7,9 @@ class TestIntegration(TestCase):
         p = maximize(x[1] + x[2]).subject_to(
             x[1] >= 3,
             x[2] <= 5
-        ).compile()
+        )
 
-        self.assertTrue(isinstance(p, LinearProgram))
+        self.assertIsInstance(p.program, LinearProgram)
 
     def test_named_variables(self):
         pass
