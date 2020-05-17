@@ -12,24 +12,19 @@ class LinearEquation:
 
 
 
-    def __repr__(self):
-        pass # TODO
-
-
-
-    def __neg__(self):
-        self._terms = { label: -coefficient for label, coefficient in self._terms.items() }
+    def __neg__(self) -> "LinearEquation":
+        self._terms = {label: -coefficient for label, coefficient in self._terms.items()}
         
         return self
 
 
 
-    def __pos__(self):
+    def __pos__(self) -> "LinearEquation":
         return self
 
 
 
-    def __add__(self, other):
+    def __add__(self, other) -> "LinearEquation":
         if isinstance(other, LinearEquation):
             for label, coefficient in other.terms.items():
                 self._terms.setdefault(label, 0)
@@ -42,44 +37,44 @@ class LinearEquation:
 
 
 
-    def __radd__(self, other):
+    def __radd__(self, other) -> "LinearEquation":
         return self + other
 
 
 
-    def __iadd__(self, other):
+    def __iadd__(self, other) -> "LinearEquation":
         return self + other
 
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> "LinearEquation":
         return self + -other
 
 
 
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> "LinearEquation":
         return -self + other
 
 
 
-    def __isub__(self, other):
+    def __isub__(self, other) -> "LinearEquation":
         return self + -other
 
 
 
-    def __mul__(self, other: float): 
+    def __mul__(self, other: float) -> "LinearEquation": 
         if isinstance(other, float) or isinstance(other, int): 
-            self._terms = { label: coefficient * other for label, coefficient in self._terms.items() }
+            self._terms = {label: coefficient * other for label, coefficient in self._terms.items()}
 
             return self
 
 
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> "LinearEquation":
         return self * other
 
 
 
-    def __imult__(self, other):
+    def __imult__(self, other) -> "LinearEquation":
         return self * other
 
 
@@ -96,11 +91,6 @@ class LinearEquation:
 
     def __eq__(self, other: Union["LinearEquation", float]) -> LinearConstraint:
         return self._generate_constraint("=", other)
-
-
-
-    def compile(self):
-        pass # TODO 
 
 
 

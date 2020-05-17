@@ -5,14 +5,14 @@ from typing import Union, Tuple
 class MetaVariable(type):
     def __getitem__(cls, key: Union[int, slice]) -> LinearEquation:
         if isinstance(key, slice):
-            pass
+            pass # TODO implement
         elif isinstance(key, int):
             if key <= 0:
                 raise ValueError("Variable indexing must starts at 1.")
-            
+
             key -= 1
 
-        return LinearEquation({ key: 1 })
+        return LinearEquation({key: 1})
 
 
 
@@ -20,7 +20,7 @@ class MetaVariable(type):
         if not other == 0:
             raise ValueError()
 
-        return VariableConstraint()
+        return VariableConstraint(negative_variables=[])
 
 
 
@@ -28,15 +28,16 @@ class MetaVariable(type):
         if not other == 0:
             raise ValueError()
         
-        return VariableConstraint()
+        return VariableConstraint(positive_variables=[])
 
 
 
 class x(object, metaclass=MetaVariable):
     def __init__(self):
-        raise Exception("Incorrect usage of `x`. Please refer to the Pytimize formulation docs.")
+        raise NotImplementedError("Incorrect usage of `x`. Please refer to the Pytimize formulation docs.")
 
 
 
 def variables(count: int) -> Tuple[LinearEquation]:
-    return tuple(LinearEquation({ i: 1 }) for i in range(count))
+    return tuple(LinearEquation({i: 1}) for i in range(count))
+    # delay resolving variable keys? TODO

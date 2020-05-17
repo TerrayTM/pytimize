@@ -4,7 +4,7 @@ from ._utilities import pad_right
 from ._constraint import LinearConstraint
 from ._equation import LinearEquation
 from ._abstract import AbstractLinearProgram
-from typing import Union
+from typing import Union, Optional
 
 class ObjectiveFunction:
     def __init__(self, equation: LinearEquation, objective: str):
@@ -43,6 +43,24 @@ class ObjectiveFunction:
 
     def fill(self, length):
         pass # TODO
+
+
+
+    @property
+    def objective(self) -> str:
+        return self._objective
+
+
+
+    @property
+    def coefficients(self) -> Optional[np.ndarray]:
+        return self._c
+
+
+
+    @property
+    def constant(self) -> float:
+        return self._z
 
 
 
