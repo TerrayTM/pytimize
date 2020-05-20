@@ -486,7 +486,17 @@ class LinearProgram:
         ])
 
 
-    
+
+    def optimal_value(self):
+        solution = self.solve()
+
+        if solution:
+            return self.evaluate(solution)
+
+        return None
+
+
+
     def is_basic_solution(self, x, basis: List[int], show_steps: bool=True):
         """
         Checks if the given vector is a basic solution for the specified basis.
@@ -762,7 +772,7 @@ class LinearProgram:
                 inequality_indices[i] = ">=" if objective == "max" else "<="
 
         objective = "min" if objective == "max" else "max"
-        dual =  LinearProgram(self._A.T, self._c, self._b, 0, objective)
+        dual = LinearProgram(self._A.T, self._c, self._b, 0, objective)
 
         dual._inequality_indices = inequality_indices
         dual._free_variables = free_variables
@@ -1052,9 +1062,8 @@ class LinearProgram:
         k = None
 
         if Comparator.is_close_compare(self._c[N], "<=", 0):
-            for i in x:
-                if Comparator.is_negative(i):
-                    raise ArithmeticError("The given linear program is infeasible.")
+            if any(Comparator.is_negative(i) for i in x):
+                raise ArithmeticError("The given linear program is infeasible.")
 
             return x, self.__to_math_indexing(basis), self
 

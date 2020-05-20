@@ -4,7 +4,7 @@ from ... import LinearProgram
 from unittest import TestCase, main
 
 class TestStr(TestCase):
-    def test_str(self):
+    def test_str(self) -> None:
         A = np.array([
             [1, 2, 3],
             [4, 5, 6],
@@ -110,7 +110,7 @@ class TestStr(TestCase):
         p = LinearProgram(A, b, c, z)
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
-    def test_align_b(self):
+    def test_align_b(self) -> None:
         A = np.array([
             [2, -1, -2, 1, 0, 0, 1, 0, 0],
             [-2, 3, 1, 0, -1, 0, 0, 1, 0],
@@ -132,7 +132,7 @@ class TestStr(TestCase):
         p = LinearProgram(A, b, c, z, "min", [">=", "=", "="])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
-    def test_rounding(self):
+    def test_rounding(self) -> None:
         A = np.array([
             [1, 100000.123456789, -0.0123456789],
             [0, -10.223456789, -6.00000567],
@@ -154,7 +154,7 @@ class TestStr(TestCase):
         p = LinearProgram(A, b, c, z, "min", [">=", "<=", "<="])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
-    def test_variable_constraints(self):
+    def test_variable_constraints(self) -> None:
         A = np.array([
             [1, 2, 3, 4, 5, 6],
             [0, 1, 0, 1, 0, 1]
@@ -230,7 +230,7 @@ class TestStr(TestCase):
         p = LinearProgram(A, b, c, z, "min", free_variables=[1, 5], negative_variables=[2, 6])
         self.assertEqual(str(p), expected_six, "Should output in correct string format.")
 
-    def test_long_variable_index(self):
+    def test_long_variable_index(self) -> None:
         A = np.array([
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
             [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1]
@@ -251,7 +251,7 @@ class TestStr(TestCase):
         p = LinearProgram(A, b, c, z, "min", negative_variables=[11, 13])
         self.assertEqual(str(p), expected, "Should output in correct string format.")
 
-    def test_scientific_notation(self):
+    def test_scientific_notation(self) -> None:
         A = np.array([
             [1.123e30, 456, 1.123555557894e13],
             [1e-5, 6.123e-8, -6.123456789456],
