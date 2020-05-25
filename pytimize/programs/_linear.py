@@ -490,7 +490,7 @@ class LinearProgram:
     def optimal_value(self):
         solution = self.solve()
 
-        if solution:
+        if solution is not None:
             return self.evaluate(solution)
 
         return None
@@ -760,7 +760,11 @@ class LinearProgram:
 
         for i in range(self._b.shape[0]):
             if i in self._inequality_indices:
-                if self._inequality_indices == ">=" and objective == "max":
+                inequality = self._inequality_indices[i]
+
+                if inequality == ">=" and objective == "max":
+                    negative_variables.append(i)
+                elif inequality == "<=" and objective == "min":
                     negative_variables.append(i)
             else:
                 free_variables.append(i)

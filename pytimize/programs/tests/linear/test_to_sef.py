@@ -5,7 +5,7 @@ from ... import LinearProgram
 from unittest import TestCase, main
 
 class TestToSEF(TestCase):
-    def test_to_sef(self):
+    def test_to_sef(self) -> None:
         A = np.array([
             [1, 5, 3],
             [2, -1, 2],
@@ -84,7 +84,7 @@ class TestToSEF(TestCase):
         self.assertEqual(p.free_variables, [], "Should have no free variables.")
         self.assertEqual(p.negative_variables, [], "Should have no negative variables.")
 
-    def test_random_order_free_variables(self):
+    def test_random_order_free_variables(self) -> None:
         A = np.array([
             [1, 2, 0, 1],
             [1, -2, 16, 0],
@@ -111,7 +111,7 @@ class TestToSEF(TestCase):
         self.assertEqual(p.free_variables, [], "Should have no free variables.")
         self.assertEqual(p.negative_variables, [], "Should have no negative variables.")
 
-    def test_random_order_negative_variables(self):
+    def test_random_order_negative_variables(self) -> None:
         A = np.array([
             [0, 0, 1],
             [1, 0, 0],
