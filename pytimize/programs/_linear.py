@@ -1883,12 +1883,25 @@ class LinearProgram:
 
 
     # TODO need integration
-    def __remove_dependent_rows(self):
+    def __remove_dependent_rows(self, A, b):
         """
         Removes dependent rows from the constraints and returns the new values for A and b. The linear program must be in almost SEF.
+
+        Parameters
+        ----------
+        A : np.ndarray
+            The matrix to be modified.
+
+        b : np.ndarray
+            The b vector corresponding to the given A matrix.
+
+        Returns
+        -------
+        result : Tuple[np.ndarray, np.ndarray]
+            The A matrix and the b vector after dependent rows are removed.
         
         """
-        arr = np.c_[self._A, self._b]
+        arr = np.c_[A, b]
 
         shape = arr.shape
 
@@ -1931,8 +1944,9 @@ class LinearProgram:
                 new_arr = np.delete(new_arr, shape[0] - 1 - i, 0)
 
         new_shape = new_arr.shape
-        self._b = new_arr[:, new_shape[1] - 1]
-        self._A = np.delete(new_arr, new_shape[1] - 1, 1)
+        b = new_arr[:, new_shape[1] - 1]
+        A = np.delete(new_arr, new_shape[1] - 1, 1)
+        return A, b
 
 
 
