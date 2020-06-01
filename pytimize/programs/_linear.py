@@ -340,12 +340,12 @@ class LinearProgram:
         if len(self._negative_variables) == shape[1]:
             output += "x ≤ 0\n"
         elif len(self._negative_variables) > 0:
-            output += SymbolParser.subscript(", ".join(map(lambda i: f"x{i + 1}", self._negative_variables))) + " ≤ 0\n"
+            output += SymbolParser.subscript(", ".join(f"x{i + 1}" for i in self._negative_variables)) + " ≤ 0\n"
         
         if len(positive) == shape[1]:
             output += "x ≥ 0\n"
         elif len(positive) > 0:
-            output += SymbolParser.subscript(", ".join(map(lambda i: f"x{i}", positive))) + " ≥ 0\n"
+            output += SymbolParser.subscript(", ".join(f"x{i}" for i in positive)) + " ≥ 0\n"
 
         return output
 
@@ -604,6 +604,37 @@ class LinearProgram:
             return False
         
         return not Comparator.is_close_to_zero(np.linalg.det(self._A[:, basis]))
+
+
+    # TODO experimental 
+    def cs_conditions(self) -> str:
+        """
+        Generates the complementry slackness conditions.
+
+        Returns
+        -------
+        result : str
+            The complementry slackness conditions.
+
+        """
+        conditions = []
+        dual = self.dual()
+
+        for i in range(self._b.shape[0]):
+            if i in self._inequality_indices:
+                variable = f"y{SymbolParser.subscript(str(i + 1))} = 0"
+                equation = " + ".join(f"{value}x{SymbolParser.subscript(str(index + 1))}" for index, value in enumerate(self._A[i])) + f" = {self._b[i]}"
+
+                conditions.append(f"{variable} || {equation}")
+
+        for i in range(dual._b.shape[0]):
+            if i in dual._inequality_indices:
+                variable = f"x{SymbolParser.subscript(str(i + 1))} = 0"
+                equation = " + ".join(f"{value}y{SymbolParser.subscript(str(index + 1))}" for index, value in enumerate(dual._A[i])) + f" = {dual._b[i]}"
+
+                conditions.append(f"{variable} || {equation}")
+
+        return "\n".join(conditions)
 
 
 
