@@ -4,13 +4,14 @@ from typing import Union, Tuple
 
 class MetaVariable(type):
     def __getitem__(cls, key: Union[int, slice]) -> LinearEquation:
-        if isinstance(key, slice):
-            pass # TODO implement
-        elif isinstance(key, int):
+        if isinstance(key, int):
             if key <= 0:
                 raise ValueError("Variable indexing must starts at 1.")
 
             key -= 1
+        elif isinstance(key, tuple):
+            # TODO implement
+            pass
 
         return LinearEquation({key: 1})
 
@@ -94,17 +95,25 @@ class Variable:
 
 
 
-    def __le__(self, other: Union["LinearEquation", float]) -> LinearConstraint:
+    def __le__(self, other: Union[LinearEquation, float]) -> LinearConstraint:
+        if isinstance(other, int) or isinstance(other, float): # Could be optimized TODO
+            if other == 0:
+                return VariableConstraint(negative_variables=[self._key + 1]) # index needs checking
+
         return self.equation <= other
 
 
 
-    def __ge__(self, other: Union["LinearEquation", float]) -> LinearConstraint:
+    def __ge__(self, other: Union[LinearEquation, float]) -> LinearConstraint:
+        if isinstance(other, int) or isinstance(other, float):
+            if other == 0:
+                return VariableConstraint(positive_variables=[self._key + 1])
+
         return self.equation >= other
 
 
 
-    def __eq__(self, other: Union["LinearEquation", float]) -> LinearConstraint:
+    def __eq__(self, other: Union[LinearEquation, float]) -> LinearConstraint:
         return self.equation == other
 
 
