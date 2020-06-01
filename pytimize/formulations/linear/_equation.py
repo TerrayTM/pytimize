@@ -32,6 +32,10 @@ class LinearEquation:
                 self._terms[label] += coefficient
         elif isinstance(other, float) or isinstance(other, int):
             self._constant += other
+        elif hasattr(other, "key"):
+            self._terms.setdefault(other.key, 0)
+            
+            self._terms[other.key] += 1
 
         return self
 

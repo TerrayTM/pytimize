@@ -74,14 +74,30 @@ class TestSimplex(TestCase):
         solution, basis, certificate = p.simplex([3, 4, 5])
 
         self.assertTrue(solution is None, "Should have no optimal solution.")
-        self.assertTrue(isinstance(certificate, tuple), "Should be a tuple of vectors.")
+        self.assertIsInstance(certificate, tuple, "Should be a tuple of vectors.")
         self.assertTrue(np.allclose(certificate[0], [36, 0, 14, 13, 0]), "Should be correct feasible solution.")
         self.assertTrue(np.allclose(certificate[1], [0.5, 1, 0.5, 0, 0]), "Should be correct certifying vector.")
         self.assertTrue(basis is None, "Should return nothing.")
         self.assertTrue(np.allclose(p.A, A), "Should not modify original program.")
 
     def test_simplex_negative_b(self) -> None:
-        pass #TODO
+        A = np.array([
+            [1, -2, -4, -2, 1, -1, 0, 0],
+            [0, -1, 0, -1, -1, 0, -1, 0],
+            [0, -5, -1, -2, 0, 0, 0, -1]
+        ])
+        b = np.array([-6, -1, -7])
+        c = np.array([-1, 8, 5, 5, 0, 0, 0, 0])
+        z = -14
+
+        p = LinearProgram(A, b, c, z)
+
+        solution, basis, certificate = p.simplex([6, 7, 8])
+
+        self.assertTrue(np.allclose(solution, [4, 1, 2, 0, 0, 0, 0, 0]), "Should compute correct solution.")
+        self.assertEqual(basis, [1, 2, 3], "Should compute correct optimal basis.")
+        self.assertTrue(np.allclose(certificate, [-1, -1, -1]), "Should compute correct certificate.")
+        self.assertTrue(np.allclose(p.A, A), "Should not modify original program.")
 
     def test_simplex_optimal_basis(self) -> None:
         A = np.array([

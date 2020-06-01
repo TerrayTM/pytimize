@@ -1,4 +1,5 @@
 from ...linear import x, variables
+from ...linear._variable import Variable
 from ...linear._equation import LinearEquation
 from ...linear._constraint import VariableConstraint
 from unittest import TestCase, main
@@ -34,9 +35,9 @@ class TestVariable(TestCase):
     def test_named_variables(self) -> None:
         a, b, c = variables(3)
 
-        self.assertIsInstance(a, LinearEquation, "Should create variables.")
-        self.assertIsInstance(b, LinearEquation, "Should create variables.")
-        self.assertIsInstance(c, LinearEquation, "Should create variables.")
+        self.assertIsInstance(a, Variable, "Should create variables.")
+        self.assertIsInstance(b, Variable, "Should create variables.")
+        self.assertIsInstance(c, Variable, "Should create variables.")
 
     def test_variable_index_zero(self) -> None:
         with self.assertRaises(ValueError, msg="Should throw exception if index starts at 0."):
