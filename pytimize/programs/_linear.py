@@ -6,7 +6,7 @@ import numpy as np
 
 from ..parsers._description import render_descriptor
 from ..parsers._symbol import SymbolParser
-from ..utilities import typecheck, Comparator
+from ..utilities import Comparator
 from matplotlib import pyplot as plt
 from collections import deque
 from typing import List, Tuple, Optional, Union
@@ -638,7 +638,6 @@ class LinearProgram:
 
 
 
-    @typecheck
     def is_basis_feasible(self, basis: List[int]):
         """
         Tests if the given basis is feasible.
@@ -683,7 +682,6 @@ class LinearProgram:
 
 
 
-    @typecheck
     def to_canonical_form(self, basis: List[int], show_steps: bool=True, in_place: bool=False) -> "LinearProgram":
         """
         Converts the linear program into canonical form for the given basis.
@@ -1505,7 +1503,6 @@ class LinearProgram:
 
     
 
-    @typecheck
     def to_sef(self, show_steps: bool=True, in_place: bool=False) -> "LinearProgram":
         """
         Converts the linear program to standard equality form.

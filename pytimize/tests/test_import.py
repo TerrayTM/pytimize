@@ -21,7 +21,7 @@ class TestImport(TestCase):
     
     def test_import_utilties(self) -> None:
         import pytimize.utilities
-        from pytimize.utilities import DisjointSet, Comparator, typecheck
+        from pytimize.utilities import DisjointSet, Comparator
 
     def test_import_programs(self) -> None:
         import pytimize.programs
