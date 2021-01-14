@@ -1,3 +1,8 @@
+import math
+
+from typing import Iterable, Union, List, Tuple, Dict
+from collections import deque
+
 class DirectedGraph:
     def __init__(self):
         """
@@ -122,33 +127,50 @@ class DirectedGraph:
         """
         pass
 
-    def _nodes_to_set(self, nodes):
-        collection = None
-
-        if isinstance(nodes, str):
-            if not self.has_node(nodes):
-                raise ValueError()
-            collection = { nodes }
-        elif isinstance(nodes, list):
-            collection = set(nodes)
-        else:
-            collection = nodes
-
-        return collection
 
 
+    def cut(self, nodes: Union[Iterable[str], str]) -> List[Tuple[str, str]]:
+        """
+        Gets a list of arcs where every arc has exactly one endpoint in `nodes`.
 
-    def delta(self, nodes):
-        collection = self._nodes_to_set(nodes)
+        Parameters
+        ----------
+        nodes : Union[Iterable[str], str]
+            The node or nodes of the operation.
 
-        return list(filter(lambda arc: arc[0] in collection and arc[1] not in collection, self._arcs.keys()))
+        Returns
+        -------
+        result : List[Tuple[str, str]]
+            The list of arcs that satisfies the above condition.
+
+        """
+        if not isinstance(nodes, set):
+            nodes = set(nodes)
+
+        return list(filter(lambda arc: arc[0] in nodes and arc[1] not in nodes, self._arcs.keys()))
 
 
 
-    def delta_not(self, nodes):
-        collection = self._nodes_to_set(nodes)
+    def ncut(self, nodes: Union[Iterable[str], str]) -> List[Tuple[str, str]]:
+        """
+        Gets a list of arcs where every arc has exactly one endpoint in `nodes`.
 
-        return list(filter(lambda arc: arc[1] in collection and arc[0] not in collection, self._arcs.keys()))
+        Parameters
+        ----------
+        nodes : Union[Iterable[str], str]
+            The node or nodes of the operation.
+
+        Returns
+        -------
+        result : List[Tuple[str, str]]
+            The list of arcs that satisfies the above condition.
+
+        """
+
+        if not isinstance(nodes, set):
+            nodes = set(nodes)
+
+        return list(filter(lambda arc: arc[1] in nodes and arc[0] not in nodes, self._arcs.keys()))
 
 
 
@@ -224,7 +246,7 @@ class DirectedGraph:
             The outdegree of the node or a set of nodes.
 
         """
-        return len(self.delta(nodes))
+        return len(self.cut(nodes))
 
 
 
@@ -246,6 +268,91 @@ class DirectedGraph:
 
         """
         return self.indegree(nodes) + self.outdegree(nodes)
+
+
+
+    def preflow_push(self, source, sink):
+        if not self.has_node(source):
+            raise ValueError("Source node does not exist.")
+
+        if not self.has_node(sink):
+            raise ValueError("Sink node does not exist.")
+
+        i = 0
+        excess = {}
+        residual = {}
+        flow = {arc: 0 for arc in self._arcs}
+        height = {node: len(self._nodes) if node == source else 0 for node in self._nodes}
+        nodes = deque(filter(lambda node: not node == source and not node == sink, self._nodes))
+
+        for arc in self.cut(source):
+            flow[arc] = self._arcs[arc]
+
+        for arc, capacity in self._arcs.items():
+            u, v = arc
+
+            if capacity > flow[arc]:
+                residual.setdefault(u, {})[v] = capacity - flow[arc]
+
+            if flow[arc] > 0:
+                residual.setdefault(v, {})[u] = flow[arc]
+
+        for node in nodes:
+            excess[node] = sum(flow[arc] for arc in self.ncut(node))
+            excess[node] -= sum(flow[arc] for arc in self.cut(node))
+
+        while i < len(nodes):
+            node = nodes.popleft()
+
+            while excess[node] > 0:
+                pushed = False
+
+                for endpoint, value in residual[node].items():
+                    if value > 0 and height[endpoint] == height[node] - 1:
+                        pushed = True
+                        arc = (node, endpoint)
+                        push_value = min(excess[node], value)
+                        
+                        if arc not in flow:
+                            arc = (endpoint, node)
+                            flow[arc] -= push_value
+                        else:
+                            flow[arc] += push_value
+                        
+                        residual.setdefault(node, {})[endpoint] = self._arcs[arc] - flow[arc]
+                        residual.setdefault(endpoint, {})[node] = flow[arc]
+
+                        if residual[node][endpoint] == 0:
+                            del residual[node][endpoint]
+                    
+                        if residual[endpoint][node] == 0:
+                            del residual[endpoint][node]
+                        
+                        if not node == source and not node == sink:
+                            excess[node] -= push_value
+
+                        if not endpoint == source and not endpoint == sink:
+                            excess[endpoint] += push_value
+
+                        break
+
+                if not pushed:
+                    i = 0
+                    max_height = math.inf
+
+                    for endpoint in residual[node]:
+                        max_height = min(height[endpoint], max_height) 
+
+                    height[node] = max_height + 1
+
+                    nodes.appendleft(node)
+
+                    break
+            else:
+                i += 1
+                nodes.append(node)
+
+        return flow
 
     def is_digraph_connected(self):
         pass

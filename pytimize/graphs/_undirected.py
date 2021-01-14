@@ -374,7 +374,7 @@ class UndirectedGraph:
 
 
 
-  def cut(self, vertices: Union[Set[str], str]) -> Set[str]:
+  def cut(self, vertices: Union[Set[str], str]) -> Set[Tuple[str, str]]:
     """
     Gets a set of edges where every edge has exactly one endpoint in `vertices`.
 
@@ -385,7 +385,7 @@ class UndirectedGraph:
 
     Returns
     -------
-    result : Set[str]
+    result : Set[Tuple[str, str]]
       The set of edges that satisfies the above condition.
 
     """
