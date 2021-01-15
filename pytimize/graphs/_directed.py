@@ -1,17 +1,75 @@
 import math
 
-from typing import Iterable, Union, List, Tuple, Dict
+from typing import Iterable, Union, List, Tuple, Dict, Set, Optional
 from collections import deque
 
 class DirectedGraph:
-    def __init__(self):
+    def __init__(self, graph: Optional[Dict[str, Set[str]]]=None, arcs: Optional[Dict[Tuple[str, str], float]]=None, nodes: Optional[Dict[str, float]]=None) -> None:
         """
-        Constructs a directed graph with support for arc weights and node demands.
+        Constructs a directed graph with support for arc and node weights.
+        If `graph`, `arcs`, `nodes`, or a combination of them is provided, the 
+        graph will be built respectively with any nonspecified weights set to 0.
+
+        Parameters
+        ----------
+        graph : Optional[Dict[str, Set[str]]] (default=None)
+            The graph dictionary where key is the node and value is the set of 
+            nodes that are connected to that node.
+
+        arcs : Optional[Dict[Tuple[str, str], float]] (default=None)
+            The arcs dictionary where key is the arc and value is the weight. 
+
+        nodes : Optional[Dict[str, float]] (default=None)
+            The nodes dictionary where key is the node and value is the weight.
 
         """
         self._graph = {}
         self._arcs = {}
         self._nodes = {}
+
+        if graph is not None:
+            for node, connections in graph.items():
+                if len(connections) == 0:
+                    if not self.has_node(node):
+                        self.add_node(node)
+                else:
+                    for connection in connections:
+                        arc = (node, connection)
+
+                        if self.has_arc(arc):
+                            continue
+
+                        self.add_arc(arc)
+
+        if arcs is not None: 
+            for arc, weight in arcs.items():
+                if not self.has_arc(arc):
+                    self.add_arc(arc, weight)
+
+                self.set_arc_weight(arc, weight)
+
+        if nodes is not None:
+            for node, weight in nodes.items():
+                if not self.has_node(node): 
+                    self.add_node(node)
+
+                self.set_node_weight(node, weight)
+
+
+
+    def set_arc_weight(self, arc: Tuple[str, str], weight: float) -> None:
+        if not self.has_arc(arc):
+            raise ValueError("The given edge is not in graph.")
+
+        self._arcs[arc] = weight
+
+
+
+    def set_node_weight(self, node: str, weight: float) -> None:
+        if not self.has_node(node):
+            raise ValueError("The given vertex is not in graph.")
+
+        self._nodes[node] = weight
 
 
 
@@ -92,7 +150,7 @@ class DirectedGraph:
 
         remove_nodes : bool (default=False)
             Should the endpoint nodes of the arc also be removed
-            if their conenction count is 0.
+            if their connection count is 0.
 
         """
         if not self.has_arc(arc):
@@ -129,9 +187,9 @@ class DirectedGraph:
 
 
 
-    def cut(self, nodes: Union[Iterable[str], str]) -> List[Tuple[str, str]]:
+    def cut(self, nodes: Union[Iterable[str], str]) -> Set[Tuple[str, str]]:
         """
-        Gets a list of arcs where every arc has exactly one endpoint in `nodes`.
+        Gets a set of arcs where every arc has its starting node in `nodes`.
 
         Parameters
         ----------
@@ -140,20 +198,20 @@ class DirectedGraph:
 
         Returns
         -------
-        result : List[Tuple[str, str]]
+        result : Set[Tuple[str, str]]
             The list of arcs that satisfies the above condition.
 
         """
         if not isinstance(nodes, set):
             nodes = set(nodes)
 
-        return list(filter(lambda arc: arc[0] in nodes and arc[1] not in nodes, self._arcs.keys()))
+        return set(filter(lambda arc: arc[0] in nodes and arc[1] not in nodes, self._arcs.keys()))
 
 
 
-    def ncut(self, nodes: Union[Iterable[str], str]) -> List[Tuple[str, str]]:
+    def ncut(self, nodes: Union[Iterable[str], str]) -> Set[Tuple[str, str]]:
         """
-        Gets a list of arcs where every arc has exactly one endpoint in `nodes`.
+        Gets a set of arcs where every arc has its ending node in `nodes`.
 
         Parameters
         ----------
@@ -162,7 +220,7 @@ class DirectedGraph:
 
         Returns
         -------
-        result : List[Tuple[str, str]]
+        result : Set[Tuple[str, str]]
             The list of arcs that satisfies the above condition.
 
         """
@@ -212,13 +270,13 @@ class DirectedGraph:
 
 
 
-    def indegree(self, nodes):
+    def indegree(self, nodes: Union[Iterable[str], str]) -> int:
         """
-        Counts the indegree of a node or a set of nodes.
+        Computes the indegree of a node or a set of nodes.
 
         Parameters
         ----------
-        nodes : Union[str, List[str]]
+        nodes : Union[Iterable[str], str]
             The node identifier or a set of node identifiers. 
 
         Returns
@@ -227,17 +285,17 @@ class DirectedGraph:
             The indegree of the node or a set of nodes.
 
         """
-        return len(self.delta_not(nodes))
+        return len(self.ncut(nodes))
 
 
 
-    def outdegree(self, nodes):
+    def outdegree(self, nodes: Union[Iterable[str], str]) -> int:
         """
-        Counts the outdegree of a node or a set of nodes.
+        Computes the outdegree of a node or a set of nodes.
 
         Parameters
         ----------
-        nodes : Union[str, List[str]]
+        nodes : Union[Iterable[str], str]
             The node identifier or a set of node identifiers. 
 
         Returns
@@ -269,11 +327,34 @@ class DirectedGraph:
         """
         return self.indegree(nodes) + self.outdegree(nodes)
 
-    def _compute_residual(self, flow):
+
+
+    def create_residual(self, flow: Dict[Tuple[str, str], float]) -> "DirectedGraph":
+        if any(value < 0 for value in flow.values()):
+            raise ValueError()
+
+        if any(value < 0 for value in self._arcs.values()):
+            raise ValueError()
+
+        residual = self._compute_residual(flow)
+        arcs = {}
+
+        for node, endpoints in residual.items():
+            for endpoint, value in endpoints.items():
+                arcs[(node, endpoint)] = value
+
+        return DirectedGraph(arcs=arcs)
+
+
+
+    def _compute_residual(self, flow: Dict[Tuple[str, str], float]) -> Dict[str, Dict[str, float]]:
         residual = {}
 
         for arc, capacity in self._arcs.items():
             u, v = arc
+
+            if capacity < flow[arc]:
+                raise ArithmeticError("Given flow is infeasible.")
 
             if capacity > flow[arc]:
                 residual.setdefault(u, {})[v] = capacity - flow[arc]
@@ -356,6 +437,10 @@ class DirectedGraph:
                 index += 1
 
         return flow
+
+    def formulate_max_flow(self):
+        pass
+
 
     def is_digraph_connected(self):
         pass
