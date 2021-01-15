@@ -269,24 +269,8 @@ class DirectedGraph:
         """
         return self.indegree(nodes) + self.outdegree(nodes)
 
-
-
-    def preflow_push(self, source, sink):
-        if not self.has_node(source):
-            raise ValueError("Source node does not exist.")
-
-        if not self.has_node(sink):
-            raise ValueError("Sink node does not exist.")
-
-        i = 0
-        excess = {}
+    def _compute_residual(self, flow):
         residual = {}
-        flow = {arc: 0 for arc in self._arcs}
-        height = {node: len(self._nodes) if node == source else 0 for node in self._nodes}
-        nodes = deque(filter(lambda node: not node == source and not node == sink, self._nodes))
-
-        for arc in self.cut(source):
-            flow[arc] = self._arcs[arc]
 
         for arc, capacity in self._arcs.items():
             u, v = arc
@@ -297,37 +281,60 @@ class DirectedGraph:
             if flow[arc] > 0:
                 residual.setdefault(v, {})[u] = flow[arc]
 
+        return residual
+
+    def preflow_push(self, source, sink):
+        if not self.has_node(source):
+            raise ValueError("Source node does not exist.")
+
+        if not self.has_node(sink):
+            raise ValueError("Sink node does not exist.")
+
+        index = 0
+        excess = {}
+        source_cut = self.cut(source)
+        flow = {arc: self._arcs[arc] if arc in source_cut else 0 for arc in self._arcs}
+        residual = self._compute_residual(flow)
+        height = {node: len(self._nodes) if node == source else 0 for node in self._nodes}
+        nodes = list(filter(lambda node: not node == source and not node == sink, self._nodes))
+
         for node in nodes:
             excess[node] = sum(flow[arc] for arc in self.ncut(node))
             excess[node] -= sum(flow[arc] for arc in self.cut(node))
 
-        while i < len(nodes):
-            node = nodes.popleft()
+        while index < len(nodes):
+            node = nodes[index]
 
-            while excess[node] > 0:
+            if excess[node] > 0:
                 pushed = False
 
                 for endpoint, value in residual[node].items():
-                    if value > 0 and height[endpoint] == height[node] - 1:
+                    if height[endpoint] == height[node] - 1:
                         pushed = True
+                        is_reversed = False
                         arc = (node, endpoint)
                         push_value = min(excess[node], value)
-                        
+                        u, v = node, endpoint
+
                         if arc not in flow:
+                            is_reversed = True
                             arc = (endpoint, node)
                             flow[arc] -= push_value
                         else:
                             flow[arc] += push_value
-                        
-                        residual.setdefault(node, {})[endpoint] = self._arcs[arc] - flow[arc]
-                        residual.setdefault(endpoint, {})[node] = flow[arc]
 
-                        if residual[node][endpoint] == 0:
-                            del residual[node][endpoint]
+                        if is_reversed:
+                            u, v = v, u
+
+                        residual.setdefault(u, {})[v] = self._arcs[arc] - flow[arc]
+                        residual.setdefault(v, {})[u] = flow[arc]
+
+                        if residual[u][v] == 0:
+                            del residual[u][v]
                     
-                        if residual[endpoint][node] == 0:
-                            del residual[endpoint][node]
-                        
+                        if residual[v][u] == 0:
+                            del residual[v][u]
+
                         if not node == source and not node == sink:
                             excess[node] -= push_value
 
@@ -337,7 +344,6 @@ class DirectedGraph:
                         break
 
                 if not pushed:
-                    i = 0
                     max_height = math.inf
 
                     for endpoint in residual[node]:
@@ -345,12 +351,9 @@ class DirectedGraph:
 
                     height[node] = max_height + 1
 
-                    nodes.appendleft(node)
-
-                    break
+                index = 0
             else:
-                i += 1
-                nodes.append(node)
+                index += 1
 
         return flow
 

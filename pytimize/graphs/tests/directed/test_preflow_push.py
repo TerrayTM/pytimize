@@ -74,5 +74,41 @@ class TestPreflowPush(TestCase):
             ("d", "t"): 4
         }, "Should compute correct flow.")
 
+    def test_preflow_push_four(self) -> None:
+        g = DirectedGraph()
+
+        g.add_arc(("s", "a"), 5)
+        g.add_arc(("s", "c"), 15)
+        g.add_arc(("a", "b"), 3)
+        g.add_arc(("a", "d"), 4)
+        g.add_arc(("c", "b"), 4)
+        g.add_arc(("c", "d"), 6)
+        g.add_arc(("b", "t"), 10)
+        g.add_arc(("d", "t"), 5)
+
+        flow = g.preflow_push("s", "t")
+
+        self.assertEqual(flow, {
+            ("s", "a"): 3,
+            ("s", "c"): 9, 
+            ("a", "b"): 3, 
+            ("a", "d"): 0, 
+            ("c", "b"): 4, 
+            ("c", "d"): 5, 
+            ("b", "t"): 7,
+            ("d", "t"): 5
+        }, "Should compute correct flow.")
+
+    def test_invalid_source_and_sink(self) -> None:
+        g = DirectedGraph()
+
+        g.add_arc(("a", "b"), 10)
+
+        with self.assertRaises(ValueError, msg="Should throw exception if invalid source."):
+            g.preflow_push("s", "a")
+
+        with self.assertRaises(ValueError, msg="Should throw exception if invalid sink."):
+            g.preflow_push("a", "s")
+
 if __name__ == "__main__":
     main()
