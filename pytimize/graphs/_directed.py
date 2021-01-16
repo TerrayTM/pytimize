@@ -330,7 +330,7 @@ class DirectedGraph:
 
 
     def create_residual(self, flow: Dict[Tuple[str, str], float]) -> "DirectedGraph":
-        if any(value < 0 for value in flow.values()):
+        if any(arc not in self._arcs or value < 0 for arc, value in flow.items()):
             raise ValueError()
 
         if any(value < 0 for value in self._arcs.values()):
@@ -352,24 +352,30 @@ class DirectedGraph:
 
         for arc, capacity in self._arcs.items():
             u, v = arc
+            value = flow.get(arc, 0)
 
-            if capacity < flow[arc]:
+            if capacity < value:
                 raise ArithmeticError("Given flow is infeasible.")
 
-            if capacity > flow[arc]:
-                residual.setdefault(u, {})[v] = capacity - flow[arc]
+            if capacity > value:
+                residual.setdefault(u, {})[v] = capacity - value
 
-            if flow[arc] > 0:
-                residual.setdefault(v, {})[u] = flow[arc]
+            if value > 0:
+                residual.setdefault(v, {})[u] = value
 
         return residual
 
-    def preflow_push(self, source, sink):
+
+
+    def preflow_push(self, source: str, sink: str) -> Dict[Tuple[str, str], float]:
         if not self.has_node(source):
             raise ValueError("Source node does not exist.")
 
         if not self.has_node(sink):
             raise ValueError("Sink node does not exist.")
+
+        if source == sink:
+            raise ValueError()
 
         index = 0
         excess = {}
@@ -437,6 +443,87 @@ class DirectedGraph:
                 index += 1
 
         return flow
+
+
+
+    def _bfs_path(self, source, target, graph):
+        queue = deque([source])        
+        seen = set([source])
+        parent = {}
+
+        while len(queue) > 0:
+            current = queue.popleft()
+
+            for endpoint in graph.get(current, {}):
+                if endpoint in seen:
+                    continue
+                
+                parent[endpoint] = current
+
+                if endpoint == target:
+                    return parent
+                else:
+                    seen.add(endpoint)
+                    queue.append(endpoint)
+
+        return None
+                
+
+
+
+    def ford_fulkerson(self, source: str, sink: str) -> Dict[Tuple[str, str], float]:
+        if not self.has_node(source):
+            raise ValueError("Source node does not exist.")
+
+        if not self.has_node(sink):
+            raise ValueError("Sink node does not exist.")
+
+        if source == sink:
+            raise ValueError()
+
+        flow = {arc: 0 for arc in self._arcs}
+        residual = self._compute_residual(flow)
+        path = self._bfs_path(source, sink, residual)
+
+        while path is not None:
+            u = path[sink]
+            v = sink
+            min_residual = math.inf
+
+            while u is not None:
+                min_residual = min(min_residual, residual[u][v])
+                v = u
+                u = path.get(u, None)
+
+            u = path[sink]
+            v = sink
+
+            while u is not None:
+                arc = (u, v)
+
+                if arc not in flow:
+                    arc = (v, u)
+                    flow[arc] -= min_residual
+                else:
+                    flow[arc] += min_residual
+
+                residual.setdefault(u, {})[v] = self._arcs[arc] - flow[arc]
+                residual.setdefault(v, {})[u] = flow[arc]
+
+                if residual[u][v] == 0:
+                    del residual[u][v]
+            
+                if residual[v][u] == 0:
+                    del residual[v][u]
+
+                v = u
+                u = path.get(u, None)
+
+            path = self._bfs_path(source, sink, residual)
+
+        return flow
+
+
 
     def formulate_max_flow(self):
         pass
