@@ -375,7 +375,7 @@ class DirectedGraph:
             raise ValueError("Sink node does not exist.")
 
         if source == sink:
-            raise ValueError()
+            raise ValueError("Source cannot be the same as the sink.")
 
         index = 0
         excess = {}
@@ -422,6 +422,12 @@ class DirectedGraph:
                         if residual[v][u] == 0:
                             del residual[v][u]
 
+                        if len(residual[u]) == 0:
+                            del residual[u]
+                
+                        if len(residual[v]) == 0:
+                            del residual[v]
+
                         if not node == source and not node == sink:
                             excess[node] -= push_value
 
@@ -467,7 +473,6 @@ class DirectedGraph:
                     queue.append(endpoint)
 
         return None
-                
 
 
 
@@ -479,7 +484,7 @@ class DirectedGraph:
             raise ValueError("Sink node does not exist.")
 
         if source == sink:
-            raise ValueError()
+            raise ValueError("Source cannot be the same as the sink.")
 
         flow = {arc: 0 for arc in self._arcs}
         residual = self._compute_residual(flow)
@@ -515,6 +520,12 @@ class DirectedGraph:
             
                 if residual[v][u] == 0:
                     del residual[v][u]
+
+                if len(residual[u]) == 0:
+                    del residual[u]
+                
+                if len(residual[v]) == 0:
+                    del residual[v]
 
                 v = u
                 u = path.get(u, None)
