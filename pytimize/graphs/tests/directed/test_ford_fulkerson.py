@@ -11,8 +11,9 @@ class TestFordFulkerson(TestCase):
         g.add_arc(("a", "t"), 100)
         g.add_arc(("b", "t"), 5)
 
-        flow = g.ford_fulkerson("s", "t")
+        value, flow = g.ford_fulkerson("s", "t")
 
+        self.assertEqual(value, 30)
         self.assertEqual(flow, {
             ("s", "b"): 15,
             ("s", "a"): 15,
@@ -33,8 +34,9 @@ class TestFordFulkerson(TestCase):
         g.add_arc(("d", "f"), 15)
         g.add_arc(("e", "f"), 5)
 
-        flow = g.ford_fulkerson("a", "f")
+        value, flow = g.ford_fulkerson("a", "f")
 
+        self.assertEqual(value, 15)
         self.assertEqual(flow, {
             ("a", "b"): 5,
             ("a", "c"): 10,
@@ -45,7 +47,6 @@ class TestFordFulkerson(TestCase):
             ("d", "f"): 10,
             ("e", "f"): 5
         }, "Should compute correct flow.")
-
 
     def test_ford_fulkerson_three(self) -> None:
         g = DirectedGraph()
@@ -60,8 +61,9 @@ class TestFordFulkerson(TestCase):
         g.add_arc(("b", "t"), 20)
         g.add_arc(("d", "t"), 4)
 
-        flow = g.ford_fulkerson("s", "t")
+        value, flow = g.ford_fulkerson("s", "t")
 
+        self.assertEqual(value, 23)
         self.assertEqual(flow, {
             ("s", "a"): 12,
             ("s", "c"): 11,
@@ -86,8 +88,9 @@ class TestFordFulkerson(TestCase):
         g.add_arc(("b", "t"), 10)
         g.add_arc(("d", "t"), 5)
 
-        flow = g.ford_fulkerson("s", "t")
+        value, flow = g.ford_fulkerson("s", "t")
 
+        self.assertEqual(value, 12)
         self.assertEqual(flow, {
             ("s", "a"): 5,
             ("s", "c"): 7, 

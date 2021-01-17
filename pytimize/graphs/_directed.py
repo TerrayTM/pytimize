@@ -367,7 +367,25 @@ class DirectedGraph:
 
 
 
-    def preflow_push(self, source: str, sink: str) -> Dict[Tuple[str, str], float]:
+    def preflow_push(self, source: str, sink: str) -> Tuple[float, Dict[Tuple[str, str], float]]:
+        """
+        Computes the maximum flow from `source` to `sink` using the Preflow Push algorithm.
+        The directed graph must specify nonnegative arc weights as capcities.
+
+        Parameters
+        ----------
+        source: str
+            The source node of where flow is sent.
+
+        sink: str
+            The sink node of where flow is received.
+
+        Returns
+        -------
+        result : Tuple[float, Dict[Tuple[str, str], float]]
+            A tuple representing the maximal flow value and the actual flow itself.
+
+        """
         if not self.has_node(source):
             raise ValueError("Source node does not exist.")
 
@@ -448,7 +466,10 @@ class DirectedGraph:
             else:
                 index += 1
 
-        return flow
+            value = sum(flow[arc] for arc in self.cut(source))
+            value -= sum(flow[arc] for arc in self.ncut(source))
+
+        return value, flow
 
 
 
@@ -476,7 +497,25 @@ class DirectedGraph:
 
 
 
-    def ford_fulkerson(self, source: str, sink: str) -> Dict[Tuple[str, str], float]:
+    def ford_fulkerson(self, source: str, sink: str) -> Tuple[float, Dict[Tuple[str, str], float]]:
+        """
+        Computes the maximum flow from `source` to `sink` using the Ford Fulkerson algorithm.
+        The directed graph must specify nonnegative arc weights as capcities.
+
+        Parameters
+        ----------
+        source: str
+            The source node of where flow is sent.
+
+        sink: str
+            The sink node of where flow is received.
+
+        Returns
+        -------
+        result : Tuple[float, Dict[Tuple[str, str], float]]
+            A tuple representing the maximal flow value and the actual flow itself.
+
+        """
         if not self.has_node(source):
             raise ValueError("Source node does not exist.")
 
@@ -532,7 +571,10 @@ class DirectedGraph:
 
             path = self._bfs_path(source, sink, residual)
 
-        return flow
+        value = sum(flow[arc] for arc in self.cut(source))
+        value -= sum(flow[arc] for arc in self.ncut(source))
+
+        return value, flow
 
 
 
