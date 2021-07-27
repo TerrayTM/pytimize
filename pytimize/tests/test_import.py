@@ -25,4 +25,4 @@ class TestImport(TestCase):
 
     def test_import_programs(self) -> None:
         import pytimize.programs
-        from pytimize.programs import LinearProgram, IntegerProgram, NonlinearProgram
+        from pytimize.programs import LinearProgram, IntegerProgram, NonlinearProgram, UnconstrainedProgram
