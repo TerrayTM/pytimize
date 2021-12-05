@@ -41,8 +41,29 @@ class AbstractLinearProgram:
             raise ValueError("Duplicated variable constraints detected.")
 
         if len(positive_set.intersection(negative_set)) > 0:
-            raise ValueError("Variable cannot be both positive and negative  .")
+            raise ValueError("Variable cannot be both positive and negative.")
         
+        self._recompile = True
+
+        return self
+
+    
+    def whereAllPositive(self) -> "AbstractLinearProgram":
+        if len(self._negative_variables) + len(self._positive_variables) > 0:
+            raise ValueError("Variable constraints must be unset.")
+
+        self._add_variable_constraint([], self._positive_variables)
+        self._recompile = True
+        
+        return self
+
+
+
+    def whereAllNegative(self) -> "AbstractLinearProgram":
+        if len(self._negative_variables) + len(self._positive_variables) > 0:
+            raise ValueError("Variable constraints must be unset.")
+
+        self._add_variable_constraint([], self._negative_variables)
         self._recompile = True
 
         return self
@@ -50,12 +71,11 @@ class AbstractLinearProgram:
 
 
     def extend(self, length) -> "AbstractLinearProgram":
-        
         self._recompile = True
         pass
 
 
-    
+
     def _add_variable_constraint(self, source, target):
         if source is not None:
             if len(source) == 0:

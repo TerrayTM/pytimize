@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as file:
 setup(
     name="pytimize",
     packages=["pytimize"],
-    version="0.0.2",
+    version="0.0.3",
     description="Python optimization library for mathematical programming.",
     long_description=long_description,
     long_description_content_type="text/markdown",
