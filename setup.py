@@ -1,12 +1,12 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as file:
     long_description = file.read()
 
 setup(
     name="pytimize",
-    packages=["pytimize"],
-    version="0.0.3",
+    packages=find_packages(exclude=["*.tests.*", "*.tests"]),
+    version="0.0.4",
     description="Python optimization library for mathematical programming.",
     long_description=long_description,
     long_description_content_type="text/markdown",
