@@ -6,7 +6,7 @@ p = maximize(x[1] + x[2]).subject_to(
     10 * x[2] <= 15 + 3 * x[1]
 ).where(
     x >= 0
-).compile()
+)
 
 print(p)
 print(f"Solution: {p.solve()}")
