@@ -20,7 +20,7 @@ class LinearParser:
           if index > length:
             length = index
 
-      result = np.full((1, length + 1 if size is None else size), 0, np.float)
+      result = np.full((1, length + 1 if size is None else size), 0, float)
 
       for key, value in data.items():
         result[0, key] = value
