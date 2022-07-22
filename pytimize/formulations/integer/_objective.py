@@ -1,10 +1,11 @@
-from ..linear._objective import ObjectiveFunction as LinearObjective
-from ..linear._equation import LinearEquation
 from typing import Union
+
+from ..linear._equation import LinearEquation
+from ..linear._objective import ObjectiveFunction as LinearObjective
+
 
 class ObjectiveFunction(LinearObjective):
     pass
-
 
 
 def minimize(equation: Union[LinearEquation, float]) -> ObjectiveFunction:
@@ -12,7 +13,6 @@ def minimize(equation: Union[LinearEquation, float]) -> ObjectiveFunction:
         equation = LinearEquation({}, equation)
 
     return ObjectiveFunction(equation, "min")
-
 
 
 def maximize(equation: Union[LinearEquation, float]) -> ObjectiveFunction:

@@ -1,11 +1,13 @@
+import inspect
 import os
 import re
-import inspect
+from collections import deque
+from shutil import rmtree
+
+from bs4 import BeautifulSoup
+
 import pytimize
 
-from shutil import rmtree
-from collections import deque
-from bs4 import BeautifulSoup
 
 def generate():
     style = """
@@ -21,10 +23,7 @@ def generate():
             padding: 4px 6px;
         }
     """
-    html_mapping = [
-        (r"<(.*?)>", r"{\g<1>}"),
-        (r"`(.*?)`", r"<pre>\g<1></pre>")
-    ]
+    html_mapping = [(r"<(.*?)>", r"{\g<1>}"), (r"`(.*?)`", r"<pre>\g<1></pre>")]
     folder = os.path.dirname(os.path.realpath(__file__))
     root = os.path.join(folder, "pytimize")
 
@@ -42,42 +41,47 @@ def generate():
             for i in current.__all__:
                 next_path = path
                 module = getattr(current, i)
-                
-                if inspect.ismodule(module): 
+
+                if inspect.ismodule(module):
                     next_path = os.path.join(path, i)
 
                     os.mkdir(next_path)
 
                 queue.append((module, next_path))
         elif inspect.isclass(current):
-            members = filter(lambda x: not x[0].startswith("_") and x[1].__doc__ is not None, inspect.getmembers(current))
+            members = filter(
+                lambda x: not x[0].startswith("_") and x[1].__doc__ is not None,
+                inspect.getmembers(current),
+            )
             compiled = []
-            
+
             for name, function in members:
                 inner = function.__doc__
 
                 for expression, tag in html_mapping:
                     inner = re.sub(expression, tag, inner)
 
-                inner = "<br>".join(map(lambda x: x.strip(), filter(None, inner.split("\n"))))
+                inner = "<br>".join(
+                    map(lambda x: x.strip(), filter(None, inner.split("\n")))
+                )
 
-                rendered = f'''
+                rendered = f"""
                     <div>
                         <h2>{name}</h2>
                         <hr>
                         <p>{inner}</p>
                     </div>
-                '''
+                """
 
                 compiled.append(rendered)
 
             compiled = "".join(compiled)
-            
+
             if compiled == "":
                 continue
 
             with open(os.path.join(path, f"{current.__name__}.html"), "w") as document:
-                html = f'''
+                html = f"""
                     <html>
                         <head>
                             <title>Pytimize</title>
@@ -90,10 +94,11 @@ def generate():
                             <section>{compiled}</section>
                         </body>
                     </html>
-                '''
-                soup = BeautifulSoup(html, 'html.parser')
+                """
+                soup = BeautifulSoup(html, "html.parser")
 
                 document.write(soup.prettify())
+
 
 if __name__ == "__main__":
     generate()

@@ -1,6 +1,7 @@
+from typing import Optional
+
 import numpy as np
 
-from typing import Optional
 
 def pad_right(array: Optional[np.ndarray], max_length: int) -> np.ndarray:
     if max_length < 0:

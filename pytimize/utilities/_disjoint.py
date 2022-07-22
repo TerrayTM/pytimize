@@ -1,5 +1,6 @@
 from typing import List
 
+
 class DisjointSet:
     def __init__(self, items: List[str]) -> None:
         if not len(items) == len(set(items)):
@@ -12,15 +13,13 @@ class DisjointSet:
             self._set.setdefault(item, item)
             self._rank.setdefault(item, 0)
 
-
-
     def find(self, search: str) -> str:
         """
         Finds the representative of the set that `search` is an element of.
         """
         if search not in self._set:
             raise ValueError("The given search element is not in collection.")
-        
+
         if self._set[search] == search:
             return search
         else:
@@ -30,12 +29,10 @@ class DisjointSet:
 
             return parent
 
-
-
     def union(self, set_one: str, set_two: str) -> None:
         if set_one not in self._set or set_two not in self._set:
             raise ValueError("The representative of the set is not in collection.")
-        
+
         parent_one = self.find(set_one)
         parent_two = self.find(set_two)
 

@@ -1,9 +1,4 @@
+from ..linear import variables, x
 from ._objective import maximize, minimize
-from ..linear import x, variables
 
-__all__ = [
-    "maximize",
-    "minimize",
-    "variables",
-    "x"
-]
+__all__ = ["maximize", "minimize", "variables", "x"]

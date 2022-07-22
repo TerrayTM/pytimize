@@ -1,13 +1,3 @@
-from . import programs
-from . import graphs
-from . import parsers
-from . import utilities
-from . import formulations
+from . import formulations, graphs, parsers, programs, utilities
 
-__all__ = [
-    "programs",
-    "graphs",
-    "parsers",
-    "utilities",
-    "formulations"
-]
+__all__ = ["programs", "graphs", "parsers", "utilities", "formulations"]

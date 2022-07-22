@@ -1,23 +1,34 @@
-import math
 import copy
-import random
 import functools
+import math
+import random
+from collections import deque
+from decimal import Decimal
+from typing import List, Optional, Tuple, Union
+
 import numpy as np
+from matplotlib import pyplot as plt
 
 from ..parsers._description import render_descriptor
 from ..parsers._symbol import SymbolParser
 from ..utilities import Comparator
-from matplotlib import pyplot as plt
-from collections import deque
-from typing import List, Tuple, Optional, Union
-from decimal import Decimal
 
 Matrix = Union[np.ndarray, List[List[float]]]
 Vector = Union[np.ndarray, List[float]]
 
 # TODO: for make independent rows, check for sef at end
 class LinearProgram:
-    def __init__(self, A: Matrix, b: Vector, c: Vector, z: float=0, objective: str="max", inequalities: Optional[List[str]]=None, free_variables: Optional[List[int]]=None, negative_variables: Optional[List[int]]=None):
+    def __init__(
+        self,
+        A: Matrix,
+        b: Vector,
+        c: Vector,
+        z: float = 0,
+        objective: str = "max",
+        inequalities: Optional[List[str]] = None,
+        free_variables: Optional[List[int]] = None,
+        negative_variables: Optional[List[int]] = None,
+    ):
         """
         Constructs a linear program of the form `<objective> {cx + z : Ax <inequalities> b, x >=0}`
         where objective denotes whether this is a maximization or minimization problem, inequalities is a list of 
@@ -58,13 +69,23 @@ class LinearProgram:
         # TODO allow unconstrained
         if not A.ndim == 2:
             raise ValueError("The given `A` is not a matrix.")
-        
-        if not self.__is_vector_of_size(b, A.shape[0]) or not self.__is_vector_of_size(c, A.shape[1]):
+
+        if not self.__is_vector_of_size(b, A.shape[0]) or not self.__is_vector_of_size(
+            c, A.shape[1]
+        ):
             raise ValueError("Dimension mismatch between `A`, `b`, or `c`.")
 
         inequality_indices = {}
-        free_variables = self.__to_array_indexing(free_variables) if free_variables is not None else []
-        negative_variables = self.__to_array_indexing(negative_variables) if negative_variables is not None else []
+        free_variables = (
+            self.__to_array_indexing(free_variables)
+            if free_variables is not None
+            else []
+        )
+        negative_variables = (
+            self.__to_array_indexing(negative_variables)
+            if negative_variables is not None
+            else []
+        )
         free_set = set(free_variables)
         negative_set = set(negative_variables)
 
@@ -72,15 +93,17 @@ class LinearProgram:
         negative_variables.sort()
 
         if len(free_variables) > 0:
-            if not len(free_set) == len(free_variables): 
+            if not len(free_set) == len(free_variables):
                 raise ValueError("Duplicate indices are not allowed in free variables.")
 
             if min(free_variables) < 0 or max(free_variables) >= c.shape[0]:
                 raise ValueError("Some free variable indices are invalid.")
 
         if len(negative_variables) > 0:
-            if not len(negative_set) == len(negative_variables): 
-                raise ValueError("Duplicate indices are not allowed in negative variables.")
+            if not len(negative_set) == len(negative_variables):
+                raise ValueError(
+                    "Duplicate indices are not allowed in negative variables."
+                )
 
             if min(negative_variables) < 0 or max(negative_variables) >= c.shape[0]:
                 raise ValueError("Some negative variable indices are invalid.")
@@ -90,7 +113,9 @@ class LinearProgram:
 
         if inequalities is not None:
             if not len(inequalities) == b.shape[0]:
-                raise ValueError("The length of inequalities must match the number of rows in A.")
+                raise ValueError(
+                    "The length of inequalities must match the number of rows in A."
+                )
 
             for i, inequality in enumerate(inequalities):
                 inequality = inequalities[i]
@@ -98,7 +123,9 @@ class LinearProgram:
                 if inequality == ">=" or inequality == "<=":
                     inequality_indices[i] = inequality
                 elif not inequality == "=":
-                    raise ValueError("Entries of inequalities must be either `>=`, `<=`, or `=`.")
+                    raise ValueError(
+                        "Entries of inequalities must be either `>=`, `<=`, or `=`."
+                    )
 
         if not objective in ["min", "max"]:
             raise ValueError("Objective must be either `min` or `max`.")
@@ -110,14 +137,17 @@ class LinearProgram:
         self._steps = []
         self._objective = objective
         self._inequality_indices = inequality_indices
-        self._is_sef = len(inequality_indices) + len(free_variables) + len(negative_variables) == 0 and objective == "max"
+        self._is_sef = (
+            len(inequality_indices) + len(free_variables) + len(negative_variables) == 0
+            and objective == "max"
+        )
         self._free_variables = free_variables
         self._negative_variables = negative_variables
 
-
-
     @staticmethod
-    def random(rows: int=4, columns: int=6, magnitude: float=100) -> "LinearProgram":
+    def random(
+        rows: int = 4, columns: int = 6, magnitude: float = 100
+    ) -> "LinearProgram":
         """
         Generates a linear program filled with dummy data.
 
@@ -153,9 +183,9 @@ class LinearProgram:
             elif item == 0:
                 negative_variables.append(i + 1)
 
-        return LinearProgram(A, b, c, z, objective, inequalities, free_variables, negative_variables)
-
-
+        return LinearProgram(
+            A, b, c, z, objective, inequalities, free_variables, negative_variables
+        )
 
     def _format_number(self, number: float) -> Tuple[str, int, int]:
         """
@@ -181,7 +211,7 @@ class LinearProgram:
         """
         formatted = None
         magnitude = abs(number)
-        
+
         if Comparator.is_close_to_zero(magnitude):
             formatted = "0."
         elif magnitude > 1e10:
@@ -198,14 +228,12 @@ class LinearProgram:
         else:
             formatted = str(round(magnitude, 3))
 
-        if Comparator.is_negative(number): 
+        if Comparator.is_negative(number):
             formatted = f"-{formatted}"
 
         integer_length, decimal_length = [len(part) for part in formatted.split(".")]
 
         return formatted, integer_length, decimal_length
-
-
 
     def __repr__(self) -> str:
         """
@@ -235,7 +263,7 @@ class LinearProgram:
             if not i == len(self._c) - 1:
                 # add a space between numbers only
                 output += " "
-        
+
         output += "]x"
 
         # add z to output
@@ -244,7 +272,7 @@ class LinearProgram:
 
             if Comparator.is_negative(self.z):
                 sign = "-"
-            
+
             output += f" {sign} {self._format_number(abs(self._z))[0]}"
 
         output += "\nSubject To:\n\n"
@@ -253,40 +281,44 @@ class LinearProgram:
         int_spaces = []  # number of spaces before decimal point (including - sign)
         dec_spaces = []  # number of spaces after decimal point
 
-         # find max length of each column for formatting
+        # find max length of each column for formatting
         for col in range(shape[1]):
             int_length = 0
             dec_length = 0
 
             for row in range(shape[0]):
-                entry, curr_int_length, curr_dec_length = self._format_number(self._A[row, col])
+                entry, curr_int_length, curr_dec_length = self._format_number(
+                    self._A[row, col]
+                )
                 int_length = max(curr_int_length, int_length)
                 dec_length = max(curr_dec_length, dec_length)
 
             int_spaces.append(int_length)
             dec_spaces.append(dec_length)
 
-
         # list of spaces required for b vector
         b_int_spaces = 0
         b_dec_spaces = 0
 
         for i in range(shape[0]):
-            entry, curr_b_int_spaces, curr_b_dec_spaces = self._format_number(self._b[i])
+            entry, curr_b_int_spaces, curr_b_dec_spaces = self._format_number(
+                self._b[i]
+            )
             b_int_spaces = max(curr_b_int_spaces, b_int_spaces)
             b_dec_spaces = max(curr_b_dec_spaces, b_dec_spaces)
-
 
         # add each number to output string
         for row in range(shape[0]):
             output += "["
             for col in range(shape[1]):
-                entry, curr_int_spaces, curr_dec_spaces = self._format_number(self._A[row, col])
-                
+                entry, curr_int_spaces, curr_dec_spaces = self._format_number(
+                    self._A[row, col]
+                )
+
                 # add integer part of entry and spaces as needed
                 spaces = int_spaces[col] - curr_int_spaces
                 output += " " * spaces
-                output += entry[:curr_int_spaces + 1]  # + 1 to add "."
+                output += entry[: curr_int_spaces + 1]  # + 1 to add "."
 
                 # add decimal values and spaces as needed
                 if curr_dec_spaces == 0:
@@ -299,7 +331,7 @@ class LinearProgram:
                 if not col == shape[1] - 1:
                     # add spacing between numbers only
                     output += "  "
-            
+
             output += "]"
 
             # add x to the middle of the array
@@ -319,12 +351,14 @@ class LinearProgram:
             # add row-th entry from b
             output += "["
 
-            b_entry, curr_b_int_spaces, curr_b_dec_spaces = self._format_number(self._b[row])
+            b_entry, curr_b_int_spaces, curr_b_dec_spaces = self._format_number(
+                self._b[row]
+            )
 
             # add integer part of entry and spaces as needed
             spaces = b_int_spaces - curr_b_int_spaces
             output += " " * spaces
-            output += b_entry[:curr_b_int_spaces + 1]
+            output += b_entry[: curr_b_int_spaces + 1]
 
             # add decimal values and spaces as needed
             if curr_b_dec_spaces == 0:
@@ -340,27 +374,43 @@ class LinearProgram:
         if len(self._negative_variables) == shape[1]:
             output += "x ≤ 0\n"
         elif len(self._negative_variables) > 0:
-            output += SymbolParser.subscript(", ".join(f"x{i + 1}" for i in self._negative_variables)) + " ≤ 0\n"
-        
+            output += (
+                SymbolParser.subscript(
+                    ", ".join(f"x{i + 1}" for i in self._negative_variables)
+                )
+                + " ≤ 0\n"
+            )
+
         if len(positive) == shape[1]:
             output += "x ≥ 0\n"
         elif len(positive) > 0:
-            output += SymbolParser.subscript(", ".join(f"x{i}" for i in positive)) + " ≥ 0\n"
+            output += (
+                SymbolParser.subscript(", ".join(f"x{i}" for i in positive)) + " ≥ 0\n"
+            )
 
         return output
 
-
-
     def __eq__(self, other: "LinearProgram") -> bool:
         # TODO Work in progress
-        return other._A == self._A and other._b == self._b and other._c == self._c and other._z == self._z and \
-            other._objective == self._objective and other._inequality_indices == self._inequality_indices and \
-            other._free_variables == self._free_variables and other._negative_variables == self._negative_variables and \
-            other._is_sef == self._is_sef
+        return (
+            other._A == self._A
+            and other._b == self._b
+            and other._c == self._c
+            and other._z == self._z
+            and other._objective == self._objective
+            and other._inequality_indices == self._inequality_indices
+            and other._free_variables == self._free_variables
+            and other._negative_variables == self._negative_variables
+            and other._is_sef == self._is_sef
+        )
 
-
-
-    def add_constraint(self, coefficients: Union[np.ndarray, List[float]], inequality: str, value: float, in_place: bool=False) -> "LinearProgram":
+    def add_constraint(
+        self,
+        coefficients: Union[np.ndarray, List[float]],
+        inequality: str,
+        value: float,
+        in_place: bool = False,
+    ) -> "LinearProgram":
         """
         Adds a linear constraint of the form `<coefficients>x <inequality> <value>` to the program.
 
@@ -406,12 +456,17 @@ class LinearProgram:
 
         self._A = np.r_[self._A, [coefficients]]
         self._b = np.r_[self._b, value]
-        
+
         return self
 
-
-
-    def add_variable(self, coefficient: float=0, column: Optional[Vector]=None, free: bool=False, negative: bool=False, in_place: bool=False) -> "LinearProgram":
+    def add_variable(
+        self,
+        coefficient: float = 0,
+        column: Optional[Vector] = None,
+        free: bool = False,
+        negative: bool = False,
+        in_place: bool = False,
+    ) -> "LinearProgram":
         """
         Adds a new variable to the program. If the variable is not marked as free or negative, then
         it is assumed to be positive (x >= 0).
@@ -454,12 +509,12 @@ class LinearProgram:
             self._is_sef = False
 
         # TODO validation checks are needed
-        self._A = np.c_[self._A, column if column is not None else [0] * self._A.shape[0]]
+        self._A = np.c_[
+            self._A, column if column is not None else [0] * self._A.shape[0]
+        ]
         self._c = np.r_[self._c, coefficient]
 
         return self
-
-
 
     def is_canonical_form_for(self, basis: List[int]):
         """
@@ -479,13 +534,13 @@ class LinearProgram:
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
 
-        return all([
-            self.is_basis(basis),
-            np.allclose(self._A[basis], np.eye(len(basis))),
-            np.allclose(self._c[basis], 0)
-        ])
-
-
+        return all(
+            [
+                self.is_basis(basis),
+                np.allclose(self._A[basis], np.eye(len(basis))),
+                np.allclose(self._c[basis], 0),
+            ]
+        )
 
     def optimal_value(self):
         solution = self.solve()
@@ -495,9 +550,7 @@ class LinearProgram:
 
         return None
 
-
-
-    def is_basic_solution(self, x, basis: List[int], show_steps: bool=True):
+    def is_basic_solution(self, x, basis: List[int], show_steps: bool = True):
         """
         Checks if the given vector is a basic solution for the specified basis.
 
@@ -516,7 +569,7 @@ class LinearProgram:
 
         """
         if not self._is_sef:
-            raise ArithmeticError() # raise error if not in SEF form ?
+            raise ArithmeticError()  # raise error if not in SEF form ?
 
         x = self.__to_ndarray(x)
 
@@ -526,7 +579,7 @@ class LinearProgram:
         if not self.is_basis(basis):
             raise ValueError()
 
-        show_steps and self.__append_to_steps(('4.01', basis))
+        show_steps and self.__append_to_steps(("4.01", basis))
 
         basis = self.__array_like_to_list(basis)
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
@@ -544,15 +597,11 @@ class LinearProgram:
             result = False
 
         show_steps and not result and self.__append_to_steps(("4.05", x, basis))
-        show_steps and result and self.__append_to_steps([
-            "4.06",
-            "4.07",
-            ("4.04", x, basis)
-        ])
+        show_steps and result and self.__append_to_steps(
+            ["4.06", "4.07", ("4.04", x, basis)]
+        )
 
         return result
-
-
 
     def is_feasible_basic_solution(self, x, basis: List[int]):
         """
@@ -574,9 +623,9 @@ class LinearProgram:
         if not self.__is_vector_of_size(x, self._c):
             raise ValueError()
 
-        return Comparator.is_close_compare(x, ">=", 0) and self.is_basic_solution(x, basis)
-
-
+        return Comparator.is_close_compare(x, ">=", 0) and self.is_basic_solution(
+            x, basis
+        )
 
     def is_basis(self, basis: List[int]):
         """
@@ -594,7 +643,7 @@ class LinearProgram:
 
         """
         basis = self.__to_array_indexing(basis)
- 
+
         basis.sort()
 
         if not self._A.shape[0] == len(basis):
@@ -602,11 +651,10 @@ class LinearProgram:
 
         if max(basis) >= self._A.shape[1] or min(basis) < 0:
             return False
-        
+
         return not Comparator.is_close_to_zero(np.linalg.det(self._A[:, basis]))
 
-
-    # TODO experimental 
+    # TODO experimental
     def cs_conditions(self) -> str:
         """
         Generates the complementry slackness conditions.
@@ -623,20 +671,30 @@ class LinearProgram:
         for i in range(self._b.shape[0]):
             if i in self._inequality_indices:
                 variable = f"y{SymbolParser.subscript(str(i + 1))} = 0"
-                equation = " + ".join(f"{value}x{SymbolParser.subscript(str(index + 1))}" for index, value in enumerate(self._A[i])) + f" = {self._b[i]}"
+                equation = (
+                    " + ".join(
+                        f"{value}x{SymbolParser.subscript(str(index + 1))}"
+                        for index, value in enumerate(self._A[i])
+                    )
+                    + f" = {self._b[i]}"
+                )
 
                 conditions.append(f"{variable} || {equation}")
 
         for i in range(dual._b.shape[0]):
             if i in dual._inequality_indices:
                 variable = f"x{SymbolParser.subscript(str(i + 1))} = 0"
-                equation = " + ".join(f"{value}y{SymbolParser.subscript(str(index + 1))}" for index, value in enumerate(dual._A[i])) + f" = {dual._b[i]}"
+                equation = (
+                    " + ".join(
+                        f"{value}y{SymbolParser.subscript(str(index + 1))}"
+                        for index, value in enumerate(dual._A[i])
+                    )
+                    + f" = {dual._b[i]}"
+                )
 
                 conditions.append(f"{variable} || {equation}")
 
         return "\n".join(conditions)
-
-
 
     def is_basis_feasible(self, basis: List[int]):
         """
@@ -653,9 +711,9 @@ class LinearProgram:
             Whether or not the basis is feasible.
 
         """
-        return self.is_basis(basis) and Comparator.is_close_compare(self.compute_basic_solution(basis), ">=", 0)
-
-
+        return self.is_basis(basis) and Comparator.is_close_compare(
+            self.compute_basic_solution(basis), ">=", 0
+        )
 
     def compute_basic_solution(self, basis: List[int]) -> np.ndarray:
         """
@@ -680,9 +738,9 @@ class LinearProgram:
 
         return self.__compute_basic_solution(basis)
 
-
-
-    def to_canonical_form(self, basis: List[int], show_steps: bool=True, in_place: bool=False) -> "LinearProgram":
+    def to_canonical_form(
+        self, basis: List[int], show_steps: bool = True, in_place: bool = False
+    ) -> "LinearProgram":
         """
         Converts the linear program into canonical form for the given basis.
 
@@ -709,7 +767,7 @@ class LinearProgram:
         if not self._is_sef:
             raise ArithmeticError()
 
-        show_steps and self.__append_to_steps(('1.01', basis))
+        show_steps and self.__append_to_steps(("1.01", basis))
 
         if not self.is_basis(basis):
             raise ValueError()
@@ -718,8 +776,6 @@ class LinearProgram:
         basis = self.__convert_indices(basis, 0, self._c.shape[0])
 
         return self.__to_canonical_form(basis, show_steps)
-
-
 
     def __to_canonical_form(self, basis: List[int], show_steps: bool):
         """
@@ -747,10 +803,10 @@ class LinearProgram:
         Ab_inverse = np.linalg.inv(Ab)
         y_transpose = (Ab_inverse.T @ cb).T
 
-        show_steps and self.__append_to_steps(('1.02', Ab))       
-        show_steps and self.__append_to_steps(('1.03', cb))
-        show_steps and self.__append_to_steps(('1.04', Ab_inverse))
-        show_steps and self.__append_to_steps(('1.05', y_transpose))
+        show_steps and self.__append_to_steps(("1.02", Ab))
+        show_steps and self.__append_to_steps(("1.03", cb))
+        show_steps and self.__append_to_steps(("1.04", Ab_inverse))
+        show_steps and self.__append_to_steps(("1.05", y_transpose))
 
         A = Ab_inverse @ self._A
         b = Ab_inverse @ self._b
@@ -763,9 +819,7 @@ class LinearProgram:
 
         return self
 
-
-
-    def dual(self, show_steps: bool=True) -> "LinearProgram":
+    def dual(self, show_steps: bool = True) -> "LinearProgram":
         """
         Creates the corresponding dual program.
 
@@ -797,7 +851,7 @@ class LinearProgram:
                     negative_variables.append(i)
             else:
                 free_variables.append(i)
-        
+
         for i in range(self._c.shape[0]):
             if i in negative:
                 inequality_indices[i] = "<=" if objective == "max" else ">="
@@ -810,13 +864,14 @@ class LinearProgram:
         dual._inequality_indices = inequality_indices
         dual._free_variables = free_variables
         dual._negative_variables = negative_variables
-        dual._is_sef = len(inequality_indices) + len(free_variables) + len(negative_variables) == 0 and objective == "max"
+        dual._is_sef = (
+            len(inequality_indices) + len(free_variables) + len(negative_variables) == 0
+            and objective == "max"
+        )
 
         return dual
 
-
-
-    def auxiliary(self, show_steps: bool=True) -> "LinearProgram":
+    def auxiliary(self, show_steps: bool = True) -> "LinearProgram":
         """
         Creates the corresponding auxiliary program. This operation requires 
         the program to be in SEF.
@@ -837,7 +892,7 @@ class LinearProgram:
 
         negative_indices = np.where(self._b < 0)
         rows, columns = self._A.shape
-        A_aux = self._A.copy() 
+        A_aux = self._A.copy()
         b_aux = self._b.copy()
         A_aux[negative_indices] *= -1
         b_aux[negative_indices] *= -1
@@ -847,9 +902,7 @@ class LinearProgram:
 
         return LinearProgram(A_aux, b_aux, c_aux, 0, "min")
 
-
-
-    def solve(self, show_steps: bool=True) -> Optional[np.ndarray]:
+    def solve(self, show_steps: bool = True) -> Optional[np.ndarray]:
         """
         Solves the linear program and returns an optimal solution if one exists.
 
@@ -866,7 +919,7 @@ class LinearProgram:
         """
         if self._is_sef:
             return self.two_phase_simplex()[0]
-        
+
         sef = self.to_sef(show_steps)
         rows, columns = sef.A.shape
         solution = None
@@ -887,7 +940,7 @@ class LinearProgram:
 
         if solution is not None:
             if sef._reverse_sef["drop"] > 0:
-                solution = solution[:-sef._reverse_sef["drop"]]
+                solution = solution[: -sef._reverse_sef["drop"]]
 
             for i, index in enumerate(sef._reverse_sef["concat"]):
                 index -= i
@@ -898,13 +951,17 @@ class LinearProgram:
                 solution[i] *= -1
             # TODO
             # If conversion of basis and certificate to original is possible add them to return
-            # Distinguish between unbounded and infeasible 
+            # Distinguish between unbounded and infeasible
 
         return solution
 
-
-
-    def two_phase_simplex(self, show_steps: bool=True) -> Tuple[Optional[np.ndarray], Optional[List[int]], Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]]:
+    def two_phase_simplex(
+        self, show_steps: bool = True
+    ) -> Tuple[
+        Optional[np.ndarray],
+        Optional[List[int]],
+        Union[np.ndarray, Tuple[np.ndarray, np.ndarray]],
+    ]:
         """
         Creates an auxiliary program and solves it to determine a starting basis for the given linear program.
         With the starting basis, computes simplex and returns a solution if it has one, the optimal basis 
@@ -946,7 +1003,7 @@ class LinearProgram:
                         p_basis.append(i)
                     else:
                         zero_set.append(i)
-                
+
                 subset_size = self._A.shape[0] - len(p_basis)
                 queue = deque()
 
@@ -979,9 +1036,13 @@ class LinearProgram:
 
         return None, None, certificate
 
-
-
-    def simplex(self, basis: List[int], show_steps: bool=True) -> Tuple[Optional[np.ndarray], Optional[List[int]], Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]]: 
+    def simplex(
+        self, basis: List[int], show_steps: bool = True
+    ) -> Tuple[
+        Optional[np.ndarray],
+        Optional[List[int]],
+        Union[np.ndarray, Tuple[np.ndarray, np.ndarray]],
+    ]:
         """
         Computes simplex iterations until termination. Returns the optimal solution if it has one, 
         the optimal basis if it exists, and the certificate of unboundedness or optimality.
@@ -1006,7 +1067,7 @@ class LinearProgram:
         """
         if not self._is_sef:
             raise ArithmeticError("Linear program must be in SEF.")
-        
+
         solution = None
         certificate = None
         updated_lp = None
@@ -1015,7 +1076,7 @@ class LinearProgram:
 
         self._b[negative_indices] *= -1
         self._A[negative_indices] *= -1
-    
+
         show_steps and self.__append_to_steps(("5.02", counter))
         show_steps and self.__append_to_steps(("5.01", self))
 
@@ -1025,7 +1086,7 @@ class LinearProgram:
 
             show_steps and self.__append_to_steps(("5.02", counter))
             show_steps and self.__append_to_steps(("5.01", updated_lp))
-        
+
         if basis is None:
             certificate = updated_lp._feasible_solution, np.zeros(self._c.shape[0])
             k = np.argmax(updated_lp.c > 0)
@@ -1035,7 +1096,9 @@ class LinearProgram:
             show_steps and self.__append_to_steps("5.05")
         else:
             converted_basis = self.__to_array_indexing(basis)
-            certificate = np.linalg.inv(self._A[:, converted_basis].T) @ self._c[converted_basis]
+            certificate = (
+                np.linalg.inv(self._A[:, converted_basis].T) @ self._c[converted_basis]
+            )
             certificate[negative_indices] *= -1
 
             show_steps and self.__append_to_steps(("5.03", solution))
@@ -1044,12 +1107,12 @@ class LinearProgram:
 
         self._b[negative_indices] *= -1
         self._A[negative_indices] *= -1
-        
+
         return solution, basis, certificate
 
-
-
-    def simplex_iteration(self, basis: List[int], show_steps: bool=True, in_place: bool=False) -> Tuple[Optional[np.ndarray], Optional[List[int]], "LinearProgram"]:
+    def simplex_iteration(
+        self, basis: List[int], show_steps: bool = True, in_place: bool = False
+    ) -> Tuple[Optional[np.ndarray], Optional[List[int]], "LinearProgram"]:
         """
         Computes a single iteration of the simplex algorithm with Bland's rule. Returns the optimal solution
         if it has been found, the next or optimal basis if it exists, and the updated linear program. 
@@ -1075,7 +1138,7 @@ class LinearProgram:
         """
         if not self._is_sef:
             raise ArithmeticError("Linear program must be in SEF.")
-        
+
         if not in_place:
             return self.copy().simplex_iteration(basis, show_steps, True)
 
@@ -1086,7 +1149,7 @@ class LinearProgram:
         negative_indices = np.where(self._b < 0)
         self._b[negative_indices] *= -1
         self._A[negative_indices] *= -1
-        
+
         basis.sort()
         self.__to_canonical_form(basis, show_steps)
 
@@ -1122,17 +1185,17 @@ class LinearProgram:
 
                 if Comparator.is_close_compare(ratio, "<", t):
                     t = ratio
-                    leave = i 
-        
+                    leave = i
+
         basis.remove(basis[leave])
         basis.append(k)
         basis.sort()
 
         return None, self.__to_math_indexing(basis), self
 
-
-
-    def verify_infeasibility(self, certificate: Union[np.ndarray, List[float]], show_steps: bool=True) -> bool:
+    def verify_infeasibility(
+        self, certificate: Union[np.ndarray, List[float]], show_steps: bool = True
+    ) -> bool:
         """
         Verifies the certificate of infeasibility. This operation requires 
         the program to be in SEF.
@@ -1160,9 +1223,12 @@ class LinearProgram:
 
         return Comparator.is_close_compare(yA, ">=", 0) and Comparator.is_negative(yb)
 
-
-
-    def verify_unboundedness(self, x: Union[np.ndarray, List[float]], certificate: Union[np.ndarray, List[float]], show_steps: bool=True) -> bool:
+    def verify_unboundedness(
+        self,
+        x: Union[np.ndarray, List[float]],
+        certificate: Union[np.ndarray, List[float]],
+        show_steps: bool = True,
+    ) -> bool:
         """
         Verifies the certificate of unboundedness. This operation requires 
         the program to be in SEF.
@@ -1192,18 +1258,18 @@ class LinearProgram:
 
         if not self.is_feasible(x):
             return False
-        
+
         if Comparator.is_close_compare(self._c @ certificate, "<=", 0):
             return False
-        
+
         if not np.allclose(self._A @ certificate, 0):
             return False
-        
+
         return Comparator.is_close_compare(certificate, ">=", 0)
 
-
-
-    def verify_optimality(self, certificate: Union[np.ndarray, List[float]], show_steps: bool=True) -> bool:
+    def verify_optimality(
+        self, certificate: Union[np.ndarray, List[float]], show_steps: bool = True
+    ) -> bool:
         """
         Verifies the certificate of optimality. This operation requires 
         the program to be in SEF.
@@ -1227,12 +1293,10 @@ class LinearProgram:
 
         certificate = self.__to_ndarray(certificate)
         test = self._c - certificate @ self._A
-        
+
         return Comparator.is_close_compare(test, "<=", 0)
 
-
-
-    def is_feasible(self, x: Vector, show_steps: bool=True) -> bool:
+    def is_feasible(self, x: Vector, show_steps: bool = True) -> bool:
         """
         Checks if the given vector is a feasible solution.
 
@@ -1262,24 +1326,23 @@ class LinearProgram:
             satisfy_constraints = np.allclose(self._A @ x, self._b)
             is_feasible = all_nonnegative and satisfy_constraints
 
-            show_steps and is_feasible and self.__append_to_steps([
-                ("2.02", x),
-                "2.03",
-                ("2.04", x),
-                "2.05"
-            ])
-            show_steps and not is_feasible and self.__append_to_steps([
-                ("2.06", x),
-                "2.03",
-                ("2.07", x) if not all_nonnegative else None,
-                "2.08" if not satisfy_constraints else None
-            ])
+            show_steps and is_feasible and self.__append_to_steps(
+                [("2.02", x), "2.03", ("2.04", x), "2.05"]
+            )
+            show_steps and not is_feasible and self.__append_to_steps(
+                [
+                    ("2.06", x),
+                    "2.03",
+                    ("2.07", x) if not all_nonnegative else None,
+                    "2.08" if not satisfy_constraints else None,
+                ]
+            )
 
             return is_feasible
-        
+
         is_feasible = True
 
-        for i, entry in enumerate(x): # TODO free vars and negative vars should be set
+        for i, entry in enumerate(x):  # TODO free vars and negative vars should be set
             if i in self._negative_variables:
                 if not entry <= 0:
                     is_feasible = False
@@ -1301,17 +1364,11 @@ class LinearProgram:
                 is_feasible = False
         # TODO Add steps back
         if is_feasible:
-            show_steps and self.__append_to_steps([
-                ("2.02", x),
-                "2.14",
-                "2.15"
-            ])
+            show_steps and self.__append_to_steps([("2.02", x), "2.14", "2.15"])
 
         return is_feasible
 
-
-    
-    def graph_polyhedron(self, graph_limit: float=1000) -> None:
+    def graph_polyhedron(self, graph_limit: float = 1000) -> None:
         """
         Graphs the feasible region of the linear program. Only supports 2 dimensional visualization.
 
@@ -1339,7 +1396,9 @@ class LinearProgram:
         copy_b = self._b.copy()
 
         copy_A = np.append(copy_A, [[1, 0], [1, 0], [0, 1], [0, 1]], 0)
-        copy_b = np.append(copy_b, [graph_limit, -graph_limit, graph_limit, -graph_limit])
+        copy_b = np.append(
+            copy_b, [graph_limit, -graph_limit, graph_limit, -graph_limit]
+        )
 
         num_inequalities = len(self._inequality_indices)
         self._inequality_indices[num_inequalities] = "<="
@@ -1374,7 +1433,6 @@ class LinearProgram:
                     point = np.linalg.solve(A, b)
                     points.append(point)
 
-
         # check if each point satisfies every inequality:
         # new_points is a list of all points that do so, and is copied to points afterward
         new_points = []
@@ -1396,20 +1454,21 @@ class LinearProgram:
 
         points = copy.deepcopy(new_points)
 
-        
         # if no points remain, then none of the points found satisfy all inequalities;
         # thus the system is inconsistent
         if len(points) == 0:
             print("Error: inconsistent system of equations")
             exit()
 
-        
         # sort points so the polygon is drawn properly
         # method from https://stackoverflow.com/questions/10846431/ordering-shuffled-points-that-can-be-joined-to-form-a-polygon-in-python/10852917
         # compute centroid
-        cent = (sum([p[0] for p in points]) / len(points), sum([p[1] for p in points]) / len(points))
+        cent = (
+            sum([p[0] for p in points]) / len(points),
+            sum([p[1] for p in points]) / len(points),
+        )
         # sort by polar angle
-        points.sort(key = lambda p: math.atan2(p[1] - cent[1], p[0] - cent[0]))
+        points.sort(key=lambda p: math.atan2(p[1] - cent[1], p[0] - cent[0]))
 
         # add the first point again to create a closed loop
         points.append(points[0])
@@ -1430,8 +1489,6 @@ class LinearProgram:
         plt.fill(xs, ys)
         plt.show()
 
-
-
     def evaluate(self, x: Union[np.ndarray, List[float]]) -> float:
         """
         Evaluates the objective function with a given vector.
@@ -1448,13 +1505,11 @@ class LinearProgram:
 
         """
         x = self.__to_ndarray(x)
-        
+
         if not self.__is_vector_of_size(x, self._c.shape[0]):
             raise ValueError()
-        
+
         return self._c @ x + self._z
-
-
 
     def value_of(self, x: Union[np.ndarray, List[float]]) -> float:
         """
@@ -1476,10 +1531,8 @@ class LinearProgram:
 
         if not self.is_feasible(x):
             raise ValueError()
-        
+
         return self.evaluate(x)
-
-
 
     def copy(self) -> "LinearProgram":
         """
@@ -1491,7 +1544,9 @@ class LinearProgram:
             The copy of the program.
 
         """
-        p = LinearProgram(self._A.copy(), self._b.copy(), self._c.copy(), self._z, self._objective)
+        p = LinearProgram(
+            self._A.copy(), self._b.copy(), self._c.copy(), self._z, self._objective
+        )
 
         p._inequality_indices = self._inequality_indices.copy()
         p._free_variables = self._free_variables.copy()
@@ -1501,9 +1556,9 @@ class LinearProgram:
 
         return p
 
-    
-
-    def to_sef(self, show_steps: bool=True, in_place: bool=False) -> "LinearProgram":
+    def to_sef(
+        self, show_steps: bool = True, in_place: bool = False
+    ) -> "LinearProgram":
         """
         Converts the linear program to standard equality form.
 
@@ -1533,12 +1588,13 @@ class LinearProgram:
             self._c = -self._c
             self._objective = "max"
 
-            show_steps and self.__append_to_steps([
-                "3.02",
-                ("3.03", -self._c, self._c)
-            ])
+            show_steps and self.__append_to_steps(["3.02", ("3.03", -self._c, self._c)])
 
-        self._reverse_sef = {"drop": len(self._inequality_indices), "concat": [], "negative": self._negative_variables}
+        self._reverse_sef = {
+            "drop": len(self._inequality_indices),
+            "concat": [],
+            "negative": self._negative_variables,
+        }
 
         for i in self._negative_variables:
             self._A[:, i] *= -1
@@ -1568,10 +1624,8 @@ class LinearProgram:
 
         self._inequality_indices = {}
         self._is_sef = True
-        
+
         return self
-
-
 
     def is_solution_optimal(self, x):
         """
@@ -1583,8 +1637,6 @@ class LinearProgram:
 
         """
         self.is_feasible(x)
-
-
 
     def clear_steps(self, in_place=False):
         """
@@ -1598,8 +1650,6 @@ class LinearProgram:
 
         return self
 
-
-
     def __to_ndarray(self, source):
         """
         Converts array-like to an ndarray.
@@ -1612,10 +1662,10 @@ class LinearProgram:
         if isinstance(source, np.ndarray):
             if not np.issubdtype(source.dtype, np.number):
                 raise ValueError()
-            
+
             if not np.issubdtype(source.dtype, np.floating):
                 source = source.astype(float)
-                    
+
             return source
 
         if isinstance(source, list):
@@ -1640,8 +1690,6 @@ class LinearProgram:
 
         raise ValueError()
 
-
-
     def __compute_basic_solution(self, basis):
         """
         Helper function for computing the basic solution corresponding to the basis.
@@ -1657,15 +1705,13 @@ class LinearProgram:
         """
         components = np.linalg.inv(self._A[:, basis]) @ self._b
         solution = np.zeros(self._c.shape[0])
-        
-        basis.sort() # TODO copy? To prevent reference
+
+        basis.sort()  # TODO copy? To prevent reference
 
         for index, value in zip(basis, components):
             solution[index] = value
-        
+
         return solution
-
-
 
     def __get_inequalities(self):
         """
@@ -1686,8 +1732,6 @@ class LinearProgram:
 
         return inequalities
 
-
-
     def __append_to_steps(self, entity):
         """
         Appends the given step to the procedure array.
@@ -1700,13 +1744,12 @@ class LinearProgram:
                         key = step
                     elif isinstance(step, tuple):
                         key = step[0]
-                    else: 
+                    else:
                         raise ValueError()
 
-                    self._steps.append({
-                        "key": key,
-                        "text": render_descriptor(key, list(step[1:]))
-                    })
+                    self._steps.append(
+                        {"key": key, "text": render_descriptor(key, list(step[1:]))}
+                    )
         else:
             key = entity[0] if isinstance(entity, tuple) else None
 
@@ -1716,13 +1759,11 @@ class LinearProgram:
                 else:
                     raise ValueError()
 
-            self._steps.append({
-                "key": key,
-                "text": render_descriptor(key, list(entity[1:]))
-            })
+            self._steps.append(
+                {"key": key, "text": render_descriptor(key, list(entity[1:]))}
+            )
+
     # TODO replace <= and >= with the below function
-
-
 
     def __format_steps(self):
         """
@@ -1733,9 +1774,9 @@ class LinearProgram:
         result : LinearProgram
 
         """
-        return functools.reduce((lambda previous, current: f"{previous}\n{current['text']}"), self.steps, "").strip()
-
-
+        return functools.reduce(
+            (lambda previous, current: f"{previous}\n{current['text']}"), self.steps, ""
+        ).strip()
 
     def __to_math_indexing(self, array: List[int]) -> List[int]:
         """
@@ -1744,16 +1785,12 @@ class LinearProgram:
         """
         return [i + 1 for i in array]
 
-
-
     def __to_array_indexing(self, array: List[int]) -> List[int]:
         """
         Converts math indexing to array indexing.
 
         """
         return [i - 1 for i in array]
-
-
 
     def __convert_indices(self, indices, min_value=None, max_value=None):
         """ 
@@ -1769,15 +1806,13 @@ class LinearProgram:
         if len(indices) > 0:
             conditions = [
                 not min_value == None and min(indices) < min_value,
-                max_value and max(indices) >= max_value
+                max_value and max(indices) >= max_value,
             ]
 
             if any(conditions):
                 raise IndexError()
-                
+
         return indices
-
-
 
     def __is_vector_of_size(self, x, dimension):
         """
@@ -1790,8 +1825,6 @@ class LinearProgram:
         """
         return isinstance(x, np.ndarray) and x.ndim == 1 and x.shape[0] == dimension
 
-
-
     def __array_like_to_list(self, array_like):
         """
         Converts expression to standard equality form.
@@ -1802,7 +1835,7 @@ class LinearProgram:
 
         """
         if not isinstance(array_like, list) and not isinstance(array_like, np.ndarray):
-                raise ValueError()
+            raise ValueError()
 
         if isinstance(array_like, np.ndarray):
             if not array_like.ndim == 1:
@@ -1811,7 +1844,6 @@ class LinearProgram:
             array_like = array_like.tolist()
 
         return array_like
-
 
     # TODO integration
     def __is_in_rref(self, arr):
@@ -1856,9 +1888,8 @@ class LinearProgram:
             if not row_has_leading_one:
                 # row was empty
                 has_zero_row = True
-                
-        return True
 
+        return True
 
     # TODO need tests and validation
     def to_rref(self, arr):
@@ -1892,7 +1923,7 @@ class LinearProgram:
                         arr[[row, row + i]] = arr[[row + i, row]]
                         break
                     i += 1
-                
+
                 if math.isclose(col, shape[1]):
                     # Everything left is 0
                     break
@@ -1906,13 +1937,12 @@ class LinearProgram:
                 if not i == row:
                     multiple = arr[i, col] / arr[row, col]
                     arr[i, :] -= arr[row, :] * multiple
-                        
+
             col += 1
             if math.isclose(col, shape[1]):
                 break
 
         return arr
-
 
     # TODO need integration
     def __remove_dependent_rows(self, A, b):
@@ -1943,7 +1973,7 @@ class LinearProgram:
                 if j <= i:
                     # Don't check row against itself or previously checked rows
                     continue
-                
+
                 multiple = 0
                 duplicate = True
                 for col in range(shape[1]):
@@ -1958,7 +1988,7 @@ class LinearProgram:
                         # one row has a zero while other doesn't
                         duplicate = False
                         break
-                    
+
                     if col == 0:
                         multiple = arr[i, col] / arr[j, col]
                     elif not math.isclose(arr[i, col] / arr[j, col], multiple):
@@ -1980,8 +2010,6 @@ class LinearProgram:
         A = np.delete(new_arr, new_shape[1] - 1, 1)
         return A, b
 
-
-
     @property
     def A(self):
         """ 
@@ -1993,8 +2021,6 @@ class LinearProgram:
 
         """
         return self._A
-
-
 
     @property
     def b(self):
@@ -2008,8 +2034,6 @@ class LinearProgram:
         """
         return self._b
 
-
-
     @property
     def c(self):
         """ 
@@ -2021,8 +2045,6 @@ class LinearProgram:
 
         """
         return self._c
-
-
 
     @property
     def z(self) -> float:
@@ -2036,8 +2058,6 @@ class LinearProgram:
         """
         return self._z
 
-
-
     @property
     def inequalities(self) -> List[str]:
         """
@@ -2049,8 +2069,6 @@ class LinearProgram:
 
         """
         return self.__get_inequalities()
-
-
 
     @property
     def negative_variables(self) -> List[int]:
@@ -2064,8 +2082,6 @@ class LinearProgram:
 
         """
         return self.__to_math_indexing(self._negative_variables)
-
-
 
     @property
     def positive_variables(self) -> List[int]:
@@ -2088,8 +2104,6 @@ class LinearProgram:
 
         return positive
 
-
-
     @property
     def free_variables(self) -> List[int]:
         """
@@ -2103,8 +2117,6 @@ class LinearProgram:
         """
         return self.__to_math_indexing(self._free_variables)
 
-
-
     @property
     def objective(self):
         """ 
@@ -2116,8 +2128,6 @@ class LinearProgram:
 
         """
         return self._objective
-
-
 
     @property
     def is_sef(self):
@@ -2131,8 +2141,6 @@ class LinearProgram:
         """
         return self._is_sef
 
-
-
     @property
     def steps(self):
         """ 
@@ -2144,8 +2152,6 @@ class LinearProgram:
 
         """
         return self._steps
-
-
 
     @property
     def steps_string(self):
@@ -2159,10 +2165,8 @@ class LinearProgram:
         """
         return self.__format_steps()
 
-
-
     @property
-    def is_in_rref(self):   #EXPERIMENTAL
+    def is_in_rref(self):  # EXPERIMENTAL
         """ 
         Gets if the constraint is in RREF. Model must be in SEF. 
         

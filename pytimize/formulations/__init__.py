@@ -1,7 +1,3 @@
-from . import linear
-from . import integer
+from . import integer, linear
 
-__all__ = [
-    "linear",
-    "integer"
-]
+__all__ = ["linear", "integer"]

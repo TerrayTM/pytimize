@@ -1,29 +1,42 @@
 import copy
 import math
+from typing import List, Optional, Tuple, Union
+
 import numpy as np
 
-from ._linear import LinearProgram
 from ..utilities import Comparator
-from typing import List, Tuple, Optional, Union
+from ._linear import LinearProgram
+
 
 class IntegerProgram(LinearProgram):
-    def __init__(self, A, b, c, z: float=0, objective: str="max", inequalities: Optional[List[str]]=None, free_variables: Optional[List[int]]=None, negative_variables: Optional[List[int]]=None, integral_variables: Optional[List[int]]=None):
+    def __init__(
+        self,
+        A,
+        b,
+        c,
+        z: float = 0,
+        objective: str = "max",
+        inequalities: Optional[List[str]] = None,
+        free_variables: Optional[List[int]] = None,
+        negative_variables: Optional[List[int]] = None,
+        integral_variables: Optional[List[int]] = None,
+    ):
         """
         Integral variable = None => all integers
         """
-        super().__init__(A, b, c, z, objective, inequalities, free_variables, negative_variables)
-        
+        super().__init__(
+            A, b, c, z, objective, inequalities, free_variables, negative_variables
+        )
+
         self._integral_variables = integral_variables
 
-    def __repr__(self) -> str: #TODO add integral constraint
+    def __repr__(self) -> str:  # TODO add integral constraint
         output = super().__repr__().rstrip("\n")
 
         if self._integral_variables is None:
             output += "x ∈ Z"
 
         return output
-
-
 
     def branch_and_bound(self) -> Optional[np.ndarray]:
         """
@@ -42,8 +55,6 @@ class IntegerProgram(LinearProgram):
 
         return result[0]
 
-
-    
     def __branch(self, lp: LinearProgram) -> Optional[np.ndarray]:
         """
         The recursive portion of the branch and bound solution method.
@@ -75,7 +86,10 @@ class IntegerProgram(LinearProgram):
         position = 0
         for i in range(len(solution)):
             # if value is not integer, make sure it is has the integral constraint before branching - not working atm
-            if self._integral_variables is not None and position not in self._integral_variables:
+            if (
+                self._integral_variables is not None
+                and position not in self._integral_variables
+            ):
                 position += 1
                 continue
 
@@ -92,14 +106,18 @@ class IntegerProgram(LinearProgram):
                 new_A = np.concatenate((copy_A, [new_row]))
                 new_b = np.append(copy_b, np.floor(value))
                 new_inequalities.append("<=")
-                lp_lower = LinearProgram(new_A, new_b, lp.c, lp.z, lp.objective, new_inequalities)
+                lp_lower = LinearProgram(
+                    new_A, new_b, lp.c, lp.z, lp.objective, new_inequalities
+                )
 
                 lower_result = self.__branch(lp_lower)
 
                 # higher branch:
                 new_b[len(lp.b)] = np.ceil(value)
                 new_inequalities[len(new_inequalities) - 1] = ">="
-                lp_higher = LinearProgram(new_A, new_b, lp.c, lp.z, lp.objective, new_inequalities)
+                lp_higher = LinearProgram(
+                    new_A, new_b, lp.c, lp.z, lp.objective, new_inequalities
+                )
 
                 higher_result = self.__branch(lp_higher)
 
@@ -112,7 +130,7 @@ class IntegerProgram(LinearProgram):
                     return higher_result
                 elif higher_result is None:
                     return lower_result
-                
+
                 # both branches were feasible, return the solution with the best optimal value
                 elif lp.objective == "max":
                     if higher_result[1] > lower_result[1]:
@@ -123,10 +141,8 @@ class IntegerProgram(LinearProgram):
                 return lower_result
 
             position += 1
-        
-        return [solution, opt_value]  # solution passes constraints
-    
 
+        return [solution, opt_value]  # solution passes constraints
 
     def cutting_plane(self) -> Optional[np.ndarray]:
         """
@@ -140,9 +156,10 @@ class IntegerProgram(LinearProgram):
         """
         pass
 
-
     # TODO make public function so user can call find cutting plane which returns the constraint
-    def __find_cutting_plane(self, lp: LinearProgram, sln: np.ndarray) -> Tuple[np.ndarray, str, float]:
+    def __find_cutting_plane(
+        self, lp: LinearProgram, sln: np.ndarray
+    ) -> Tuple[np.ndarray, str, float]:
         """
         Finds a cutting plane (additional constraint) for the cutting plane solution method.
 
@@ -164,8 +181,6 @@ class IntegerProgram(LinearProgram):
         """
         pass
 
-
-
     def relax(self) -> LinearProgram:
         """
         Creates the corresponding linear program relaxation.
@@ -175,14 +190,19 @@ class IntegerProgram(LinearProgram):
         result : LinearProgram
 
         """
-        return LinearProgram(self._A, self._b, self._c, self._z, self._objective, self.inequalities, self.free_variables, self.negative_variables)
+        return LinearProgram(
+            self._A,
+            self._b,
+            self._c,
+            self._z,
+            self._objective,
+            self.inequalities,
+            self.free_variables,
+            self.negative_variables,
+        )
 
-
-
-    def is_feasible(self, x, show_steps: bool=True) -> bool:
+    def is_feasible(self, x, show_steps: bool = True) -> bool:
         result = super().is_feasible(x, show_steps)
         return result
 
-
-
-    #TODO override evaluate of base to take consideration of integers
+    # TODO override evaluate of base to take consideration of integers

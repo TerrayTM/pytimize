@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 with open("README.md", "r", encoding="utf-8") as file:
     long_description = file.read()
@@ -23,7 +23,7 @@ setup(
     project_urls={
         "Bug Reports": "https://pytimize.terrytm.com/issues",
         "Documentation": "https://pytimize.terrytm.com",
-        "Source Code": "https://github.com/TerrayTM/pytimize"
+        "Source Code": "https://github.com/TerrayTM/pytimize",
     },
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
@@ -35,6 +35,6 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Topic :: Software Development",
         "Topic :: Scientific/Engineering",
-        "Operating System :: OS Independent"
-    ]
+        "Operating System :: OS Independent",
+    ],
 )

@@ -1,12 +1,13 @@
-import numpy as np
+from typing import Callable, List, Union
 
-from typing import Callable, Union, List
+import numpy as np
 
 Vector = Union[np.ndarray, List[float]]
 Matrix = Union[np.ndarray, List[List[float]]]
 
+
 class UnconstrainedProgram:
-    def __init__(self, f: Callable[[Vector], float], objective: str="min"):
+    def __init__(self, f: Callable[[Vector], float], objective: str = "min"):
         """
         Constructs an unconstrained program of the form `<objective> <function>`
         where objective denotes whether this is a maximization or minimization problem, and function
@@ -26,9 +27,16 @@ class UnconstrainedProgram:
         self._f = f
         self._minimize = objective == "min"
 
-
-
-    def steepest_descent(self, x: Vector, df: Callable[[Vector], Vector], alpha: float=1, c: float=0.7, p: float=0.5, tolerance: float=10e-5, max_iteration: int=10e4):
+    def steepest_descent(
+        self,
+        x: Vector,
+        df: Callable[[Vector], Vector],
+        alpha: float = 1,
+        c: float = 0.7,
+        p: float = 0.5,
+        tolerance: float = 10e-5,
+        max_iteration: int = 10e4,
+    ):
         """
         Computes the minimizer or maximizer of the function using steepest descent method
         with backtracking.
@@ -57,7 +65,7 @@ class UnconstrainedProgram:
             The maximum number of iterations.
 
         """
-        for _ in range(int(max_iteration)): 
+        for _ in range(int(max_iteration)):
             d = -df(x)
             a = alpha
 
@@ -71,9 +79,14 @@ class UnconstrainedProgram:
 
         return x if self._minimize else -x
 
-
-
-    def newton_method(self, x: Vector, df: Callable[[Vector], float], d2f: Callable[[Vector], Matrix], tolerance: float=10e-5, max_iteration: int=10e4):
+    def newton_method(
+        self,
+        x: Vector,
+        df: Callable[[Vector], float],
+        d2f: Callable[[Vector], Matrix],
+        tolerance: float = 10e-5,
+        max_iteration: int = 10e4,
+    ):
         """
         Computes the minimizer or maximizer of the function using Newton's method.
 
@@ -96,7 +109,7 @@ class UnconstrainedProgram:
 
         """
 
-        for _ in range(int(max_iteration)): 
+        for _ in range(int(max_iteration)):
             d = np.linalg.solve(d2f(x), -df(x))
             x += d
 

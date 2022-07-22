@@ -1,10 +1,15 @@
 import math
-
-from typing import Iterable, Union, List, Tuple, Dict, Set, Optional
 from collections import deque
+from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
+
 
 class DirectedGraph:
-    def __init__(self, graph: Optional[Dict[str, Set[str]]]=None, arcs: Optional[Dict[Tuple[str, str], float]]=None, nodes: Optional[Dict[str, float]]=None) -> None:
+    def __init__(
+        self,
+        graph: Optional[Dict[str, Set[str]]] = None,
+        arcs: Optional[Dict[Tuple[str, str], float]] = None,
+        nodes: Optional[Dict[str, float]] = None,
+    ) -> None:
         """
         Constructs a directed graph with support for arc and node weights.
         If `graph`, `arcs`, `nodes`, or a combination of them is provided, the 
@@ -41,7 +46,7 @@ class DirectedGraph:
 
                         self.add_arc(arc)
 
-        if arcs is not None: 
+        if arcs is not None:
             for arc, weight in arcs.items():
                 if not self.has_arc(arc):
                     self.add_arc(arc, weight)
@@ -50,12 +55,10 @@ class DirectedGraph:
 
         if nodes is not None:
             for node, weight in nodes.items():
-                if not self.has_node(node): 
+                if not self.has_node(node):
                     self.add_node(node)
 
                 self.set_node_weight(node, weight)
-
-
 
     def set_arc_weight(self, arc: Tuple[str, str], weight: float) -> None:
         if not self.has_arc(arc):
@@ -63,15 +66,11 @@ class DirectedGraph:
 
         self._arcs[arc] = weight
 
-
-
     def set_node_weight(self, node: str, weight: float) -> None:
         if not self.has_node(node):
             raise ValueError("The given vertex is not in graph.")
 
         self._nodes[node] = weight
-
-
 
     def add_arc(self, arc, weight=0, demands=None):
         """
@@ -106,7 +105,9 @@ class DirectedGraph:
 
         if not a_exists and not b_exists:
             if demands and not isinstance(demands, tuple):
-                raise TypeError("Demands must be a tuple of floats when both endpoints are new nodes.")
+                raise TypeError(
+                    "Demands must be a tuple of floats when both endpoints are new nodes."
+                )
 
             self.add_node(arc[0], demands[0] if demands else 0)
             self.add_node(arc[1], demands[1] if demands else 0)
@@ -114,8 +115,6 @@ class DirectedGraph:
             self.add_node(arc[0], demands[0] if demands else 0)
         elif not b_exists:
             self.add_node(arc[1], demands[1] if demands else 0)
-
-
 
     def add_node(self, node, demand=0):
         """
@@ -132,11 +131,9 @@ class DirectedGraph:
         """
         if self.has_node(node):
             raise ValueError("The given node already exists in digraph.")
-        
+
         self._graph.setdefault(node, set())
         self._nodes.setdefault(node, demand)
-
-
 
     # TODO fix bug in undirected graph
     def remove_arc(self, arc, remove_nodes=False):
@@ -168,8 +165,6 @@ class DirectedGraph:
                 del self._graph[arc[1]]
                 del self._nodes[arc[1]]
 
-
-
     def remove_node(self, node):
         """
         Removes a node from the digraph.
@@ -184,8 +179,6 @@ class DirectedGraph:
 
         """
         pass
-
-
 
     def cut(self, nodes: Union[Iterable[str], str]) -> Set[Tuple[str, str]]:
         """
@@ -205,9 +198,11 @@ class DirectedGraph:
         if not isinstance(nodes, set):
             nodes = set(nodes)
 
-        return set(filter(lambda arc: arc[0] in nodes and arc[1] not in nodes, self._arcs.keys()))
-
-
+        return set(
+            filter(
+                lambda arc: arc[0] in nodes and arc[1] not in nodes, self._arcs.keys()
+            )
+        )
 
     def ncut(self, nodes: Union[Iterable[str], str]) -> Set[Tuple[str, str]]:
         """
@@ -228,9 +223,11 @@ class DirectedGraph:
         if not isinstance(nodes, set):
             nodes = set(nodes)
 
-        return list(filter(lambda arc: arc[1] in nodes and arc[0] not in nodes, self._arcs.keys()))
-
-
+        return list(
+            filter(
+                lambda arc: arc[1] in nodes and arc[0] not in nodes, self._arcs.keys()
+            )
+        )
 
     def has_node(self, node):
         """
@@ -249,8 +246,6 @@ class DirectedGraph:
         """
         return node in self._nodes
 
-
-
     def has_arc(self, arc):
         """
         Checks if the given arc exists in digraph.
@@ -267,8 +262,6 @@ class DirectedGraph:
 
         """
         return arc in self._arcs
-
-
 
     def indegree(self, nodes: Union[Iterable[str], str]) -> int:
         """
@@ -287,8 +280,6 @@ class DirectedGraph:
         """
         return len(self.ncut(nodes))
 
-
-
     def outdegree(self, nodes: Union[Iterable[str], str]) -> int:
         """
         Computes the outdegree of a node or a set of nodes.
@@ -305,8 +296,6 @@ class DirectedGraph:
 
         """
         return len(self.cut(nodes))
-
-
 
     def connections(self, nodes):
         """
@@ -327,8 +316,6 @@ class DirectedGraph:
         """
         return self.indegree(nodes) + self.outdegree(nodes)
 
-
-
     def create_residual(self, flow: Dict[Tuple[str, str], float]) -> "DirectedGraph":
         if any(arc not in self._arcs or value < 0 for arc, value in flow.items()):
             raise ValueError()
@@ -345,9 +332,9 @@ class DirectedGraph:
 
         return DirectedGraph(arcs=arcs)
 
-
-
-    def _compute_residual(self, flow: Dict[Tuple[str, str], float]) -> Dict[str, Dict[str, float]]:
+    def _compute_residual(
+        self, flow: Dict[Tuple[str, str], float]
+    ) -> Dict[str, Dict[str, float]]:
         residual = {}
 
         for arc, capacity in self._arcs.items():
@@ -365,9 +352,9 @@ class DirectedGraph:
 
         return residual
 
-
-
-    def preflow_push(self, source: str, sink: str) -> Tuple[float, Dict[Tuple[str, str], float]]:
+    def preflow_push(
+        self, source: str, sink: str
+    ) -> Tuple[float, Dict[Tuple[str, str], float]]:
         """
         Computes the maximum flow from `source` to `sink` using the Preflow Push algorithm.
         The directed graph must specify nonnegative arc weights as capcities.
@@ -400,8 +387,12 @@ class DirectedGraph:
         source_cut = self.cut(source)
         flow = {arc: self._arcs[arc] if arc in source_cut else 0 for arc in self._arcs}
         residual = self._compute_residual(flow)
-        height = {node: len(self._nodes) if node == source else 0 for node in self._nodes}
-        nodes = list(filter(lambda node: not node == source and not node == sink, self._nodes))
+        height = {
+            node: len(self._nodes) if node == source else 0 for node in self._nodes
+        }
+        nodes = list(
+            filter(lambda node: not node == source and not node == sink, self._nodes)
+        )
 
         for node in nodes:
             excess[node] = sum(flow[arc] for arc in self.ncut(node))
@@ -436,13 +427,13 @@ class DirectedGraph:
 
                         if residual[u][v] == 0:
                             del residual[u][v]
-                    
+
                         if residual[v][u] == 0:
                             del residual[v][u]
 
                         if len(residual[u]) == 0:
                             del residual[u]
-                
+
                         if len(residual[v]) == 0:
                             del residual[v]
 
@@ -458,7 +449,7 @@ class DirectedGraph:
                     max_height = math.inf
 
                     for endpoint in residual[node]:
-                        max_height = min(height[endpoint], max_height) 
+                        max_height = min(height[endpoint], max_height)
 
                     height[node] = max_height + 1
 
@@ -471,10 +462,8 @@ class DirectedGraph:
 
         return value, flow
 
-
-
     def _bfs_path(self, source, target, graph):
-        queue = deque([source])        
+        queue = deque([source])
         seen = set([source])
         parent = {}
 
@@ -484,7 +473,7 @@ class DirectedGraph:
             for endpoint in graph.get(current, {}):
                 if endpoint in seen:
                     continue
-                
+
                 parent[endpoint] = current
 
                 if endpoint == target:
@@ -495,9 +484,9 @@ class DirectedGraph:
 
         return None
 
-
-
-    def ford_fulkerson(self, source: str, sink: str) -> Tuple[float, Dict[Tuple[str, str], float]]:
+    def ford_fulkerson(
+        self, source: str, sink: str
+    ) -> Tuple[float, Dict[Tuple[str, str], float]]:
         """
         Computes the maximum flow from `source` to `sink` using the Ford Fulkerson algorithm.
         The directed graph must specify nonnegative arc weights as capcities.
@@ -556,13 +545,13 @@ class DirectedGraph:
 
                 if residual[u][v] == 0:
                     del residual[u][v]
-            
+
                 if residual[v][u] == 0:
                     del residual[v][u]
 
                 if len(residual[u]) == 0:
                     del residual[u]
-                
+
                 if len(residual[v]) == 0:
                     del residual[v]
 
@@ -576,11 +565,8 @@ class DirectedGraph:
 
         return value, flow
 
-
-
     def formulate_max_flow(self):
         pass
-
 
     def is_digraph_connected(self):
         pass
@@ -592,7 +578,7 @@ class DirectedGraph:
         pass
 
     def adjacency_matrix(self):
-        pass 
+        pass
 
     def incidence_matrix(self):
         pass
@@ -613,9 +599,9 @@ class DirectedGraph:
         pass
 
     def is_tree_solution(self):
-        pass 
+        pass
 
-    def is_tree_flow(self): 
+    def is_tree_flow(self):
         pass
 
     @property
@@ -625,4 +611,3 @@ class DirectedGraph:
     @property
     def nodes(self):
         return list(self._nodes.keys())
- 

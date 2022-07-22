@@ -6,7 +6,6 @@ _steps = {
     "1.03": "Corresponding Coefficient Entries: {}",
     "1.04": "Basis Inverse:\n{}",
     "1.05": "y Vector:\n{}",
-
     "2.01": "Is {} Feasible?",
     "2.02": "{} is Feasible:",
     "2.03": "* P is in SEF",
@@ -22,12 +21,10 @@ _steps = {
     "2.13": "* {} • {} = {} and {} is Not ≠ {}",
     "2.14": "* Constraints are Satisfied",
     "2.15": "* All Entries are Either Nonnegative or is a Free Variable",
-
     "3.01": "Convert to SEF",
     "3.02": "Take Negative of Coefficient Vector to Set Objective to Maximization",
     "3.03": "{} => {}",
     "3.04": "Free Variables at Index x",
-
     "4.01": "Is {} A Basic Solution",
     "4.02": "Column {} Is Not a Zero",
     "4.03": "Ax ≠ b",
@@ -35,7 +32,6 @@ _steps = {
     "4.05": "{} is Not A Basic Solution for Basis {}",
     "4.06": "Ax = b",
     "4.07": "Columns of Basis are Zero",
-
     "5.01": "{}",
     "5.02": "Iteration {} =================================",
     "5.03": "Solution: {}",
@@ -44,13 +40,7 @@ _steps = {
     "5.06": "Optimality Certificate: {}",
 }
 
-_cleanup_rules = [
-    ("[ ", "["),
-    (" ]", "]"),
-    ("[[", "["),
-    ("]] ", "]"),
-    (" [", "[")
-]
+_cleanup_rules = [("[ ", "["), (" ]", "]"), ("[[", "["), ("]] ", "]"), (" [", "[")]
 
 # TODO minor format bug
 def render_descriptor(key, arguments):
@@ -63,10 +53,11 @@ def render_descriptor(key, arguments):
 
             for rule in _cleanup_rules:
                 text = text.replace(rule[0], rule[1])
-            
+
             arguments[i] = text
 
     return _steps[key].format(*arguments)
+
 
 def assert_correctness(steps):
     pass

@@ -1,7 +1,4 @@
-from ._undirected import UndirectedGraph
 from ._directed import DirectedGraph
+from ._undirected import UndirectedGraph
 
-__all__ = [
-    "UndirectedGraph",
-    "DirectedGraph"
-]
+__all__ = ["UndirectedGraph", "DirectedGraph"]

@@ -1,7 +1,9 @@
+from unittest import TestCase, main
+
 import numpy as np
 
 from ... import LinearParser
-from unittest import TestCase, main
+
 
 class TestParse(TestCase):
     def test_parse(self) -> None:
@@ -9,6 +11,7 @@ class TestParse(TestCase):
         expected = np.array([0, 0, 0, 0.25, 1.25, 0, 0, -3])
 
         self.assertTrue(np.allclose(result, expected), "Should parse correctly.")
+
 
 if __name__ == "__main__":
     main()
